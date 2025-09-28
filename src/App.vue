@@ -1,0 +1,27 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { RouterView } from 'vue-router'
+import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
+import { getUrlParams } from '@/utils'
+import Cookies from 'js-cookie'
+
+onMounted(() => {
+  console.log(getUrlParams())
+  Cookies.set('x-token', getUrlParams().accessToken)
+})
+</script>
+
+<template>
+  <n-config-provider class="w-full h-full">
+    <n-message-provider>
+      <n-dialog-provider>
+        <router-view />
+      </n-dialog-provider>
+    </n-message-provider>
+  </n-config-provider>
+</template>
+<style lang="scss">
+.n-form-item .n-form-item-feedback-wrapper {
+  min-height: 12px;
+}
+</style>
