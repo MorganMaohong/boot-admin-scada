@@ -7,7 +7,8 @@ import { deepClone, LockState } from '@meta2d/core'
 import FastUpload from '@/components/FastUpload/index.vue'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { DefValues } from '@/Layout/Resource/components'
-
+import { useLayerStore } from '@/stores/module/layer.ts'
+const layerStore = useLayerStore()
 const data = ref<any[]>([])
 onMounted(() => {
   MonitorDrawService.images().then((res) => {
@@ -46,13 +47,16 @@ const dragStart = (e: any, elem: any) => {
   }
   e.stopPropagation()
 
+  const data = { ...elem.data }
+  data.layerUid = layerStore.layer.uid
+
   // 拖拽事件
   if (e instanceof DragEvent) {
     // 设置拖拽数据
-    e.dataTransfer?.setData('Meta2d', JSON.stringify(elem.data))
+    e.dataTransfer?.setData('Meta2d', JSON.stringify(data))
   } else {
     // 支持单击添加图元。平板模式
-    meta2d.canvas.addCaches = [elem.data]
+    meta2d.canvas.addCaches = [data]
   }
 }
 </script>

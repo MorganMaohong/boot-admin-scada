@@ -3,7 +3,9 @@ import { ref, watch, onMounted, reactive } from 'vue'
 import type { BasicGraph } from '@/model/res/basic'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import { DefValues } from '@/Layout/Resource/components'
+import { useLayerStore } from '@/stores/module/layer.ts'
 
+const layerStore = useLayerStore()
 const data = ref<BasicGraph[]>([
   {
     name: '正方形',
@@ -222,13 +224,16 @@ const dragStart = (e: any, elem: any) => {
   }
   e.stopPropagation()
 
+  const data = { ...elem.data }
+  data.layerUid = layerStore.layer.uid
+
   // 拖拽事件
   if (e instanceof DragEvent) {
     // 设置拖拽数据
-    e.dataTransfer?.setData('Meta2d', JSON.stringify(elem.data))
+    e.dataTransfer?.setData('Meta2d', JSON.stringify(data))
   } else {
     // 支持单击添加图元。平板模式
-    meta2d.canvas.addCaches = [elem.data]
+    meta2d.canvas.addCaches = [data]
   }
 }
 </script>

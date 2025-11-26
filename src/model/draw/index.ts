@@ -35,3 +35,10 @@ export interface ProjectMonitorDrawDisplay {
 export interface ProjectQuery {
   keyword: string
 }
+
+export interface GlobalModalParams {
+  show: boolean
+  width: number
+  height: number
+  title?: string
+}

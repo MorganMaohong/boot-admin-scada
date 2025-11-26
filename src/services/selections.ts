@@ -19,14 +19,6 @@ const selections = reactive<{
 
 export const useSelection = () => {
   const select = (pens?: Pen[]) => {
-    // debugger
-    /*if (!pens || pens.length !== 1) {
-      selections.mode = SelectionMode.File
-      selections.pen = undefined
-    } else {
-      selections.mode = SelectionMode.Pen
-      selections.pen = pens[0]
-    }*/
     if (!pens) {
       selections.mode = SelectionMode.File
       selections.pen = undefined

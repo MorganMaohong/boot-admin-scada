@@ -119,6 +119,17 @@ function options() {
       <GatewayVarSelect v-model:model-value="eventData.params.key" />
     </n-form-item>
   </template>
+  <template
+    v-if="
+      eventData.value === GlobalFnEnums.openModal &&
+      eventData.params &&
+      typeof eventData.params === 'object'
+    "
+  >
+    <n-form-item label="变量" class="w-full">
+      <GatewayVarSelect v-model:model-value="eventData.params.key" />
+    </n-form-item>
+  </template>
 </template>
 
 <style lang="scss" scoped></style>

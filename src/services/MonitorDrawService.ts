@@ -120,58 +120,54 @@ export const MonitorDrawService = {
   },
   async uploadFile(data: FormData): Promise<string> {
     try {
-      // 调用上传接口，传入 FormData 作为文件数据
       let res = await request({
         url: monitorDrawApi.uploadFile.url,
         method: 'POST',
         data,
         headers: { 'Content-Type': 'multipart/form-data' }, // 动态修改请求头
       })
-      // 如果上传成功，返回文件上传后的 URL 或其他相关信息
+
       return Promise.resolve(res.data)
     } catch (err) {
       console.error('File upload error:', err)
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err)
     }
   },
   async images(): Promise<string[]> {
     try {
-      // 调用上传接口，传入 FormData 作为文件数据
       let res = await request({
         url: monitorDrawApi.images.url,
         method: 'POST',
       })
-      // 如果上传成功，返回文件上传后的 URL 或其他相关信息
+
       return Promise.resolve(res.data)
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err)
     }
   },
   async selectByProjectUid(projectUid: string): Promise<ProjectMonitorDraw[]> {
     try {
-      // 调用上传接口，传入 FormData 作为文件数据
       let res = await request({
         url: monitorDrawApi.selectByProjectUid.url + `/${projectUid}`,
         method: 'POST',
       })
-      // 如果上传成功，返回文件上传后的 URL 或其他相关信息
+
       return Promise.resolve(res.data)
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err)
     }
   },
   async selectProject(data: ProjectQuery, currentProjectUid: string): Promise<Project[]> {
     try {
-      // 调用上传接口，传入 FormData 作为文件数据
       let res = await request({
         url: monitorDrawApi.selectProject.url + `/${currentProjectUid}`,
         method: 'POST',
         data,
       })
-      // 如果上传成功，返回文件上传后的 URL 或其他相关信息
+
       return Promise.resolve(res.data)
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err)
     }
   },
 }

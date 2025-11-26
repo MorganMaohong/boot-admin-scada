@@ -75,8 +75,12 @@ function onCheckPen(pen) {
 }
 
 function changeVisible(pen, value: any, index: number) {
-  meta2d.setValue({ id: pen.id, visible: value }, { render: true })
-  updatePenProp(index, 'visible', value)
+  let v = false
+  if (pen.visible == false || pen.visible == true) {
+    v = !pen.visible
+  }
+  meta2d.setValue({ id: pen.id, visible: v }, { render: true })
+  updatePenProp(index, 'visible', v)
 }
 
 function removePen(pen, index: number) {
@@ -137,6 +141,11 @@ function leaveStructHoverIndex(p: Pen) {
   structHoverIndex.value = null
   meta2d.render()
 }
+
+function comPenVisible(pen: Pen) {
+  if (pen.visible == false || pen.visible == true) return pen.visible
+  return false
+}
 </script>
 
 <template>
@@ -173,24 +182,24 @@ function leaveStructHoverIndex(p: Pen) {
                 @update:pureColor="setBackgroundColor"
               />
             </n-form-item>
-<!--            <n-form-item label="pc端自动缩放">
-              <n-switch
-                v-model:value="data.autoSizeinPc"
-                @update:value="setData($event, 'autoSizeinPc')"
-              />
-            </n-form-item>
-            <n-form-item label="移动端自动缩放">
-              <n-switch
-                v-model:value="data.autoSizeinMobile"
-                @update:value="setData($event, 'autoSizeinMobile')"
-              />
-            </n-form-item>
-            <n-form-item label="预览不充满窗口">
-              <n-switch
-                v-model:value="data.previewUnScale"
-                @update:value="setData($event, 'previewUnScale')"
-              />
-            </n-form-item>-->
+            <!--            <n-form-item label="pc端自动缩放">
+                          <n-switch
+                            v-model:value="data.autoSizeinPc"
+                            @update:value="setData($event, 'autoSizeinPc')"
+                          />
+                        </n-form-item>
+                        <n-form-item label="移动端自动缩放">
+                          <n-switch
+                            v-model:value="data.autoSizeinMobile"
+                            @update:value="setData($event, 'autoSizeinMobile')"
+                          />
+                        </n-form-item>
+                        <n-form-item label="预览不充满窗口">
+                          <n-switch
+                            v-model:value="data.previewUnScale"
+                            @update:value="setData($event, 'previewUnScale')"
+                          />
+                        </n-form-item>-->
           </n-form>
         </n-scrollbar>
       </n-tab-pane>
@@ -236,7 +245,7 @@ function leaveStructHoverIndex(p: Pen) {
                   <n-button text @click.stop="changeVisible(item, !item.visible, index)">
                     <template #icon>
                       <n-icon>
-                        <Eye v-if="item.visible" />
+                        <Eye v-if="comPenVisible(item)" />
                         <EyeOff v-else />
                       </n-icon>
                     </template>

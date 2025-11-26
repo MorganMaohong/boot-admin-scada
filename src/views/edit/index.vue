@@ -57,8 +57,10 @@ import { useDrawStore } from '@/stores/module/draw.ts'
 import { EventActionEnums } from '@/components/ElementsProps/model'
 import { ProjectService } from '@/services/ProjectService.ts'
 import { getUrlParams } from '@/utils'
+import { useLayerStore } from '@/stores/module/layer.ts'
 
 const drawStore = useDrawStore()
+const layerStore = useLayerStore()
 const { select, selections, selects } = useSelection()
 const showMenu = ref(false)
 const menuPosition = ref({
@@ -92,11 +94,13 @@ function init() {
   registerAnchors(ftaAnchors())
   // 注册其他自定义图形库
   // ...
+
   const draw = drawStore.draw
   if (!draw) {
     window.$message.error('图纸异常')
     return
   }
+  layerStore.getDefaultLayer();
   let data = JSON.parse(draw.data)
   // data.bkImage = ''
   meta2d.open(data)

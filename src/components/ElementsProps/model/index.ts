@@ -457,6 +457,7 @@ export enum GlobalFnEnums {
   writeVar = 'writeVar',
   controlVar = 'controlVar',
   openFullScreen = 'openFullScreen',
+  openModal = 'openModal',
 }
 
 export const GlobalFnOptions: OptionVo[] = [
@@ -464,6 +465,7 @@ export const GlobalFnOptions: OptionVo[] = [
   { label: '写入变量值', value: GlobalFnEnums.writeVar },
   { label: '显示变量控制', value: GlobalFnEnums.controlVar },
   { label: '显示全屏', value: GlobalFnEnums.openFullScreen },
+  { label: '打开弹窗', value: GlobalFnEnums.openModal },
 ]
 
 export const PenLockedOptions: OptionVo[] = [

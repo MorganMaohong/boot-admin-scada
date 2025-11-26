@@ -13,9 +13,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async selectVarCacheData(gatewayUid: string): Promise<Record<string, string>> {
@@ -25,9 +25,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async selectVarCacheDataBySnList(data: string[]): Promise<Record<string, string>> {
@@ -38,9 +38,9 @@ export const VarService = {
         data,
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async select(data: VarQuery): Promise<PageVo<VarVo, VarQueryData>> {
@@ -51,9 +51,9 @@ export const VarService = {
         data,
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async form(gatewayUid: string, uid: string): Promise<VarForm> {
@@ -66,9 +66,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async addOrUpdate(data: VarForm): Promise<void> {
@@ -80,9 +80,9 @@ export const VarService = {
         data,
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async copy(uid: string): Promise<void> {
@@ -93,9 +93,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async delete(uid: string): Promise<void> {
@@ -106,9 +106,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async deleteds(data: string[]): Promise<void> {
@@ -120,9 +120,9 @@ export const VarService = {
         data,
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async write(uid: string, controlValue: string): Promise<void> {
@@ -134,9 +134,9 @@ export const VarService = {
         method: 'POST',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async uploadVarExcel(gatewayUid: string, groupUid: string, data: FormData): Promise<void> {
@@ -149,9 +149,9 @@ export const VarService = {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async exportVarExcel(gatewayUid: string): Promise<void> {
@@ -163,9 +163,9 @@ export const VarService = {
         responseType: 'blob',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
   async downloadTemplate(): Promise<void> {
@@ -177,9 +177,9 @@ export const VarService = {
         responseType: 'blob',
       })
       return Promise.resolve(res.data)
-      // 确保类型安全
+      
     } catch (err) {
-      return Promise.reject(err) // 抛出错误到调用方
+      return Promise.reject(err) 
     }
   },
 }

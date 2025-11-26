@@ -203,7 +203,8 @@ function setDefVisible() {
   pens.forEach((pen) => {
     // 如果是子图元，就跳过，不处理它的 visible
     if (allChildIds.has(pen.id)) return
-
+    // 如果pen 已经被隐藏则不需要设置默认隐藏状态
+    if (pen.visible === false) return
     // 否则，设置它自己的 visible 状态
     meta2d.setValue({ id: pen.id, visible: pen.defVisible }, { render: true })
   })

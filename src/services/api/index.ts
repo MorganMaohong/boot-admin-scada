@@ -1,9 +1,12 @@
 const apiPrefix = {
   monitorDraw: '/project/monitorDraw',
+  monitorDrawModal: '/project/monitorDrawModal',
   monitorCategory: '/project/monitorCategory',
+  monitorDrawModalCategory: '/project/monitorDrawModalCategory',
   variable: '/comport/variable',
   file: '/file',
   monitorImage: '/project/monitorImage',
+  monitorLayer: '/project/monitorDraw/layer',
   project: '/project',
 }
 
@@ -152,4 +155,50 @@ export const monitorImageApi = {
     url: `${apiPrefix.monitorImage}/deleteSystemMonitorImage`,
     permission: '',
   },
+}
+
+export const monitorLayerApi = {
+  add: {
+    url: `${apiPrefix.monitorLayer}/add`,
+    permission: '',
+  },
+  copy: {
+    url: `${apiPrefix.monitorLayer}/copy`,
+    permission: '',
+  },
+  delete: {
+    url: `${apiPrefix.monitorLayer}/delete`,
+    permission: '',
+  },
+  update: {
+    url: `${apiPrefix.monitorLayer}/update`,
+    permission: '',
+  },
+  select: {
+    url: `${apiPrefix.monitorLayer}/select`,
+    permission: '',
+  },
+  selectDefault: {
+    url: `${apiPrefix.monitorLayer}/selectDefault`,
+    permission: '',
+  },
+  changeDefaultLayer: {
+    url: `${apiPrefix.monitorLayer}/changeDefaultLayer`,
+    permission: '',
+  },
+}
+
+export const monitorDrawModalApi = {
+  add: { url: `${apiPrefix.monitorDrawModal}/add`, permission: '' },
+  update: { url: `${apiPrefix.monitorDrawModal}/update`, permission: '' },
+  delete: { url: `${apiPrefix.monitorDrawModal}/delete`, permission: '' },
+  form: { url: `${apiPrefix.monitorDrawModal}/form`, permission: '' },
+  select: { url: `${apiPrefix.monitorDrawModal}/select`, permission: '' },
+}
+
+export const monitorDrawModalCategoryApi = {
+  add: { url: `${apiPrefix.monitorDrawModalCategory}/add`, permission: '' },
+  update: { url: `${apiPrefix.monitorDrawModalCategory}/update`, permission: '' },
+  delete: { url: `${apiPrefix.monitorDrawModalCategory}/delete`, permission: '' },
+  form: { url: `${apiPrefix.monitorDrawModalCategory}/form`, permission: '' },
 }

@@ -14,7 +14,7 @@ const props = defineProps({
   },
   maxSize: {
     type: Number,
-    default: 10, // 最大文件大小（单位 MB）
+    default: 100, // 最大文件大小（单位 MB）
   },
   autoUpload: {
     type: Boolean,
@@ -64,7 +64,7 @@ function validateFile(
   maxSizeMB: number,
   allowedFormats: string[],
 ): { msg: string; type: boolean } {
-  const maxSize = maxSizeMB * 1024 * 1024
+  const maxSize = maxSizeMB * 10240 * 10240
   const fileExt = file.name.split('.').pop()?.toLowerCase()
 
   if (!fileExt || !allowedFormats.includes(fileExt)) {

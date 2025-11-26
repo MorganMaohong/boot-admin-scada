@@ -99,8 +99,14 @@ export function openFullScreen(pen: any, params: any) {
   // window.parent.postMessage({ type: 'REQUEST_FULLSCREEN' }, '*')
 }
 
+export function openModal(pen: any, params: any) {
+  console.log('openModal', pen, params)
+  drawStore.globalModal.show = true
+}
+
 // 注册到 globalThis
 ;(globalThis as any).openDraw = openDraw
 ;(globalThis as any).writeVar = writeVar
 ;(globalThis as any).controlVar = controlVar
 ;(globalThis as any).openFullScreen = openFullScreen
+;(globalThis as any).openModal = openModal

@@ -13,7 +13,9 @@ import type {
 } from '@/model/image'
 import FastUpload from '@/components/FastUpload/index.vue'
 import { deepClone, LockState } from '@meta2d/core'
+import { useLayerStore } from '@/stores/module/layer.ts'
 
+const layerStore = useLayerStore()
 const currentTabValue = ref<string>('system')
 const currentValue = ref<string>('')
 const currentHoverValue = ref()
@@ -164,7 +166,9 @@ function updateImageValue(v: string) {
   currentImageValue.value = v
 }
 
-function insertImage() {
+function insertImageOption() {}
+
+function insertImage(flag: boolean) {
   let url = ''
   if (currentTabValue.value === 'system') {
     const image = systemImageList.value.find((item) => item.uid === currentImageValue.value)
@@ -186,16 +190,18 @@ function insertImage() {
   const item = {
     x: 100,
     y: 100,
-    name: '矩形',
     width: 200,
     height: 200,
-    name: 'rectangle',
+    name: flag ? 'image' : 'gif',
     image: url,
     locked: LockState.None,
     color: '#00000000',
     background: '#00000000',
     imageRatio: true,
   }
+
+  item.layerUid = layerStore.layer.uid
+
   meta2d.addPen(item, false, false, true)
 }
 
@@ -305,7 +311,18 @@ function removeImage() {
               <n-button type="info">上传图片</n-button>
             </FastUpload>
             <n-button type="error" v-if="currentImageValue" @click="removeImage">删除</n-button>
-            <n-button type="primary" v-if="currentImageValue" @click="insertImage">插入</n-button>
+            <n-popconfirm
+              v-if="currentImageValue"
+              positive-text="图片"
+              negative-text="动图"
+              @positive-click="insertImage(true)"
+              @negative-click="insertImage(false)"
+            >
+              <template #trigger>
+                <n-button type="primary">插入</n-button>
+              </template>
+              请选择图片类型
+            </n-popconfirm>
           </div>
         </div>
       </div>

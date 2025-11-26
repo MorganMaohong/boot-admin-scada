@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
+import { LayersFilled } from '@vicons/material'
 import { Folder16Regular } from '@vicons/fluent'
 import { PencilAlt, PenFancy } from '@vicons/fa'
 import { Save, Search, View } from '@vicons/carbon'
@@ -17,6 +18,7 @@ import { LockState, Meta2dStore, Pen, Point, s16 } from '@meta2d/core'
 import { NButton } from 'naive-ui'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import SystemImageCallery from '@/components/SystemImageCallery/index.vue'
+import LayerManagement from '@/components/LayerManagement/index.vue'
 
 const isMagnifier = ref<boolean>(false)
 const currentLineType = ref<string>('curve')
@@ -45,6 +47,7 @@ const showUploadImage = ref<boolean>(false)
 const tableKey = ref(s16())
 const locked = ref()
 const showImageGallery = ref(false)
+const showLayers = ref(false)
 const scale = ref(0)
 onMounted(() => {
   emitter.on('meta2d-ready', () => {
@@ -477,6 +480,12 @@ function updatePresetValue(v: number, d: OptionVo) {
         </n-icon>
         <div class="text-xs">图库</div>
       </div>
+      <div class="flex flex-col cursor-pointer items-center" @click="showLayers = true">
+        <n-icon size="20">
+          <LayersFilled />
+        </n-icon>
+        <div class="text-xs">图层</div>
+      </div>
     </div>
     <!-- 其他操作 -->
     <div class="flex justify-end items-center gap-8">
@@ -554,6 +563,9 @@ function updatePresetValue(v: number, d: OptionVo) {
   </n-modal>
   <n-modal v-model:show="showImageGallery" title="图库管理" preset="card" style="width: 800px">
     <SystemImageCallery />
+  </n-modal>
+  <n-modal v-model:show="showLayers" title="图层管理" preset="card" style="width: 400px;height: 400px" placement="top" transform-origin="center">
+    <LayerManagement />
   </n-modal>
   <n-modal v-model:show="showDrawManager" title="图纸管理" preset="card" style="width: 1000px">
     <div class="flex gap-2 mb-2">
