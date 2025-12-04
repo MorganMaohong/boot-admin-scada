@@ -9,54 +9,25 @@ import { MonitorCategoryService } from '@/services/MonitorCategoryService.ts'
 import type { ProjectMonitorCategoryForm } from '@/model/category'
 import { BASE_DRAW } from '@/model'
 import emitter from '@/utils/eventBus.ts'
-import type { FormInstance } from 'vant'
+import { MonitorDrawModalService } from '@/services/MonitorDrawModalService.ts'
+import type { ProjectMonitorDrawModalForm, ProjectMonitorModalVo } from '@/model/modal'
+import type { ProjectMonitorDrawModalCategoryForm } from '@/model/modalCategory'
+import { MonitorDrawModalCategoryService } from '@/services/MonitorDrawModalCategoryService.ts'
 
-const drawData = ref<ProjectMonitorVo>({})
-const drawFormData = ref<ProjectMonitorDrawForm>({})
-const drawCategoryFormData = ref<ProjectMonitorCategoryForm>({})
+const drawData = ref<ProjectMonitorModalVo>({})
+const drawFormData = ref<ProjectMonitorDrawModalForm>({})
+const drawCategoryFormData = ref<ProjectMonitorDrawModalCategoryForm>({})
 const loading = ref<boolean>(false)
 const showUpdateCategory = ref<boolean>(false)
 const showUpdateDraw = ref<boolean>(false)
 const showDeleteDraw = ref<boolean>(false)
 const showDeleteDrawCategory = ref<boolean>(false)
 const tableKey = ref()
-const formRef = ref<FormInst>({})
-const formRule = {
-  categoryUid: {
-    required: true,
-    message: '请选择分组',
-    trigger: 'change',
-    type: 'string',
-  },
-  name: {
-    required: true,
-    message: '请输入弹窗名称',
-    trigger: ['input', 'blur'],
-  },
-  title: {
-    required: true,
-    message: '请输入弹窗标题',
-    trigger: ['input', 'blur'],
-  },
-  width: {
-    required: true,
-    message: '请输入宽度',
-    trigger: ['input', 'blur'],
-    type: 'number',
-  },
-  height: {
-    required: true,
-    message: '请输入高度',
-    trigger: ['input', 'blur'],
-    type: 'number',
 
-  },
-}
-
-function selectDraw() {
+function select() {
   loading.value = true
   const params = getUrlParams()
-  MonitorDrawService.selectModal(params.projectUid)
+  MonitorDrawModalService.select(params.projectUid)
     .then((res) => {
       drawData.value = res
       tableKey.value = s16()
@@ -68,7 +39,7 @@ function selectDraw() {
 
 function showUpdateCategoryModal(uid: string) {
   const params = getUrlParams()
-  MonitorCategoryService.form(params.projectUid, uid).then((res) => {
+  MonitorDrawModalCategoryService.form(params.projectUid, uid).then((res) => {
     drawCategoryFormData.value = res
   })
   showUpdateCategory.value = true
@@ -76,7 +47,7 @@ function showUpdateCategoryModal(uid: string) {
 
 function showUpdateDrawModal(uid: string) {
   const params = getUrlParams()
-  MonitorDrawService.formModal(params.projectUid, uid).then((res) => {
+  MonitorDrawModalService.form(params.projectUid, uid).then((res) => {
     drawFormData.value = res
   })
   showUpdateDraw.value = true
@@ -93,48 +64,45 @@ function showDeleteDrawModal(uid: string) {
 }
 
 function confirmUpdateDraw() {
-  formRef.value.validate((valid) => {
-    if (valid) return
-    const data = { ...BASE_DRAW }
-    drawFormData.value.jsonData = JSON.stringify(data)
-    MonitorDrawService.addOrUpdateModal(drawFormData.value).then(() => {
-      showUpdateDraw.value = false
-      tableKey.value = s16()
-      selectDraw()
-      emitter.emit('updateDraw')
-    })
+  const data = { ...BASE_DRAW }
+  drawFormData.value.jsonData = JSON.stringify(data)
+  MonitorDrawModalService.addOrUpdate(drawFormData.value).then(() => {
+    showUpdateDraw.value = false
+    tableKey.value = s16()
+    select()
+    emitter.emit('updateModal')
   })
 }
 
 function confirmDeleteDraw() {
-  MonitorDrawService.delete(drawFormData.value.uid).then(() => {
+  MonitorDrawModalService.delete(drawFormData.value.uid).then(() => {
     showDeleteDraw.value = false
     tableKey.value = s16()
-    selectDraw()
-    emitter.emit('updateDraw')
+    select()
+    emitter.emit('updateModal')
   })
 }
 
 function confirmDeleteDrawCategory() {
-  MonitorCategoryService.delete(drawCategoryFormData.value.uid).then(() => {
+  MonitorDrawModalCategoryService.delete(drawCategoryFormData.value.uid).then(() => {
     showDeleteDrawCategory.value = false
     tableKey.value = s16()
-    selectDraw()
-    emitter.emit('updateDraw')
+    select()
+    emitter.emit('updateModal')
   })
 }
 
 function confirmUpdateDrawCategory() {
-  MonitorCategoryService.addOrUpdateModal(drawCategoryFormData.value).then(() => {
+  MonitorDrawModalCategoryService.addOrUpdate(drawCategoryFormData.value).then(() => {
     showUpdateCategory.value = false
     tableKey.value = s16()
-    selectDraw()
-    emitter.emit('updateDraw')
+    select()
+    emitter.emit('updateModal')
   })
 }
 
 onMounted(() => {
-  selectDraw()
+  select()
 })
 </script>
 
@@ -209,46 +177,20 @@ onMounted(() => {
       </div>
     </template>
   </n-modal>
-  <n-modal v-model:show="showUpdateDraw" title="弹窗信息" preset="card" style="width: 600px">
-    <n-form ref="formRef" :model="drawFormData" :rules="formRule">
-      <n-grid cols="2" x-gap="12">
-        <n-gi span="2">
-          <n-form-item label="分组" path="categoryUid">
-            <n-select
-              v-model:value="drawFormData.categoryUid"
-              :options="drawFormData.categoryOptions"
-            />
-          </n-form-item>
-        </n-gi>
-        <n-gi span="2">
-          <n-form-item label="弹窗名称" path="name">
-            <n-input v-model:value="drawFormData.name" />
-          </n-form-item>
-        </n-gi>
-        <n-gi span="2">
-          <n-form-item label="弹窗标题" path="title">
-            <n-input v-model:value="drawFormData.title" />
-          </n-form-item>
-        </n-gi>
-        <n-gi>
-          <n-form-item label="宽度" path="width">
-            <n-input-number
-              v-model:value="drawFormData.width"
-              :show-button="false"
-              class="w-full"
-            />
-          </n-form-item>
-        </n-gi>
-        <n-gi>
-          <n-form-item label="高度" path="height">
-            <n-input-number
-              v-model:value="drawFormData.height"
-              :show-button="false"
-              class="w-full"
-            />
-          </n-form-item>
-        </n-gi>
-      </n-grid>
+  <n-modal v-model:show="showUpdateDraw" title="图纸信息" preset="card" style="width: 600px">
+    <n-form>
+      <n-form-item label="分组">
+        <n-select
+          v-model:value="drawFormData.categoryUid"
+          :options="drawFormData.categoryOptions"
+        />
+      </n-form-item>
+      <n-form-item label="图纸名称">
+        <n-input v-model:value="drawFormData.name" />
+      </n-form-item>
+      <n-form-item label="默认图纸">
+        <n-switch v-model:value="drawFormData.def" />
+      </n-form-item>
     </n-form>
     <template #footer>
       <div class="flex justify-end">

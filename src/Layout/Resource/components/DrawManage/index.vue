@@ -87,6 +87,16 @@ function confirmDeleteDrawCategory() {
     emitter.emit('updateDraw')
   })
 }
+
+function confirmUpdateDrawCategory() {
+  MonitorCategoryService.addOrUpdate(drawCategoryFormData.value).then(() => {
+    showUpdateCategory.value = false
+    tableKey.value = s16()
+    selectDraw()
+    emitter.emit('updateDraw')
+  })
+}
+
 onMounted(() => {
   selectDraw()
 })

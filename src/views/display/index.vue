@@ -53,10 +53,23 @@
       </template>
     </n-modal>
   </template>
+  <div v-if="drawStore.globalModal.show">
+    <n-modal
+      v-model:show="drawStore.globalModal.show"
+      :title="drawStore.globalModal.draw.title"
+      preset="card"
+      :style="modalStyle"
+      transform-origin="center"
+      :mask-closable="false"
+      :show-mask="false"
+    >
+      <GlobalModalMeta2d />
+    </n-modal>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { onMounted, onUnmounted, ref, nextTick, computed } from 'vue'
 import {
   LockState,
   Meta2d,
@@ -84,18 +97,36 @@ import GatewayVarSelect from '@/components/ElementsProps/components/GatewayVarSe
 import { VarService } from '@/services/VarService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
 import SvgIcon from '@/components/SvgIcon/index.vue'
-import Svg404 from '@/assets/error-page/404.svg?component' // vite-svg-loader 插件的功能
+import Svg404 from '@/assets/error-page/404.svg?component'
+import GlobalModalMeta2d from '@/components/GlobalModalMeta2d/index.vue' // vite-svg-loader 插件的功能
 
 const drawStore = useDrawStore()
 window['$message'] = useMessage()
 const meta2dOptions: any = {
   rule: true,
 }
+const modalStyle = computed(() => ({
+  width: drawStore.globalModal.draw.width + 'px',
+  height: drawStore.globalModal.draw.height + 'px',
+}))
 const showKey = ref(false)
 const monitorDraw = ref()
 const showControlVar = ref(false)
 const controlVarFormData = ref({})
 const showMeta2d = ref(true)
+const resizeTimer = ref(0)
+
+function resize() {
+  console.log("xxxxx")
+  if (resizeTimer.value) clearTimeout(resizeTimer.value)
+
+  resizeTimer.value = window.setTimeout(() => {
+    console.log('移动完成')
+    // window.$message.error('移动完成!!')
+    meta2d.fitView(true, 5)
+  }, 200)
+}
+
 onMounted(() => {
   detectWeChatMiniProgram()
   drawStore.setTitle()
@@ -110,6 +141,7 @@ onMounted(() => {
     .catch(() => {
       showMeta2d.value = false
     })
+  window.addEventListener('resize', resize)
   emitter.on('showControlVar', ({ pen, params }) => {
     showControlVar.value = true
     console.log('接收到 pen:', pen)

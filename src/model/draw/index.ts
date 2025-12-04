@@ -8,12 +8,13 @@ export interface ProjectMonitorDraw extends BaseEntity {
   data: string
   visible: boolean
   def: boolean
+  title: string
+  width: number
+  height: number
 }
 
 export interface ProjectMonitorDrawForm extends ProjectMonitorDraw {
   categoryOptions: OptionVo[]
-  width: number
-  height: number
   jsonData: string
 }
 
@@ -38,7 +39,5 @@ export interface ProjectQuery {
 
 export interface GlobalModalParams {
   show: boolean
-  width: number
-  height: number
-  title?: string
+  draw: ProjectMonitorDraw
 }

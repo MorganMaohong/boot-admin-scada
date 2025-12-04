@@ -67,9 +67,21 @@ const menuPosition = ref({
   x: 0,
   y: 0,
 })
+const resizeTimer = ref(0)
+
+function resize() {
+  if (resizeTimer.value) clearTimeout(resizeTimer.value)
+
+  resizeTimer.value = window.setTimeout(() => {
+    console.log('移动完成')
+    // window.$message.error('移动完成!!')
+    meta2d.fitView(true, 5)
+  }, 200)
+}
 
 onMounted(() => {
   drawStore.setTitle()
+  window.addEventListener('resize', resize)
   emitter.on('draw', init)
 })
 
@@ -100,7 +112,6 @@ function init() {
     window.$message.error('图纸异常')
     return
   }
-  layerStore.getDefaultLayer();
   let data = JSON.parse(draw.data)
   // data.bkImage = ''
   meta2d.open(data)

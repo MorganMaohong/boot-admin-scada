@@ -1,1 +1,0 @@
-import{ar as r}from"./index-DDoFn8Nr.js";var n=(s=>(s[s.File=0]="File",s[s.Pen=1]="Pen",s))(n||{});const e=r({mode:0,pen:void 0,pens:void 0}),c=()=>({selections:e,select:t=>{if(!t)e.mode=0,e.pen=void 0;else{if(t.length===0){e.mode=0,e.pen=void 0;return}e.mode=1,e.pen=t[0]}},selects:t=>{!t||t.length===0||(e.pens=t)}});export{n as S,c as u};

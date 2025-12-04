@@ -359,21 +359,21 @@ function updatePresetValue(v: number, d: OptionVo) {
   <div class="flex w-full h-full items-center px-4 gap-12">
     <!-- 编辑操作 -->
     <div class="flex justify-start items-center gap-8">
-      <div class="flex flex-col cursor-pointer items-center">
-        <n-dropdown
-          trigger="hover"
-          :options="fileOptions"
-          @select="handleSelectFile"
-          key-field="value"
-        >
-          <div class="flex flex-col items-center">
-            <n-icon size="20">
-              <Folder16Regular />
-            </n-icon>
-            <div class="text-xs">文件</div>
-          </div>
-        </n-dropdown>
-      </div>
+      <!--      <div class="flex flex-col cursor-pointer items-center">
+              <n-dropdown
+                trigger="hover"
+                :options="fileOptions"
+                @select="handleSelectFile"
+                key-field="value"
+              >
+                <div class="flex flex-col items-center">
+                  <n-icon size="20">
+                    <Folder16Regular />
+                  </n-icon>
+                  <div class="text-xs">文件</div>
+                </div>
+              </n-dropdown>
+            </div>-->
       <!--      <div class="flex flex-col cursor-pointer items-center">-->
       <!--        <n-icon size="20">-->
       <!--          <Edit />-->
@@ -564,7 +564,14 @@ function updatePresetValue(v: number, d: OptionVo) {
   <n-modal v-model:show="showImageGallery" title="图库管理" preset="card" style="width: 800px">
     <SystemImageCallery />
   </n-modal>
-  <n-modal v-model:show="showLayers" title="图层管理" preset="card" style="width: 400px;height: 400px" placement="top" transform-origin="center">
+  <n-modal
+    v-model:show="showLayers"
+    title="图层管理"
+    preset="card"
+    style="width: 400px; height: 400px"
+    placement="top"
+    transform-origin="center"
+  >
     <LayerManagement />
   </n-modal>
   <n-modal v-model:show="showDrawManager" title="图纸管理" preset="card" style="width: 1000px">

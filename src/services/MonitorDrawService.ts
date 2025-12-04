@@ -25,6 +25,19 @@ export const MonitorDrawService = {
       return Promise.reject(err)
     }
   },
+  async addOrUpdateModal(data: ProjectMonitorDrawForm): Promise<void> {
+    try {
+      const url = data.uid ? monitorDrawApi.updateModal.url : monitorDrawApi.addModal.url
+      let res = await request({
+        url,
+        method: 'POST',
+        data,
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
   async save(data: string, uid: string): Promise<void> {
     try {
       const url = monitorDrawApi.save.url + `/${uid}`
@@ -74,6 +87,20 @@ export const MonitorDrawService = {
       return Promise.reject(err)
     }
   },
+  async formModal(projectUid: string, uid: string): Promise<void> {
+    try {
+      const url = uid
+        ? monitorDrawApi.formModal.url + `/${projectUid}/${uid}`
+        : monitorDrawApi.formModal.url + `/${projectUid}`
+      let res = await request({
+        url,
+        method: 'POST',
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
   async select(projectUid: string): Promise<ProjectMonitorVo> {
     try {
       let res = await request({
@@ -85,10 +112,24 @@ export const MonitorDrawService = {
       return Promise.reject(err)
     }
   },
-  async display(projectUid: string): Promise<ProjectMonitorDrawDisplay> {
+  async selectModal(projectUid: string): Promise<ProjectMonitorVo> {
     try {
       let res = await request({
-        url: monitorDrawApi.display.url + `/${projectUid}`,
+        url: monitorDrawApi.selectModal.url + `/${projectUid}`,
+        method: 'POST',
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+  async display(projectUid: string, drawUid?: string): Promise<ProjectMonitorDrawDisplay> {
+    try {
+      const url = drawUid
+        ? monitorDrawApi.display.url + `/${projectUid}/${drawUid}`
+        : monitorDrawApi.display.url + `/${projectUid}`
+      let res = await request({
+        url,
         method: 'POST',
       })
       return Promise.resolve(res.data)
@@ -100,6 +141,17 @@ export const MonitorDrawService = {
     try {
       let res = await request({
         url: monitorDrawApi.options.url + `/${projectUid}`,
+        method: 'POST',
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+  async modalOptions(projectUid: string): Promise<OptionVo[]> {
+    try {
+      let res = await request({
+        url: monitorDrawApi.modalOptions.url + `/${projectUid}`,
         method: 'POST',
       })
       return Promise.resolve(res.data)

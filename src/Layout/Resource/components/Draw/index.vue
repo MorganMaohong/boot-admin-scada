@@ -6,7 +6,9 @@ import { useDrawStore } from '@/stores/module/draw.ts'
 import emitter from '@/utils/eventBus.ts'
 import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
+import { useLayerStore } from '@/stores/module/layer.ts'
 
+const layerStore = useLayerStore()
 const drawStore = useDrawStore()
 const data = ref<ProjectMonitorVo>({
   categoryVoList: [],
@@ -44,14 +46,18 @@ function changeDraw(v: string) {
     // 切换时更新保存上一个数据
     // drawStore.draw.data = JSON.stringify(meta2d.data())
     // MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid).then(() => {
-    MonitorDrawService.selectByUid(v).then((res) => {
-      drawStore.draw = res
-      meta2d.open(JSON.parse(drawStore.draw.data))
-      meta2d.fitView(true, 5)
-      meta2d.render()
-      emitter.emit('reloadDraw')
-      // })
-    })
+    MonitorDrawService.selectByUid(v)
+      .then((res) => {
+        drawStore.draw = res
+        meta2d.open(JSON.parse(drawStore.draw.data))
+        meta2d.fitView(true, 5)
+        meta2d.render()
+        emitter.emit('reloadDraw')
+        // })
+      })
+      .finally(() => {
+        layerStore.getDefaultLayer()
+      })
   }
 }
 </script>

@@ -144,7 +144,6 @@ function showCopyEventModal(data: EventForm) {
 }
 
 function addOrUpdateEvent(data: EventForm) {
-  debugger
   if (data.id) {
     const v: any = { id: pen.value.id }
     const index = events.value.findIndex((item) => item.id === data.id)

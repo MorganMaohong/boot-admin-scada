@@ -42,11 +42,12 @@ const gatewayVarData = ref<any[]>([])
 onMounted(() => {
   MonitorDrawService.getAllGatewayVar(getUrlParams().projectUid).then((res) => {
     const raw = res || []
-    gatewayVarData.value = raw.map((gateway: any) => ({
+    gatewayVarData.value = res
+    /*gatewayVarData.value = raw.map((gateway: any) => ({
       ...gateway,
       disabled: true, // 网关禁选
       children: gateway.children || [], // 子节点仍可选
-    }))
+    }))*/
   })
 })
 

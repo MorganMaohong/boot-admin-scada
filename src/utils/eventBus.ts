@@ -5,6 +5,7 @@ type Events = {
   'meta2d-ready': void
   'draw': void
   'updateDraw': void
+  'updateModal': void
   'reloadDraw': void
   'showControlVar': void
 }

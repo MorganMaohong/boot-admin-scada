@@ -15,11 +15,12 @@ import { OverflowMenuHorizontal } from '@vicons/carbon'
 
 const showModalManage = ref(false)
 const showDrawManage = ref(false)
+const defExpandNames = ref(['1', '2', '3'])
 </script>
 
 <template>
-  <n-collapse :default-expanded-names="['4', '1', '2', '3', '5']">
-    <n-collapse-item title="图纸" name="4">
+  <n-collapse :default-expanded-names="defExpandNames">
+    <n-collapse-item title="图纸" name="1">
       <template #header-extra>
         <n-icon size="24" @click.stop="showDrawManage = true">
           <OverflowMenuHorizontal />
@@ -27,7 +28,7 @@ const showDrawManage = ref(false)
       </template>
       <Draw />
     </n-collapse-item>
-    <n-collapse-item title="弹窗" name="6">
+    <n-collapse-item title="弹窗" name="2">
       <template #header-extra>
         <n-icon size="24" @click.stop="showModalManage = true">
           <OverflowMenuHorizontal />
@@ -35,17 +36,14 @@ const showDrawManage = ref(false)
       </template>
       <Modal />
     </n-collapse-item>
-    <n-collapse-item title="基础图形" name="1">
+    <n-collapse-item title="基础图形" name="3">
       <BasicGraph />
     </n-collapse-item>
-    <n-collapse-item title="表单控件" name="2">
+    <n-collapse-item title="表单控件" name="4">
       <FormGraph />
     </n-collapse-item>
-    <n-collapse-item title="参考项目" name="6">
+    <n-collapse-item title="参考项目" name="5">
       <Project />
-    </n-collapse-item>
-    <n-collapse-item title="测试" name="7">
-      <Test />
     </n-collapse-item>
   </n-collapse>
   <n-modal
@@ -54,7 +52,7 @@ const showDrawManage = ref(false)
     preset="card"
     title="图纸管理"
   >
-    <DrawManage/>
+    <DrawManage />
   </n-modal>
   <n-modal
     v-model:show="showModalManage"
@@ -62,7 +60,7 @@ const showDrawManage = ref(false)
     preset="card"
     title="弹窗管理"
   >
-    <ModalManage/>
+    <ModalManage />
   </n-modal>
 </template>
 

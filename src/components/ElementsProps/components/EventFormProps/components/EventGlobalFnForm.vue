@@ -12,6 +12,7 @@ import { getUrlParams } from '@/utils'
 import type { OptionVo } from '@/model'
 import { useSelection } from '@/services/selections.ts'
 import { s8 } from '@meta2d/core'
+import { openModal } from '@/globals.ts'
 
 const { selections } = useSelection()
 
@@ -25,6 +26,9 @@ onMounted(() => {
   switch (props.eventData.value) {
     case GlobalFnEnums.openDraw:
       options()
+      break
+    case GlobalFnEnums.openModal:
+      modalOptions()
       break
     case GlobalFnEnums.writeVar:
     case GlobalFnEnums.controlVar:
@@ -60,6 +64,9 @@ function updateGlobalFnValue(v: string) {
         props.eventData.params = {}
       }
       break
+    case GlobalFnEnums.openModal:
+      modalOptions()
+      break
   }
 }
 
@@ -74,6 +81,12 @@ function options() {
     globalFnOpenParamsOptions.value = data
   })
 }
+
+function modalOptions() {
+  MonitorDrawService.modalOptions(getUrlParams().projectUid).then((data) => {
+    globalFnOpenParamsOptions.value = data
+  })
+}
 </script>
 
 <template>
@@ -85,6 +98,11 @@ function options() {
     />
   </n-form-item>
   <template v-if="eventData.value === GlobalFnEnums.openDraw">
+    <n-form-item label="参数">
+      <n-select :options="globalFnOpenParamsOptions" v-model:value="eventData.params" />
+    </n-form-item>
+  </template>
+  <template v-if="eventData.value === GlobalFnEnums.openModal">
     <n-form-item label="参数">
       <n-select :options="globalFnOpenParamsOptions" v-model:value="eventData.params" />
     </n-form-item>

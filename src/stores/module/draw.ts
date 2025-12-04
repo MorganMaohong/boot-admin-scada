@@ -18,7 +18,10 @@ export const useDrawStore = defineStore('draw', () => {
   const topics = ref([])
   const cacheData = ref({})
   const snList = ref([])
-  const globalModal = ref<GlobalModalParams>({ height: 600, show: false, title: '全局弹窗', width: 400 })
+  const globalModal = ref<GlobalModalParams>({
+    show: false,
+    draw: {},
+  })
   const setTitle = () => {
     ProjectService.getProjectName(getUrlParams().projectUid).then((res) => {
       document.title = res

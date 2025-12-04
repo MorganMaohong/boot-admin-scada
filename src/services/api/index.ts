@@ -12,13 +12,18 @@ const apiPrefix = {
 
 export const monitorDrawApi = {
   add: { url: `${apiPrefix.monitorDraw}/add`, permission: '' },
+  addModal: { url: `${apiPrefix.monitorDraw}/addModal`, permission: '' },
   update: { url: `${apiPrefix.monitorDraw}/update`, permission: '' },
+  updateModal: { url: `${apiPrefix.monitorDraw}/updateModal`, permission: '' },
   save: { url: `${apiPrefix.monitorDraw}/save`, permission: '' },
   delete: { url: `${apiPrefix.monitorDraw}/delete`, permission: '' },
   form: { url: `${apiPrefix.monitorDraw}/form`, permission: '' },
+  formModal: { url: `${apiPrefix.monitorDraw}/formModal`, permission: '' },
   select: { url: `${apiPrefix.monitorDraw}/select`, permission: '' },
+  selectModal: { url: `${apiPrefix.monitorDraw}/selectModal`, permission: '' },
   display: { url: `${apiPrefix.monitorDraw}/display`, permission: '' },
   options: { url: `${apiPrefix.monitorDraw}/options`, permission: '' },
+  modalOptions: { url: `${apiPrefix.monitorDraw}/modalOptions`, permission: '' },
   getAllGatewayVar: { url: `${apiPrefix.monitorDraw}/getAllGatewayVar`, permission: '' },
   uploadFile: { url: `${apiPrefix.monitorDraw}/upload`, permission: '' },
   images: { url: `${apiPrefix.monitorDraw}/images`, permission: '' },
@@ -29,6 +34,7 @@ export const monitorDrawApi = {
 
 export const monitorCategoryApi = {
   add: { url: `${apiPrefix.monitorCategory}/add`, permission: '' },
+  addModal: { url: `${apiPrefix.monitorCategory}/addModal`, permission: '' },
   update: { url: `${apiPrefix.monitorCategory}/update`, permission: '' },
   delete: { url: `${apiPrefix.monitorCategory}/delete`, permission: '' },
   form: { url: `${apiPrefix.monitorCategory}/form`, permission: '' },
@@ -194,6 +200,7 @@ export const monitorDrawModalApi = {
   delete: { url: `${apiPrefix.monitorDrawModal}/delete`, permission: '' },
   form: { url: `${apiPrefix.monitorDrawModal}/form`, permission: '' },
   select: { url: `${apiPrefix.monitorDrawModal}/select`, permission: '' },
+  selectByUid: { url: `${apiPrefix.monitorDrawModal}/selectByUid`, permission: '' },
 }
 
 export const monitorDrawModalCategoryApi = {

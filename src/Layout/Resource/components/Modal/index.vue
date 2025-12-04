@@ -6,11 +6,10 @@ import { useDrawStore } from '@/stores/module/draw.ts'
 import emitter from '@/utils/eventBus.ts'
 import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
-import type { ProjectMonitorModalVo } from '@/model/modal'
-import { MonitorDrawModalService } from '@/services/MonitorDrawModalService.ts'
-
+import { useLayerStore } from '@/stores/module/layer.ts'
+const layerStore = useLayerStore()
 const drawStore = useDrawStore()
-const data = ref<ProjectMonitorModalVo>({
+const data = ref<ProjectMonitorVo>({
   categoryVoList: [],
   defCategory: {},
   defDraw: {},
@@ -26,12 +25,18 @@ onMounted(() => {
 
 function select() {
   const params = getUrlParams()
-  MonitorDrawModalService.select(params.projectUid)
+  MonitorDrawService.selectModal(params.projectUid)
     .then((res) => {
       data.value = res
     })
     .finally(() => {
       key.value = s16()
+      /*if (!drawStore.draw || !currentDrawValue.value) {
+        currentDrawValue.value = data.value.defDraw.uid
+        drawStore.draw = data.value.defDraw
+        emitter.emit('draw')
+        key.value = s16()
+      }*/
     })
 }
 
@@ -48,6 +53,8 @@ function changeDraw(v: string) {
       meta2d.render()
       emitter.emit('reloadDraw')
       // })
+    }).finally(() => {
+      layerStore.getDefaultLayer();
     })
   }
 }
@@ -57,7 +64,11 @@ function changeDraw(v: string) {
   <n-menu
     :key="key"
     :options="data.categoryVoList"
-    label-field="name"
+    :render-label="
+      (option) => {
+        return option.name
+      }
+    "
     key-field="uid"
     children-field="drawList"
     @update:value="changeDraw"

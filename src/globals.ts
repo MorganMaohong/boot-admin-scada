@@ -101,7 +101,12 @@ export function openFullScreen(pen: any, params: any) {
 
 export function openModal(pen: any, params: any) {
   console.log('openModal', pen, params)
-  drawStore.globalModal.show = true
+drawStore.globalModal.show = false
+  const urlParams = getUrlParams()
+  MonitorDrawService.display(urlParams.projectUid, params).then((data) => {
+    drawStore.globalModal.draw = data.draw
+    drawStore.globalModal.show = true
+  })
 }
 
 // 注册到 globalThis

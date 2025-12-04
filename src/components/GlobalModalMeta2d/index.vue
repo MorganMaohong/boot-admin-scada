@@ -13,24 +13,35 @@ import { getUrlParams } from '@/utils'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
 
+let meta2ds = null
 const monitorDraw = ref()
 const meta2dOptions: any = {
   rule: true,
 }
-const drawStore = useDrawStore(0)
+const drawStore = useDrawStore()
 onMounted(() => {
-  const params = getUrlParams()
-  MonitorDrawService.display(params.projectUid).then((data) => {
-    monitorDraw.value = data
-    drawStore.topics = monitorDraw.value.topics
-    drawStore.snList = monitorDraw.value.snList
-    init()
-  })
+  // debugger
+  monitorDraw.value = drawStore.globalModal.draw
+  init()
 })
+
+/*watch(
+  () => drawStore.globalModal.draw,
+  () => {
+    debugger
+    console.log('--打开弹窗更新--')
+    console.log(drawStore.globalModal.draw)
+    if (drawStore.globalModal.show) {
+      init()
+    }
+  },
+  { deep: true }, // 需要深度监听
+)*/
+
 
 function init() {
   // 创建实例
-  const meta2ds = new Meta2d('meta3d', meta2dOptions)
+  meta2ds = new Meta2d('meta3d', meta2dOptions)
 
   // 按需注册图形库
   // 以下为自带基础图形库
@@ -50,7 +61,8 @@ function init() {
 
   // 注册其他自定义图形库
   // ...
-  let data = JSON.parse(monitorDraw.value.draw.data)
+
+  let data = JSON.parse(monitorDraw.value.data)
   data.locked = 1
   data.disableScale = true
   data.disableTranslate = true
@@ -74,7 +86,6 @@ function init() {
     pen.calculative.hover = false
     return
   })
-
 }
 </script>
 
@@ -82,8 +93,8 @@ function init() {
   <div
     id="meta3d"
     :style="{
-      width: drawStore.globalModal.width - 50 + 'px',
-      height: drawStore.globalModal.height - 100 + 'px',
+      width: drawStore.globalModal.draw.width - 50 + 'px',
+      height: drawStore.globalModal.draw.height - 100 + 'px',
     }"
   ></div>
 </template>

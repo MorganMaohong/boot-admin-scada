@@ -16,6 +16,19 @@ export const MonitorCategoryService = {
       return Promise.reject(err)
     }
   },
+  async addOrUpdateModal(data: ProjectMonitorCategoryForm): Promise<void> {
+    try {
+      const url = data.uid ? monitorCategoryApi.update.url : monitorCategoryApi.addModal.url
+      let res = await request({
+        url,
+        method: 'POST',
+        data,
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
   async delete(uid: string): Promise<void> {
     try {
       let res = await request({

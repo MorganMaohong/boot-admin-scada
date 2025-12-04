@@ -4,6 +4,7 @@ import { RouterView } from 'vue-router'
 import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
 import { getUrlParams } from '@/utils'
 import Cookies from 'js-cookie'
+import { zhCN, dateZhCN } from 'naive-ui'
 
 onMounted(() => {
   console.log(getUrlParams())
@@ -12,7 +13,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <n-config-provider class="w-full h-full">
+  <n-config-provider class="w-full h-full" :locale="zhCN" :date-locale="dateZhCN">
     <n-message-provider>
       <n-dialog-provider>
         <router-view />

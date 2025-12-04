@@ -50,22 +50,23 @@
       </template>
     </n-modal>
   </template>
-  <n-modal
-    v-model:show="drawStore.globalModal.show"
-    title="全局弹窗测试"
-    preset="card"
-    :style="{
-      width: drawStore.globalModal.width + 'px',
-      height: drawStore.globalModal.height  + 'px',
-    }"
-    :mask-closable="false"
-  >
-    <GlobalModalMeta2d />
-  </n-modal>
+  <div v-if="drawStore.globalModal.show">
+    <n-modal
+      v-model:show="drawStore.globalModal.show"
+      :title="drawStore.globalModal.draw.title"
+      preset="card"
+      :style="modalStyle"
+      transform-origin="center"
+      :mask-closable="false"
+      :show-mask="false"
+    >
+      <GlobalModalMeta2d />
+    </n-modal>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import {
   LockState,
   Meta2d,
@@ -97,7 +98,11 @@ import GlobalModalMeta2d from '@/components/GlobalModalMeta2d/index.vue'
 
 const drawStore = useDrawStore()
 window['$message'] = useMessage()
-
+// 使用计算属性
+const modalStyle = computed(() => ({
+  width: drawStore.globalModal.draw.width + 'px',
+  height: drawStore.globalModal.draw.height + 'px',
+}))
 const monitorDraw = ref()
 const meta2dOptions: any = {
   rule: true,
@@ -105,6 +110,26 @@ const meta2dOptions: any = {
 const showKey = ref(false)
 const showControlVar = ref(false)
 const controlVarFormData = ref({})
+const resizeTimer = ref(0)
+
+function resize() {
+  if (resizeTimer.value) clearTimeout(resizeTimer.value)
+
+  resizeTimer.value = window.setTimeout(() => {
+    console.log('移动完成')
+    // window.$message.error('移动完成!!')
+    console.log(meta2d)
+    meta2d.fitView(true, 5)
+  }, 200)
+}
+
+watch(
+  () => drawStore.globalModal.show,
+  () => {
+    window.addEventListener('resize', resize)
+  },
+)
+
 onMounted(() => {
   detectWeChatMiniProgram()
   drawStore.setTitle()
@@ -115,6 +140,7 @@ onMounted(() => {
     drawStore.snList = monitorDraw.value.snList
     init()
   })
+  window.addEventListener('resize', resize)
   emitter.on('showControlVar', ({ pen, params }) => {
     showControlVar.value = true
     console.log('接收到 pen:', pen)

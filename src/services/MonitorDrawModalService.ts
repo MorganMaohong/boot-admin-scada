@@ -2,7 +2,7 @@ import request from '@/utils/request.ts'
 import { monitorDrawModalApi } from '@/services/api/index.ts'
 import type { OptionVo } from '@/model'
 import type { Project } from '@/model/project'
-import type { ProjectMonitorDrawModalForm } from '@/model/modal'
+import type { ProjectMonitorDrawModal, ProjectMonitorDrawModalForm } from '@/model/modal'
 
 export const MonitorDrawModalService = {
   async addOrUpdate(data: ProjectMonitorDrawModalForm): Promise<void> {
@@ -47,6 +47,17 @@ export const MonitorDrawModalService = {
     try {
       let res = await request({
         url: monitorDrawModalApi.select.url + `/${projectUid}`,
+        method: 'POST',
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
+  async selectByUid(uid: string): Promise<ProjectMonitorDrawModal> {
+    try {
+      let res = await request({
+        url: monitorDrawModalApi.selectByUid.url + `/${uid}`,
         method: 'POST',
       })
       return Promise.resolve(res.data)
