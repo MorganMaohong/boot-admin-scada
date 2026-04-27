@@ -11,8 +11,13 @@
       <n-form-item label="变量">
         <GatewayVarSelect v-model:model-value="controlVarFormData.key" disabled />
       </n-form-item>
-      <n-form-item>
-        <n-input v-model:value="controlVarFormData.value" readonly @click="showKey = true" />
+      <n-form-item label="变量值">
+        <n-input
+          v-model:value="controlVarFormData.value"
+          readonly
+          placeholder="请输入要写入的值"
+          @click="showKey = true"
+        />
       </n-form-item>
       <van-number-keyboard
         :show="showKey"
@@ -24,7 +29,16 @@
       />
       <template #footer>
         <div class="flex justify-end">
-          <n-button @click="writeVar" type="primary">确定</n-button>
+          <n-button @click="closeControlVar">取消</n-button>
+          <n-button
+            @click="writeVar"
+            type="primary"
+            class="ml-2"
+            :loading="controlVarSubmitting"
+            :disabled="!canSubmitControlVar"
+          >
+            确定
+          </n-button>
         </div>
       </template>
     </n-modal>
@@ -41,11 +55,24 @@
         <GatewayVarSelect v-model:model-value="controlVarFormData.key" disabled />
       </n-form-item>
       <n-form-item>
-        <n-input v-model:value="controlVarFormData.value" />
+        <n-input
+          v-model:value="controlVarFormData.value"
+          placeholder="请输入要写入的值"
+          @keydown.enter.prevent="writeVar"
+        />
       </n-form-item>
       <template #footer>
-        <div class="flex justify-end">
-          <n-button @click="writeVar" type="primary">确定</n-button>
+        <div class="flex justify-end gap-2">
+          <n-button @click="closeControlVar">取消</n-button>
+          <n-button
+            @click="writeVar"
+            type="primary"
+            class="ml-2"
+            :loading="controlVarSubmitting"
+            :disabled="!canSubmitControlVar"
+          >
+            确定
+          </n-button>
         </div>
       </template>
     </n-modal>
@@ -56,6 +83,7 @@
       :title="drawStore.globalModal.draw.title"
       preset="card"
       :style="modalStyle"
+      content-style="padding: 0;"
       transform-origin="center"
       :mask-closable="false"
       :show-mask="false"
@@ -109,8 +137,17 @@ const meta2dOptions: any = {
 }
 const showKey = ref(false)
 const showControlVar = ref(false)
-const controlVarFormData = ref({})
+const controlVarFormData = ref({
+  key: '',
+  value: '',
+  currentValue: '',
+})
+const controlVarSubmitting = ref(false)
 const resizeTimer = ref(0)
+const canSubmitControlVar = computed(() => {
+  const value = controlVarFormData.value.value
+  return value !== undefined && value !== null && String(value).trim() !== ''
+})
 
 function resize() {
   if (resizeTimer.value) clearTimeout(resizeTimer.value)
@@ -143,11 +180,10 @@ onMounted(() => {
   window.addEventListener('resize', resize)
   emitter.on('showControlVar', ({ pen, params }) => {
     showControlVar.value = true
-    console.log('接收到 pen:', pen)
-    console.log('接收到 params:', params)
     controlVarFormData.value = {
       key: params.key,
-      value: '',
+      value: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
+      currentValue: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
     }
   })
 })
@@ -158,6 +194,11 @@ function onInput(val: string) {
 
 function onDelete() {
   controlVarFormData.value.value = controlVarFormData.value.value.slice(0, -1)
+}
+
+function closeControlVar() {
+  showKey.value = false
+  showControlVar.value = false
 }
 
 function init() {
@@ -191,11 +232,11 @@ function init() {
   meta2d.open(data)
   setDefVisible()
 
-  meta2d.fitView(true, 5)
+  meta2d.fitView(true, 0)
 
   document.addEventListener('fullscreenchange', () => {
     setTimeout(() => {
-      meta2d.fitView(true, 5)
+      meta2d.fitView(true, 0)
     }, 200)
   })
 
@@ -209,6 +250,9 @@ function init() {
   meta2d.on('enter', (pen) => {
     pen.calculative.hover = false
     return
+  })
+  meta2d.on("click",(pen)=>{
+    console.log(pen)
   })
 }
 
@@ -270,9 +314,15 @@ function listenerData() {
 }
 
 function writeVar() {
-  VarService.write(controlVarFormData.value.key, controlVarFormData.value.value).then(() => {
-    showControlVar.value = false
-  })
+  if (!canSubmitControlVar.value || controlVarSubmitting.value) return
+  controlVarSubmitting.value = true
+  VarService.write(controlVarFormData.value.key, controlVarFormData.value.value)
+    .then(() => {
+      closeControlVar()
+    })
+    .finally(() => {
+      controlVarSubmitting.value = false
+    })
 }
 
 onUnmounted(() => {

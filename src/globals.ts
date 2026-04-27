@@ -24,7 +24,7 @@ export function openDraw(pen: any, params: any) {
     meta2d.store.options.disableDock = true
     meta2d.open(dj)
     setDefVisible()
-    meta2d.fitView(true, 5)
+    meta2d.fitView(true, 0)
     meta2d.render()
     drawStore.selectVarCacheData()
   })
@@ -51,6 +51,7 @@ function setDefVisible() {
 }
 
 export function writeVar(pen: any, params: any) {
+  debugger
   let value
   if (params.prop === 'custom') {
     value = params.value

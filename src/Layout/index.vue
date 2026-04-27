@@ -18,7 +18,10 @@ const appStore = useAppStore()
     <n-layout-header
       :inverted="true"
       bordered
-      class="h-12 flex items-center justify-between px-5 flex-shrink-0 border-b border-gray-300"
+      :class="[
+        'h-12 flex items-center justify-between px-5 flex-shrink-0 border-b border-gray-300',
+        appStore.targetPicker.active ? 'picker-disabled' : '',
+      ]"
     >
       <TopBar />
     </n-layout-header>
@@ -31,7 +34,7 @@ const appStore = useAppStore()
         :collapsed="appStore.collapsed"
         @collapse="appStore.collapsed = true"
         @expand="appStore.collapsed = false"
-        class="p-2"
+        :class="['p-2', appStore.targetPicker.active ? 'picker-disabled' : '']"
       >
         <Resource />
       </n-layout-sider>
@@ -45,11 +48,11 @@ const appStore = useAppStore()
           bordered
           collapse-mode="width"
           :collapsed-width="64"
-          :width="260"
+          :width="320"
           :collapsed="appStore.collapsed"
           @collapse="appStore.collapsed = true"
           @expand="appStore.collapsed = false"
-          class="p-2 h-full"
+          :class="['p-2 h-full', appStore.targetPicker.active ? 'picker-disabled' : '']"
         >
           <Props />
         </n-layout-sider>
@@ -59,6 +62,12 @@ const appStore = useAppStore()
 </template>
 
 <style lang="scss" scoped>
+.picker-disabled {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.55;
+}
+
 ::v-deep(.n-layout-scroll-container) {
   display: flex;
   flex-direction: column;

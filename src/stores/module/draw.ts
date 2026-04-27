@@ -52,7 +52,6 @@ export const useDrawStore = defineStore('draw', () => {
   }
 
   function processCondData(pen: Pen, data: DataForm, payload: Payload) {
-    // debugger
     let value = payload.data[pen.key]
     if (value === null || value === undefined) return
     if (typeof value === 'boolean') {
@@ -61,6 +60,9 @@ export const useDrawStore = defineStore('draw', () => {
       value = 0
     } else if (value === 'true') {
       value = 1
+    }
+    if (pen.value !== value) {
+      meta2d.setValue({ id: pen.id, value }, { render: false })
     }
     for (const cond of data.condData) {
       const isInRange = cond.min <= value && value <= cond.max

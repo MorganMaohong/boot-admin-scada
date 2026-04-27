@@ -12,11 +12,13 @@ import { Add, Close } from '@vicons/carbon'
 import type { FormInst } from 'naive-ui'
 import GatewayVarSelect from '@/components/ElementsProps/components/GatewayVarSelect/index.vue'
 import { ColorPicker } from 'vue3-colorpicker'
+import { useSelection } from '@/services/selections'
 
 const props = defineProps<{
   value: DataForm
 }>()
 const emit = defineEmits(['update:value'])
+const { selections } = useSelection()
 const dataFormData = ref<DataForm>({})
 const formRef = ref<FormInst>()
 const formRules = {
@@ -34,13 +36,30 @@ const formRules = {
 
 onMounted(() => {
   dataFormData.value = props.value
+  syncCurrentPenVar()
   console.log(dataFormData.value)
 })
+
+function syncCurrentPenVar(force = false) {
+  const currentPen = selections.pen
+  if (!currentPen?.key) return
+  if (force || !dataFormData.value.key) {
+    dataFormData.value.key = currentPen.key
+  }
+  if (force || !dataFormData.value.name) {
+    dataFormData.value.name = currentPen.nickname || currentPen.name || currentPen.key
+  }
+}
 
 function updateValue() {
   console.log(dataFormData.value)
   formRef.value?.validate((valid) => {
     if (valid) return
+    syncCurrentPenVar()
+    if (!dataFormData.value.key) {
+      window.$message.error('请先绑定变量')
+      return
+    }
     if (dataFormData.value.condData.length === 0) {
       window.$message.error('至少有一个条件运算')
       return
@@ -73,12 +92,12 @@ function updateProp(item: CondItem, idx: number) {
 
 <template>
   <n-form ref="formRef" :model="dataFormData" :rules="formRules">
-<!--    <n-form-item label="变量">-->
-<!--      <GatewayVarSelect-->
-<!--        v-model:model-value="dataFormData.key"-->
-<!--        v-model:model-name="dataFormData.name"-->
-<!--      />-->
-<!--    </n-form-item>-->
+    <n-form-item label="变量" path="key">
+      <GatewayVarSelect
+        v-model:model-value="dataFormData.key"
+        v-model:model-name="dataFormData.name"
+      />
+    </n-form-item>
     <div class="relative mb-2" v-for="(item, index) in dataFormData.condData" :key="index">
       <div class="absolute -top-3 right-0 flex gap-2">
         <n-button text @click="addCondData" v-if="index === 0">

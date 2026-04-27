@@ -1,5 +1,5 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
-import { getUrlParams } from '@/utils/index.ts'
+import { getAuthToken } from '@/utils/auth'
 // 创建 axios 实例
 const service = axios.create({
   baseURL: import.meta.env.VITE_BASE_API,
@@ -10,6 +10,11 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const token = getAuthToken()
+    if (token) {
+      const headers = config.headers as any
+      headers.satoken = token
+    }
 
     return config
   },
@@ -65,13 +70,13 @@ service.interceptors.response.use(
       window.$message.error(msg || '系统出错')
       return Promise.reject(new Error(msg || 'Error'))
     }
-    window.$message.error(msg || '系统出错')
+    window.$message.error('系统出错')
     return response.data
   },
   (error: any) => {
     console.log('请求出错了')
     console.log(error)
-    if (error.response.data) {
+    if (error.response?.data) {
       const { code, msg } = error.response.data
       // token 过期，跳转登录页
       if (code === 501) {

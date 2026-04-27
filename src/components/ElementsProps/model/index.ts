@@ -231,6 +231,16 @@ function writeVarValueFn() {
   for (const [key, value] of urlParams.entries()) {
     result[key] = value
   }
+  const cookieToken = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith('x-token='))
+    ?.split('=')[1]
+  const accessToken =
+    result.accessToken ||
+    (cookieToken ? decodeURIComponent(cookieToken) : '') ||
+    localStorage.getItem('x-token') ||
+    sessionStorage.getItem('x-token') ||
+    ''
 
   console.log('pen:', pen)
   console.log('params:', params)
@@ -240,7 +250,7 @@ function writeVarValueFn() {
   fetch(`/api/comport/variable/write/${params.key}/${value}`, {
     method: 'POST',
     headers: {
-      satoken: result.accessToken,
+      satoken: accessToken,
     },
   })
     .then((response) => response.json())

@@ -77,4 +77,17 @@ export const MonitorLayerService = {
       return Promise.reject(err)
     }
   },
+  async sort(drawUid: string, layerUids: string[]): Promise<void> {
+    try {
+      const url = `${monitorLayerApi.sort.url}/${drawUid}`
+      const res = await request({
+        url,
+        method: 'POST',
+        data: layerUids,
+      })
+      return Promise.resolve(res.data)
+    } catch (err) {
+      return Promise.reject(err)
+    }
+  },
 }

@@ -12,24 +12,25 @@ const apiPrefix = {
 
 export const monitorDrawApi = {
   add: { url: `${apiPrefix.monitorDraw}/add`, permission: '' },
-  addModal: { url: `${apiPrefix.monitorDraw}/addModal`, permission: '' },
   update: { url: `${apiPrefix.monitorDraw}/update`, permission: '' },
-  updateModal: { url: `${apiPrefix.monitorDraw}/updateModal`, permission: '' },
   save: { url: `${apiPrefix.monitorDraw}/save`, permission: '' },
   delete: { url: `${apiPrefix.monitorDraw}/delete`, permission: '' },
   form: { url: `${apiPrefix.monitorDraw}/form`, permission: '' },
-  formModal: { url: `${apiPrefix.monitorDraw}/formModal`, permission: '' },
   select: { url: `${apiPrefix.monitorDraw}/select`, permission: '' },
-  selectModal: { url: `${apiPrefix.monitorDraw}/selectModal`, permission: '' },
   display: { url: `${apiPrefix.monitorDraw}/display`, permission: '' },
   options: { url: `${apiPrefix.monitorDraw}/options`, permission: '' },
-  modalOptions: { url: `${apiPrefix.monitorDraw}/modalOptions`, permission: '' },
   getAllGatewayVar: { url: `${apiPrefix.monitorDraw}/getAllGatewayVar`, permission: '' },
   uploadFile: { url: `${apiPrefix.monitorDraw}/upload`, permission: '' },
   images: { url: `${apiPrefix.monitorDraw}/images`, permission: '' },
   selectByProjectUid: { url: `${apiPrefix.monitorDraw}/selectByProjectUid`, permission: '' },
   selectByUid: { url: `${apiPrefix.monitorDraw}/selectByUid`, permission: '' },
   selectProject: { url: `${apiPrefix.monitorDraw}/selectProject`, permission: '' },
+
+  addModal: { url: `${apiPrefix.monitorDraw}/addModal`, permission: '' },
+  updateModal: { url: `${apiPrefix.monitorDraw}/updateModal`, permission: '' },
+  formModal: { url: `${apiPrefix.monitorDraw}/formModal`, permission: '' },
+  selectModal: { url: `${apiPrefix.monitorDraw}/selectModal`, permission: '' },
+  modalOptions: { url: `${apiPrefix.monitorDraw}/modalOptions`, permission: '' },
 }
 
 export const monitorCategoryApi = {
@@ -190,6 +191,10 @@ export const monitorLayerApi = {
   },
   changeDefaultLayer: {
     url: `${apiPrefix.monitorLayer}/changeDefaultLayer`,
+    permission: '',
+  },
+  sort: {
+    url: `${apiPrefix.monitorLayer}/sort`,
     permission: '',
   },
 }

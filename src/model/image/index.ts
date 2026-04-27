@@ -1,12 +1,19 @@
 import type { BaseEntity } from '@/model'
 
-export interface MonitorImageCategoryBase extends BaseEntity{
+export interface MonitorImageCategoryBase extends BaseEntity {
   name: string
 }
 
-export interface MonitorImageBase extends BaseEntity{
+export interface MonitorImageBase extends BaseEntity {
   url: string
   filename: string
+  originUrl?: string
+  displayUrl?: string
+  thumbUrl?: string
+  size?: number
+  width?: number
+  height?: number
+  contentType?: string
 }
 
 export interface SystemMonitorImageCategory extends MonitorImageCategoryBase {}

@@ -8,6 +8,7 @@ export interface ProjectMonitorLayer extends BaseEntity {
   pens: string
   projectUid: string
   defaultLayer: boolean
+  sort: number
 }
 
 export interface ProjectMonitorLayerForm extends ProjectMonitorLayer {}

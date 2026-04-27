@@ -37,7 +37,7 @@ const { selections } = useSelection()
 const props = defineProps<{
   value: EventForm
 }>()
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'pick-target'])
 
 const formRules = {
   title: {
@@ -64,6 +64,7 @@ const penOptions = ref<OptionVo[]>([])
 const pen = ref({})
 onMounted(() => {
   eventFormData.value = props.value
+  normalizeWhereKey()
   loadValue()
   pen.value = selections.pen
   if (
@@ -78,21 +79,31 @@ onMounted(() => {
   }
 })
 
+function normalizeWhereKey() {
+  if (eventFormData.value?.where?.key === 'realtimeValue') {
+    eventFormData.value.where.key = PropEnums.value
+  }
+}
+
 function loadValue() {
   switch (eventFormData.value.action) {
     case EventActionEnums.SetProps:
-      setPropsArray.value = Object.entries(eventFormData.value.value).map(([key, value]) => ({
+      setPropsArray.value = Object.entries(eventFormData.value.value || {}).map(([key, value]) => ({
         key,
         value,
       }))
       getPenOptions()
-      if (!eventFormData.value.id) eventFormData.value.params = selections.pen.id
+      if (!eventFormData.value.id && !eventFormData.value.params) {
+        eventFormData.value.params = selections.pen?.id
+      }
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
     case EventActionEnums.StopAnimate:
       getPenOptions()
-      if (!eventFormData.value.id) eventFormData.value.value = selections.pen.id
+      if (!eventFormData.value.id && !eventFormData.value.value) {
+        eventFormData.value.value = selections.pen?.id
+      }
 
       break
   }
@@ -161,9 +172,19 @@ function updateSelectActionValue(v: number) {
   }
 }
 
+function pickTarget(field: 'params' | 'value') {
+  emit('pick-target', field)
+}
+
+function getPenLabel(id: string) {
+  const target = penOptions.value.find((item) => item.value === id)
+  return target ? target.label : id || '未选择'
+}
+
 function updateValue() {
   formRef.value?.validate((valid) => {
     if (valid) return
+    normalizeWhereKey()
     setValue()
     emit('update:value', eventFormData.value)
   })
@@ -185,7 +206,7 @@ function changeTrigger(v: string) {
   if (v === TriggerEnum.comparison) {
     eventFormData.value.where = {
       comparison: '',
-      key: '',
+      key: selections.pen?.key ? PropEnums.value : '',
       type: TriggerEnum.comparison,
       value: '',
     }
@@ -213,12 +234,19 @@ function changeTrigger(v: string) {
     <!-- 设置属性 -->
     <template v-if="eventFormData.action === EventActionEnums.SetProps">
       <n-form-item label="目标">
-        <n-select
-          placeholder="默认为自身"
-          v-model:value="eventFormData.params"
-          :options="penOptions"
-          filterable
-        />
+        <div class="w-full flex gap-2">
+          <n-select
+            placeholder="默认为自身"
+            v-model:value="eventFormData.params"
+            :options="penOptions"
+            filterable
+            class="flex-1"
+          />
+          <n-button @click="pickTarget('params')">画布选择</n-button>
+        </div>
+      </n-form-item>
+      <n-form-item v-if="eventFormData.params" label="当前目标">
+        <n-text>{{ getPenLabel(eventFormData.params) }}</n-text>
       </n-form-item>
       <div class="flex" :class="setPropsArray.length > 0 ? '' : 'mb-4'">
         <div class="w-full">属性</div>
@@ -289,12 +317,19 @@ function changeTrigger(v: string) {
       "
     >
       <n-form-item label="目标">
-        <n-select
-          placeholder="默认为自身"
-          v-model:value="eventFormData.value"
-          :options="penOptions"
-          filterable
-        />
+        <div class="w-full flex gap-2">
+          <n-select
+            placeholder="默认为自身"
+            v-model:value="eventFormData.value"
+            :options="penOptions"
+            filterable
+            class="flex-1"
+          />
+          <n-button @click="pickTarget('value')">画布选择</n-button>
+        </div>
+      </n-form-item>
+      <n-form-item v-if="eventFormData.value" label="当前目标">
+        <n-text>{{ getPenLabel(eventFormData.value) }}</n-text>
       </n-form-item>
     </template>
     <n-form-item label="触发条件">

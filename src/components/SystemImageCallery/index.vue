@@ -32,9 +32,30 @@ const systemImageList = ref<SystemMonitorImage[]>([])
 const projectImageList = ref<ProjectMonitorImage[]>([])
 const currentImageIndex = ref()
 const currentImageValue = ref<string>('')
+type MonitorImageItem = SystemMonitorImage | ProjectMonitorImage
+interface ImageSize {
+  width: number
+  height: number
+}
+
+const defaultInsertSize: ImageSize = { width: 200, height: 200 }
+const maxInsertSize = 240
+
 onMounted(() => {
   selectSystemMonitorImageCategory()
 })
+
+function getThumbUrl(image?: MonitorImageItem) {
+  return image?.thumbUrl || image?.displayUrl || image?.url || ''
+}
+
+function getDisplayUrl(image?: MonitorImageItem) {
+  return image?.displayUrl || image?.url || image?.originUrl || ''
+}
+
+function getPreviewUrl(image?: MonitorImageItem) {
+  return image?.displayUrl || image?.originUrl || image?.url || ''
+}
 
 function selectSystemMonitorImageCategory() {
   MonitorImageService.selectSystemMonitorImageCategory().then((data) => {
@@ -168,30 +189,60 @@ function updateImageValue(v: string) {
 
 function insertImageOption() {}
 
-function insertImage(flag: boolean) {
-  let url = ''
+function getCurrentImage() {
   if (currentTabValue.value === 'system') {
-    const image = systemImageList.value.find((item) => item.uid === currentImageValue.value)
-    if (!image) {
-      window.$message.error('图片不存在')
-      return
-    }
-    url = image.url
+    return systemImageList.value.find((item) => item.uid === currentImageValue.value)
   } else if (currentTabValue.value === 'project') {
-    const image = projectImageList.value.find((item) => item.uid === currentImageValue.value)
-    if (!image) {
-      window.$message.error('图片不存在')
-      return
+    return projectImageList.value.find((item) => item.uid === currentImageValue.value)
+  }
+}
+
+function getScaledImageSize(size: ImageSize) {
+  if (!size.width || !size.height) return defaultInsertSize
+  const scale = Math.min(maxInsertSize / size.width, maxInsertSize / size.height, 1)
+  return {
+    width: Math.round(size.width * scale),
+    height: Math.round(size.height * scale),
+  }
+}
+
+function loadImageSize(url: string) {
+  return new Promise<ImageSize>((resolve) => {
+    const image = new Image()
+    image.onload = () => {
+      resolve({ width: image.naturalWidth, height: image.naturalHeight })
     }
-    url = image.url
-  } else {
+    image.onerror = () => {
+      resolve(defaultInsertSize)
+    }
+    image.src = url
+  })
+}
+
+async function getInsertImageSize(image: MonitorImageItem, url: string) {
+  if (image.width && image.height) {
+    return getScaledImageSize({ width: image.width, height: image.height })
+  }
+  return getScaledImageSize(await loadImageSize(url))
+}
+
+async function insertImage(flag: boolean) {
+  const image = getCurrentImage()
+  if (!image) {
+    window.$message.error('图片不存在')
     return
   }
+  const url = getDisplayUrl(image)
+  if (!url) {
+    window.$message.error('图片地址不存在')
+    return
+  }
+  const size = await getInsertImageSize(image, url)
   const item = {
     x: 100,
     y: 100,
-    width: 200,
-    height: 200,
+    width: size.width,
+    height: size.height,
     name: flag ? 'image' : 'gif',
     image: url,
     locked: LockState.None,
@@ -283,10 +334,13 @@ function removeImage() {
                     >
                       <n-popover style="padding: 4px" trigger="hover" placement="right-start">
                         <template #trigger>
-                          <n-image :src="item.url" preview-disabled />
+                          <n-image :src="getThumbUrl(item)" preview-disabled />
                         </template>
                         <div>
-                          <img :src="item.url" style="max-width: 200px; max-height: 200px" />
+                          <img
+                            :src="getPreviewUrl(item)"
+                            style="max-width: 200px; max-height: 200px"
+                          />
                         </div>
                       </n-popover>
                     </div>
@@ -384,10 +438,13 @@ function removeImage() {
                     >
                       <n-popover style="padding: 4px" trigger="hover" placement="right-start">
                         <template #trigger>
-                          <n-image :src="item.url" preview-disabled />
+                          <n-image :src="getThumbUrl(item)" preview-disabled />
                         </template>
                         <div>
-                          <img :src="item.url" style="max-width: 200px; max-height: 200px" />
+                          <img
+                            :src="getPreviewUrl(item)"
+                            style="max-width: 200px; max-height: 200px"
+                          />
                         </div>
                       </n-popover>
                     </div>
@@ -412,7 +469,7 @@ function removeImage() {
               <n-button type="info">上传图片</n-button>
             </FastUpload>
             <n-button type="error" v-if="currentImageValue" @click="removeImage">删除</n-button>
-            <n-button type="primary" v-if="currentImageValue" @click="insertImage">插入</n-button>
+            <n-button type="primary" v-if="currentImageValue" @click="insertImage(true)">插入</n-button>
           </div>
         </div>
       </div>

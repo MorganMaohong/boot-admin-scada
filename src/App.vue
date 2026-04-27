@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
-import { getUrlParams } from '@/utils'
-import Cookies from 'js-cookie'
 import { zhCN, dateZhCN } from 'naive-ui'
+import { bootstrapAuthFromUrl } from '@/utils/auth'
 
-onMounted(() => {
-  console.log(getUrlParams())
-  Cookies.set('x-token', getUrlParams().accessToken)
-})
+bootstrapAuthFromUrl()
 </script>
 
 <template>

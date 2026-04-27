@@ -49,7 +49,7 @@ function changeDraw(v: string) {
     MonitorDrawService.selectByUid(v).then((res) => {
       drawStore.draw = res
       meta2d.open(JSON.parse(drawStore.draw.data))
-      meta2d.fitView(true, 5)
+      meta2d.fitView(true, 0)
       meta2d.render()
       emitter.emit('reloadDraw')
       // })

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, reactive } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Meta2d, register, registerAnchors, registerCanvasDraw } from '@meta2d/core'
 import { flowAnchors, flowPens } from '@meta2d/flow-diagram'
 import { activityDiagram, activityDiagramByCtx } from '@meta2d/activity-diagram'
@@ -20,26 +20,33 @@ const meta2dOptions: any = {
 }
 const drawStore = useDrawStore()
 onMounted(() => {
-  // debugger
   monitorDraw.value = drawStore.globalModal.draw
-  init()
+  if (drawStore.globalModal.show) {
+    init()
+  }
 })
 
-/*watch(
+watch(
   () => drawStore.globalModal.draw,
-  () => {
-    debugger
-    console.log('--打开弹窗更新--')
-    console.log(drawStore.globalModal.draw)
+  async () => {
+    monitorDraw.value = drawStore.globalModal.draw
     if (drawStore.globalModal.show) {
+      await nextTick()
       init()
     }
   },
-  { deep: true }, // 需要深度监听
-)*/
+  { deep: true },
+)
+
+onUnmounted(() => {
+  meta2ds?.destroy()
+  meta2ds = null
+})
 
 
 function init() {
+  if (!monitorDraw.value?.data) return
+  meta2ds?.destroy()
   // 创建实例
   meta2ds = new Meta2d('meta3d', meta2dOptions)
 
@@ -70,7 +77,7 @@ function init() {
   meta2ds.setOptions({ disableRuleLine: true })
   meta2ds.open(data)
 
-  meta2ds.fitView(true, 5)
+  meta2ds.fitView(true, 0)
 
   document.addEventListener('fullscreenchange', () => {
     setTimeout(() => {
@@ -90,13 +97,7 @@ function init() {
 </script>
 
 <template>
-  <div
-    id="meta3d"
-    :style="{
-      width: drawStore.globalModal.draw.width - 50 + 'px',
-      height: drawStore.globalModal.draw.height - 100 + 'px',
-    }"
-  ></div>
+  <div id="meta3d" style="width: 100%; height: 100%"></div>
 </template>
 
 <style lang="scss" scoped></style>

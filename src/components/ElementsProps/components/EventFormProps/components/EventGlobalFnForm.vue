@@ -20,6 +20,7 @@ const props = defineProps<{
   eventData: EventForm
 }>()
 const globalFnOpenParamsOptions = ref<OptionVo[]>([])
+
 onMounted(() => {
   const pen = selections.pen
   if (!pen) return
@@ -32,18 +33,37 @@ onMounted(() => {
       break
     case GlobalFnEnums.writeVar:
     case GlobalFnEnums.controlVar:
-      if (!isTrulyEmptyObject(props.eventData.params)) {
-        if (!props.eventData.params.key) {
-          if (pen.key) {
-            props.eventData.params.key = pen.key
-          }
-        }
-      } else {
-        props.eventData.params = {}
-      }
+      ensureVarParams()
       break
   }
 })
+
+function getPreferredVarKey() {
+  const pen = selections.pen as any
+  if (!pen) return ''
+  if (pen.preferredVarKey) return pen.preferredVarKey
+  if (Array.isArray(pen.datas)) {
+    const preferredData = [...pen.datas]
+      .reverse()
+      .find((item) => item?.key && item?.autoSync !== true)
+    if (preferredData?.key) return preferredData.key
+  }
+  return pen.key || ''
+}
+
+function ensureVarParams(force = false) {
+  const pen = selections.pen
+  const preferredVarKey = getPreferredVarKey()
+  if (!props.eventData.params || typeof props.eventData.params !== 'object') {
+    props.eventData.params = {}
+  }
+  if ((force || !props.eventData.params.key) && preferredVarKey) {
+    props.eventData.params.key = preferredVarKey
+  }
+  if ((force || !props.eventData.params.prop) && props.eventData.value === GlobalFnEnums.writeVar) {
+    props.eventData.params.prop = 'custom'
+  }
+}
 
 function updateGlobalFnValue(v: string) {
   props.eventData.params = null
@@ -55,14 +75,8 @@ function updateGlobalFnValue(v: string) {
       break
     case GlobalFnEnums.writeVar:
     case GlobalFnEnums.controlVar:
-      if (pen.key) {
-        props.eventData.params = {
-          key: pen.key,
-          prop: 'custom',
-        }
-      } else {
-        props.eventData.params = {}
-      }
+      props.eventData.params = {}
+      ensureVarParams(true)
       break
     case GlobalFnEnums.openModal:
       modalOptions()
@@ -117,6 +131,9 @@ function modalOptions() {
     <n-form-item label="变量" class="w-full">
       <GatewayVarSelect v-model:model-value="eventData.params.key" />
     </n-form-item>
+    <n-text depth="3" class="text-xs block mb-3">
+      可直接写固定值，或读取当前图元的属性值后写入变量。
+    </n-text>
     <div class="flex w-full gap-2">
       <n-form-item label="属性" class="w-full">
         <n-select v-model:value="eventData.params.prop" :options="PresetJsPropOptions" />
@@ -136,17 +153,9 @@ function modalOptions() {
     <n-form-item label="变量" class="w-full">
       <GatewayVarSelect v-model:model-value="eventData.params.key" />
     </n-form-item>
-  </template>
-  <template
-    v-if="
-      eventData.value === GlobalFnEnums.openModal &&
-      eventData.params &&
-      typeof eventData.params === 'object'
-    "
-  >
-    <n-form-item label="变量" class="w-full">
-      <GatewayVarSelect v-model:model-value="eventData.params.key" />
-    </n-form-item>
+    <n-text depth="3" class="text-xs block mb-3">
+      运行时会弹出变量输入框，默认带出当前图元的值，用户确认后再写入。
+    </n-text>
   </template>
 </template>
 

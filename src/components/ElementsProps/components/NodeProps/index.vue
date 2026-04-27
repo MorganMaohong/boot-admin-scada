@@ -25,9 +25,13 @@ import {
 } from '@/components/ElementsProps/model'
 import { LockState, s8 } from '@meta2d/core'
 import { ColorPicker } from 'vue3-colorpicker'
-import { Eye, EyeOff, Lock, LockOff, LockOpen } from '@vicons/tabler'
+import { useAppStore } from '@/stores/app'
+import StructureTree from '@/components/StructureTree/index.vue'
+import { useDrawStore } from '@/stores/module/draw.ts'
 
 const { select, selections, selects } = useSelection()
+const appStore = useAppStore()
+const drawStore = useDrawStore()
 const KEY = ref('')
 const pen = ref<any>(null)
 // 位置数据。当前版本位置需要动态计算获取
@@ -48,10 +52,10 @@ const animationFormData = ref<NodeAnimationForm>({
   keepAnimateState: false,
 })
 const pens = ref([])
-const structHoverIndex = ref<number | null>(null)
+const AUTO_SYNC_DATA_NAME = '默认值同步'
 
 onMounted(() => {
-  pens.value = Object.values(meta2d.store.pens)
+  pens.value = meta2d.data().pens || []
   getPen()
   console.log(tabPaneRef.value)
   maxTabPaneHeightRef.value = tabPaneRef.value.$el.clientHeight - 20
@@ -67,6 +71,30 @@ const dataNames = computed(() => {
 
 // 监听选中不同图元
 const watcher = watch(() => selections.pen.id, getPen)
+
+watch(
+  () => appStore.targetPicker.pickedPenId,
+  (pickedPenId) => {
+    if (!pickedPenId) return
+    if (appStore.targetPicker.sourcePenId !== pen.value.id) return
+    if (!appStore.targetPicker.targetField) return
+    eventFormData.value[appStore.targetPicker.targetField] = pickedPenId
+    showUpdateEvent.value = true
+    appStore.consumeTargetPick()
+  },
+)
+
+watch(
+  () => appStore.targetPicker.active,
+  (active) => {
+    if (active) return
+    if (appStore.targetPicker.pickedPenId) return
+    if (appStore.targetPicker.sourcePenId !== pen.value?.id) return
+    if (!appStore.targetPicker.targetField) return
+    showUpdateEvent.value = true
+    appStore.consumeTargetPick()
+  },
+)
 
 function getPen() {
   pen.value = selections.pen
@@ -110,6 +138,56 @@ function changePen(value: any, prop: string) {
   meta2d.setValue(v, { render: true })
 }
 
+function syncDatasToPen() {
+  meta2d.setValue({ id: pen.value.id, datas: datas.value }, { render: true })
+}
+
+function ensureAutoSyncData(varKey?: string) {
+  const key = varKey || pen.value.key
+  const index = datas.value.findIndex((item: any) => item?.autoSync === true)
+
+  if (!key) {
+    if (index >= 0) {
+      datas.value.splice(index, 1)
+      syncDatasToPen()
+    }
+    return
+  }
+
+  const autoSyncData: DataForm & { autoSync?: boolean } = {
+    id: index >= 0 ? datas.value[index].id : '',
+    key,
+    name: AUTO_SYNC_DATA_NAME,
+    value: '',
+    autoSync: true,
+    condData: [
+      {
+        cond: false,
+        min: 0,
+        max: 0,
+        valueType: ValueTypeEnum.varValue,
+        prop: PropEnums.value,
+        propValue: undefined,
+      },
+    ],
+  }
+
+  if (index >= 0) {
+    datas.value[index] = autoSyncData
+  } else {
+    autoSyncData.id = s8()
+    datas.value.unshift(autoSyncData)
+  }
+
+  syncDatasToPen()
+}
+
+function handleBindVariable(value: string) {
+  pen.value.key = value
+  changePen(value, 'key')
+  ensureAutoSyncData(value)
+}
+
 function showUpdateEventModal(data: EventForm) {
   if (data) {
     eventFormData.value = data
@@ -133,6 +211,13 @@ function showUpdateEventModal(data: EventForm) {
     }
   }
   showUpdateEvent.value = true
+}
+
+function startPickEventTarget(field: 'params' | 'value') {
+  if (appStore.targetPicker.active) return
+  appStore.startTargetPick(pen.value.id, field)
+  showUpdateEvent.value = false
+  window.$message.info('请在画布中选择目标图元')
 }
 
 function showCopyEventModal(data: EventForm) {
@@ -176,6 +261,7 @@ function addOrUpdateData(data: DataForm) {
     if (index >= 0) {
       datas.value[index] = data
       v['datas'] = datas.value
+      v['preferredVarKey'] = data.key || pen.value.preferredVarKey || pen.value.key
       meta2d.setValue(v, { render: true })
     }
   } else {
@@ -183,8 +269,10 @@ function addOrUpdateData(data: DataForm) {
     const v: any = { id: pen.value.id }
     datas.value.push(data)
     v['datas'] = datas.value
+    v['preferredVarKey'] = data.key || pen.value.preferredVarKey || pen.value.key
     meta2d.setValue(v, { render: true })
   }
+  pen.value.preferredVarKey = data.key || pen.value.preferredVarKey || pen.value.key
   showUpdateData.value = false
 }
 
@@ -203,11 +291,15 @@ function showUpdateDataModal(data: DataForm) {
   }
   if (data) {
     dataFormData.value = data
+    if (!dataFormData.value.key && pen.value.key) {
+      dataFormData.value.key = pen.value.key
+      dataFormData.value.name = pen.value.nickname || pen.value.name || pen.value.key
+    }
   } else {
     dataFormData.value = {
       id: '',
-      key: '',
-      name: '',
+      key: pen.value.key,
+      name: pen.value.nickname || pen.value.name || pen.value.key,
       value: '',
       varParams: {
         label: '',
@@ -272,37 +364,53 @@ const penChildrenOptions = computed(() => {
 })
 
 function onCheckPen(pen) {
-  meta2d.active([pen])
+  const currentPen = meta2d.findOne(pen?.id) || meta2d.store.pens?.[pen?.id]
+  if (!currentPen) return
+  meta2d.active([currentPen])
   meta2d.render()
-  select([pen])
+  select([currentPen])
 }
 
-function changeVisible(pen, value: any, index: number) {
-  meta2d.setValue({ id: pen.id, visible: value }, { render: true })
-  updatePenProp(index, 'visible', value)
+function findPenIndex(targetPen: any) {
+  return pens.value.findIndex((item: any) => item?.id === targetPen?.id)
 }
 
-function removePen(pen, index: number) {
-  meta2d.delete([pen], true)
+function changeVisible(targetPen) {
+  const index = findPenIndex(targetPen)
+  const value = !(targetPen.visible === false || targetPen.visible === true ? targetPen.visible : false)
+  meta2d.setValue({ id: targetPen.id, visible: value }, { render: true })
+  if (index >= 0) updatePenProp(index, 'visible', value)
+}
+
+function removePen(targetPen) {
+  const index = findPenIndex(targetPen)
+  meta2d.delete([targetPen], true)
   meta2d.render()
-  pens.value.splice(index, 1)
-}
-
-function changeLocked(pen, index: number) {
-  if (!pen) return
-  if (pen.locked === LockState.None) {
-    pen.locked = LockState.DisableEdit
-    pens.value[index]['locked'] = LockState.DisableEdit
-    updatePenProp(index, 'locked', LockState.DisableEdit)
-  } else if (pen.locked === LockState.DisableEdit) {
-    pen.locked = LockState.Disable
-    pens.value[index]['locked'] = LockState.Disable
-    updatePenProp(index, 'locked', LockState.Disable)
-  } else if (pen.locked === LockState.Disable) {
-    pen.locked = LockState.None
-    updatePenProp(index, 'locked', LockState.None)
+  if (index >= 0) {
+    pens.value.splice(index, 1)
   }
-  meta2d.setValue({ id: pen.id, locked: pen.locked }, { render: true })
+}
+
+function changeLocked(targetPen) {
+  const index = findPenIndex(targetPen)
+  if (!targetPen) return
+  if (targetPen.locked === LockState.None) {
+    targetPen.locked = LockState.DisableEdit
+    if (index >= 0) {
+      pens.value[index]['locked'] = LockState.DisableEdit
+      updatePenProp(index, 'locked', LockState.DisableEdit)
+    }
+  } else if (targetPen.locked === LockState.DisableEdit) {
+    targetPen.locked = LockState.Disable
+    if (index >= 0) {
+      pens.value[index]['locked'] = LockState.Disable
+      updatePenProp(index, 'locked', LockState.Disable)
+    }
+  } else if (targetPen.locked === LockState.Disable) {
+    targetPen.locked = LockState.None
+    if (index >= 0) updatePenProp(index, 'locked', LockState.None)
+  }
+  meta2d.setValue({ id: targetPen.id, locked: targetPen.locked }, { render: true })
 }
 
 function updatePenProp(index: number, key: string, value: any) {
@@ -315,10 +423,14 @@ function updatePenProp(index: number, key: string, value: any) {
 function updateTabs(key: string) {
   switch (key) {
     case 'struct':
-      pens.value = Object.values(meta2d.store.pens)
+      pens.value = meta2d.data().pens || []
       console.log(pens.value)
       break
   }
+}
+
+function handleSorted() {
+  pens.value = [...(meta2d.data().pens || [])]
 }
 
 const getPens = computed(() => {
@@ -608,12 +720,15 @@ onUnmounted(() => {
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
-            <n-form-item label="名称" v-if="!pen.key">
+            <n-form-item label="名称">
               <n-input v-model:value="pen.nickname" @update:value="changePen($event, 'nickname')" />
             </n-form-item>
             <n-form-item label="绑定变量" label-placement="top">
-              <GatewayVarSelect v-model:model-value="pen.key" v-model:model-name="pen.nickname" />
+              <GatewayVarSelect :model-value="pen.key" @update:model-value="handleBindVariable" />
             </n-form-item>
+            <n-text depth="3" class="text-xs">
+              选择变量后会自动同步到当前图元的 value，事件可直接使用
+            </n-text>
           </n-form>
           <div class="flex w-full">
             <n-button class="flex-1" type="primary" @click="showUpdateEventModal(null)">
@@ -693,12 +808,15 @@ onUnmounted(() => {
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
-            <n-form-item label="名称" v-if="!pen.key">
+            <n-form-item label="名称">
               <n-input v-model:value="pen.nickname" @update:value="changePen($event, 'nickname')" />
             </n-form-item>
             <n-form-item label="绑定变量" label-placement="top">
-              <GatewayVarSelect v-model:model-value="pen.key" v-model:model-name="pen.nickname" />
+              <GatewayVarSelect :model-value="pen.key" @update:model-value="handleBindVariable" />
             </n-form-item>
+            <n-text depth="3" class="text-xs">
+              已默认同步变量值到图元 value，只有复杂映射时再添加数据
+            </n-text>
           </n-form>
           <div class="w-full flex mb-4 mt-4">
             <n-button class="flex-1" type="primary" @click="showUpdateDataModal(null)">
@@ -735,57 +853,18 @@ onUnmounted(() => {
           </n-collapse>
         </n-scrollbar>
       </n-tab-pane>
-      <n-tab-pane name="structure" tab="结构" class="w-full h-full" ref="tabPaneRef">
+      <n-tab-pane name="structure" tab="图层" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-list>
-            <n-list-item
-              v-for="(item, index) in getPens"
-              @click="onCheckPen(item)"
-              class="cursor-pointer"
-              @mouseenter="structHoverIndex = index"
-              @mouseleave="structHoverIndex = null"
-            >
-              <template #suffix>
-                <div class="flex gap-2" v-if="item && structHoverIndex === index">
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <n-button text @click.stop="changeLocked(item, index)">
-                        <template #icon>
-                          <n-icon>
-                            <LockOpen v-if="item.locked === LockState.None" />
-                            <Lock v-else-if="item.locked === LockState.DisableEdit" />
-                            <LockOff v-else-if="item.locked === LockState.Disable" />
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </template>
-                    <span v-if="item.locked === LockState.None">解锁</span>
-                    <span v-else-if="item.locked === LockState.DisableEdit">禁止编辑</span>
-                    <span v-else-if="item.locked === LockState.Disable">禁止任何操作</span>
-                  </n-popover>
-
-                  <n-button text @click.stop="removePen(item, index)">
-                    <template #icon>
-                      <n-icon>
-                        <MdTrash />
-                      </n-icon>
-                    </template>
-                  </n-button>
-                  <n-button text @click.stop="changeVisible(item, !item.visible, index)">
-                    <template #icon>
-                      <n-icon>
-                        <Eye v-if="item.visible" />
-                        <EyeOff v-else />
-                      </n-icon>
-                    </template>
-                  </n-button>
-                </div>
-              </template>
-              <div v-if="item" :class="item.id === pen.id ? 'text-blue-600' : ''">
-                {{ item.nickname || item.name }}
-              </div>
-            </n-list-item>
-          </n-list>
+          <StructureTree
+            :draw-uid="drawStore.draw.uid"
+            :pens="getPens"
+            :current-pen-id="pen?.id"
+            @select-pen="onCheckPen"
+            @change-visible="changeVisible"
+            @change-locked="changeLocked"
+            @remove-pen="removePen"
+            @sorted="handleSorted"
+          />
         </n-scrollbar>
       </n-tab-pane>
     </n-tabs>
@@ -807,7 +886,11 @@ onUnmounted(() => {
     style="width: 800px"
     :mask-closable="false"
   >
-    <EventFormProps :value="eventFormData" @update:value="addOrUpdateEvent" />
+    <EventFormProps
+      :value="eventFormData"
+      @update:value="addOrUpdateEvent"
+      @pick-target="startPickEventTarget"
+    />
   </n-modal>
 </template>
 

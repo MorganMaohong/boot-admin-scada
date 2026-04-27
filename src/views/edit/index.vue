@@ -1,5 +1,9 @@
 <template>
-  <div id="meta2d" class="bg-gray-100">
+  <div class="editor-stage">
+    <div id="meta2d" class="bg-gray-100"></div>
+    <div v-if="appStore.targetPicker.active" class="pick-mask">
+      <div class="pick-mask-tip">正在选择目标图元，点击图元确认，按 ESC 退出</div>
+    </div>
     <n-popover
       :show="showMenu"
       :x="menuPosition.x"
@@ -40,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Pen } from '@meta2d/core'
 import { Meta2d, register, registerAnchors, registerCanvasDraw, LockState } from '@meta2d/core'
 import { flowPens, flowAnchors } from '@meta2d/flow-diagram'
@@ -58,9 +62,11 @@ import { EventActionEnums } from '@/components/ElementsProps/model'
 import { ProjectService } from '@/services/ProjectService.ts'
 import { getUrlParams } from '@/utils'
 import { useLayerStore } from '@/stores/module/layer.ts'
+import { useAppStore } from '@/stores/app'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
+const appStore = useAppStore()
 const { select, selections, selects } = useSelection()
 const showMenu = ref(false)
 const menuPosition = ref({
@@ -68,6 +74,7 @@ const menuPosition = ref({
   y: 0,
 })
 const resizeTimer = ref(0)
+const cachedLocked = ref<number | null>(null)
 
 function resize() {
   if (resizeTimer.value) clearTimeout(resizeTimer.value)
@@ -82,8 +89,29 @@ function resize() {
 onMounted(() => {
   drawStore.setTitle()
   window.addEventListener('resize', resize)
+  window.addEventListener('keydown', handleKeydown)
   emitter.on('draw', init)
 })
+
+watch(
+  () => appStore.targetPicker.active,
+  (active) => {
+    if (!meta2d?.store?.data) return
+    if (active) {
+      cachedLocked.value = meta2d.store.data.locked
+      meta2d.store.data.locked = LockState.DisableEdit
+      showMenu.value = false
+      meta2d.inactive()
+      meta2d.render()
+      return
+    }
+    if (cachedLocked.value !== null) {
+      meta2d.store.data.locked = cachedLocked.value
+      cachedLocked.value = null
+      meta2d.render()
+    }
+  },
+)
 
 function init() {
   // 创建实例
@@ -135,7 +163,7 @@ function init() {
   // 右键菜单
   meta2d.on('contextmenu', showContextMenu)
   // 点击画布
-  meta2d.on('click', hideContextMenu)
+  meta2d.on('click', handleCanvasClick)
 
   console.log('---------------------')
   console.log(meta2d.data())
@@ -168,21 +196,47 @@ function processPaste(pens: pen[]) {
 }
 
 const active = (pens?: Pen[]) => {
+  if (appStore.targetPicker.active) {
+    const targetPen = pens?.[0]
+    if (!targetPen?.id) {
+      window.$message.info('请选择一个图元作为目标')
+      return
+    }
+    appStore.completeTargetPick(targetPen.id)
+    return
+  }
   if (drawStore.isPenDrawLine || drawStore.isPencilDrawLine) return
   select(pens)
   selects(pens)
 }
 
 const inactive = () => {
+  if (appStore.targetPicker.active) return
   if (drawStore.isPenDrawLine || drawStore.isPencilDrawLine) return
   select()
 }
 
 const showContextMenu = (e) => {
+  if (appStore.targetPicker.active) return
   if (!selections.pens) return
   showMenu.value = true
   menuPosition.value.x = e.e.clientX
   menuPosition.value.y = e.e.clientY
+}
+
+function handleCanvasClick(pen?: Pen) {
+  showMenu.value = false
+  if (!appStore.targetPicker.active) return
+  const targetPen = pen?.id ? pen : selections.pen
+  if (!targetPen?.id) return
+  appStore.completeTargetPick(targetPen.id)
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return
+  if (!appStore.targetPicker.active) return
+  appStore.cancelTargetPick()
+  window.$message.info('已退出目标图元选择')
 }
 
 function top() {
@@ -280,12 +334,40 @@ const hideContextMenu = () => {
 }
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
   meta2d.destroy()
 })
 </script>
 <style lang="postcss" scoped>
+.editor-stage {
+  position: relative;
+  height: 100%;
+}
+
 #meta2d {
   height: calc(100vh - 80px);
   z-index: 1;
+}
+
+.pick-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(24, 144, 255, 0.08);
+  border: 1px dashed rgba(24, 144, 255, 0.35);
+}
+
+.pick-mask-tip {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.82);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
 }
 </style>
