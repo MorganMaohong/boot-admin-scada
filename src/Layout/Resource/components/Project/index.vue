@@ -11,8 +11,12 @@ import type { ProjectMonitorLayer, ProjectMonitorLayerForm } from '@/model/layer
 import { CanvasLayer, deepClone } from '@meta2d/core'
 import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
 import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
+import { useLayerStore } from '@/stores/module/layer.ts'
+import { useSelection } from '@/services/selections.ts'
 
 const drawStore = useDrawStore()
+const layerStore = useLayerStore()
+const { select, selects } = useSelection()
 const targetDrawContext = ref<ProjectMonitorDraw | null>(null)
 const previewDrawUid = ref('')
 const currentProjectUid = ref('')
@@ -23,14 +27,28 @@ const projectQueryData = ref<ProjectQuery>({ keyword: '' })
 const copyingDrawUid = ref('')
 const showCopyConfirm = ref(false)
 const pendingSourceDraw = ref<ProjectMonitorDraw | null>(null)
+const drawListRequestId = ref(0)
 onMounted(() => {
   selectProjectAll()
 })
 
 watch(
   () => drawStore.draw?.uid,
-  () => {
-    if (previewDrawUid.value) return
+  (nextUid, prevUid) => {
+    if (!nextUid) {
+      targetDrawContext.value = null
+      previewDrawUid.value = ''
+      return
+    }
+    if (previewDrawUid.value && prevUid && nextUid !== prevUid) {
+      previewDrawUid.value = ''
+      targetDrawContext.value = null
+      return
+    }
+    if (targetDrawContext.value?.uid && targetDrawContext.value.uid !== nextUid) {
+      targetDrawContext.value = null
+      return
+    }
     targetDrawContext.value = null
   },
 )
@@ -45,12 +63,19 @@ function selectProjectAll() {
 
 function selectDrawByProjectUid() {
   if (!currentProjectUid.value) return
-  MonitorDrawService.selectByProjectUid(currentProjectUid.value).then((res) => {
+  const requestId = ++drawListRequestId.value
+  const projectUid = currentProjectUid.value
+  MonitorDrawService.selectByProjectUid(projectUid).then((res) => {
+    if (requestId !== drawListRequestId.value) return
+    if (projectUid !== currentProjectUid.value) return
     drawData.value = res
   })
 }
 
 function changeProject(projectUid: string) {
+  if (currentProjectUid.value !== projectUid) {
+    drawData.value = []
+  }
   currentProjectUid.value = projectUid
   captureTargetDrawContext()
   selectDrawByProjectUid()
@@ -70,19 +95,37 @@ function getTargetDraw() {
   return targetDrawContext.value || drawStore.draw
 }
 
+function clearReferenceSelectionState() {
+  currentDrawHoverIndex.value = null
+  select()
+  selects()
+  meta2d?.inactive?.()
+}
+
+function syncTargetCanvasState() {
+  clearReferenceSelectionState()
+  emitter.emit('reloadDraw')
+  emitter.emit('pensSorted')
+  layerStore.layer = {}
+  layerStore.getDefaultLayer()
+}
+
 function changeDraw(v: string) {
   if (previewDrawUid.value === v) return
   captureTargetDrawContext()
+  clearReferenceSelectionState()
   showRequestOverlay('正在加载参考图纸，请稍候...')
-  MonitorDrawService.selectByUid(v).then((res) => {
-    previewDrawUid.value = res.uid
-    meta2d.open(JSON.parse(res.data))
-    meta2d.fitView(true, 5)
-    meta2d.render()
-    emitter.emit('reloadDraw')
-  }).finally(() => {
-    hideRequestOverlay()
-  })
+  MonitorDrawService.selectByUid(v)
+    .then((res) => {
+      previewDrawUid.value = res.uid
+      meta2d.open(JSON.parse(res.data))
+      meta2d.fitView(true, 5)
+      meta2d.render()
+      syncTargetCanvasState()
+    })
+    .finally(() => {
+      hideRequestOverlay()
+    })
 }
 
 function restoreTargetDraw() {
@@ -93,7 +136,7 @@ function restoreTargetDraw() {
   meta2d.fitView(true, 5)
   meta2d.render()
   previewDrawUid.value = ''
-  emitter.emit('reloadDraw')
+  syncTargetCanvasState()
   return true
 }
 
@@ -248,7 +291,9 @@ async function copyDrawToCurrentDraw(sourceDraw: ProjectMonitorDraw) {
     drawStore.draw.data = JSON.stringify(nextDrawData)
     await MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid)
     targetDrawContext.value = { ...drawStore.draw }
-    emitter.emit('pensSorted')
+    previewDrawUid.value = ''
+    syncTargetCanvasState()
+    meta2d.fitView(true, 5)
     window.$message.success(`已复制 ${sourcePens.length} 个图元，并同步图层`)
   } catch (error) {
     console.error(error)
@@ -334,30 +379,60 @@ function confirmCopyDraw() {
 
 <style lang="scss" scoped>
 .reference-project {
-  padding: 8px;
+  --reference-project-align-left: 44px;
+  padding: 4px 0 2px;
 }
 
 .reference-project__search {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding: 0 0 0 var(--reference-project-align-left);
 }
 
 .reference-project__collapse {
-  border-radius: 10px;
   background: #fff;
 }
 
-::v-deep(.n-list) {
-  padding: 4px 0 4px 18px;
+::v-deep(.reference-project__search .n-input) {
+  --n-border-radius: 8px 0 0 8px;
+}
+
+::v-deep(.reference-project__search .n-button) {
+  --n-border-radius: 0 8px 8px 0;
+  min-width: 72px;
+}
+
+::v-deep(.reference-project__collapse > .n-collapse-item > .n-collapse-item__header) {
+  min-height: 42px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+::v-deep(.reference-project__collapse > .n-collapse-item > .n-collapse-item__content-wrapper) {
+  border-top: 0;
+}
+
+::v-deep(.reference-project__collapse > .n-collapse-item > .n-collapse-item__content-wrapper > .n-collapse-item__content-inner) {
+  padding: 0 0 0 12px;
+}
+
+::v-deep(.reference-project__collapse .n-list) {
+  padding: 2px 0 6px 18px;
+}
+
+::v-deep(.reference-project__collapse .n-list-item) {
+  padding: 0;
 }
 
 ::v-deep(.n-collapse) {
   ::v-deep(.n-collapse-item .n-collapse-item) {
-    margin-left: 12px !important;
+    margin-left: 0 !important;
   }
 }
 
 .reference-draw-list-item {
-  margin: 3px 0;
+  margin: 2px 0;
   border-radius: 8px;
   cursor: pointer;
   transition:
@@ -366,12 +441,12 @@ function confirmCopyDraw() {
 }
 
 .reference-draw-list-item--hover {
-  background: #f6f8fb;
+  background: #f8fafc;
 }
 
 .reference-draw-list-item--active {
-  background: rgba(32, 128, 240, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(32, 128, 240, 0.14);
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.16);
 }
 
 .reference-draw-item {
@@ -379,7 +454,8 @@ function confirmCopyDraw() {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 30px;
+  min-height: 34px;
+  padding: 0 10px 0 12px;
 }
 
 .reference-draw-item__name {
@@ -387,7 +463,7 @@ function confirmCopyDraw() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #1f2937;
+  color: #334155;
   font-size: 13px;
 }
 </style>

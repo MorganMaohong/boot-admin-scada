@@ -34,6 +34,12 @@ import {
 } from '@/components/ElementsProps/state.ts'
 import emitter from '@/utils/eventBus.ts'
 import { removeMeta2dPens } from '@/utils/meta2dPens.ts'
+import {
+  ensureChildStateValues,
+  getChildStateValues,
+  getShowChildStateValue,
+  resolveShowChildIndex,
+} from '@/utils/statefulChildren.ts'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
@@ -60,6 +66,8 @@ const animationFormData = ref<NodeAnimationForm>({
 })
 const pens = ref<any[]>([])
 const AUTO_SYNC_DATA_NAME = '默认值同步'
+const showChildStateValue = ref<string | number | undefined>('')
+const structureTreeScrollVersion = ref(0)
 
 onMounted(() => {
   pens.value = meta2d.data().pens || []
@@ -126,6 +134,7 @@ function getPen() {
   if (!pen.value?.id) {
     events.value = []
     datas.value = []
+    showChildStateValue.value = ''
     KEY.value = s8()
     return
   }
@@ -149,6 +158,7 @@ function getPen() {
   events.value = pen.value.events || []
   datas.value = pen.value.datas || []
   normalizeDatas()
+  syncStatefulChildrenConfig(false)
 
   for (const key in pen.value) {
     if (animationFormData.value.hasOwnProperty(key)) {
@@ -163,10 +173,90 @@ function changePen(value: any, prop: string) {
   const v: any = { id: pen.value.id }
   if (prop === 'dash') {
     v.lineDash = lineDashs[value]
+  } else if (prop === 'showChild') {
+    const resolved = resolveShowChildIndex(pen.value, value)
+    if (!resolved.matched || resolved.index === undefined) {
+      window.$message.error('状态值未匹配到任何子图元')
+      return
+    }
+    v[prop] = resolved.index
+    showChildStateValue.value = value
   } else {
     v[prop] = value
   }
   meta2d.setValue(v, { render: true })
+}
+
+function syncStatefulChildrenConfig(render = true) {
+  if (!pen.value?.id || pen.value.showChild === undefined) {
+    showChildStateValue.value = ''
+    return
+  }
+
+  const { values, changed } = ensureChildStateValues(pen.value)
+  pen.value.childStateValues = values
+  showChildStateValue.value = getShowChildStateValue({
+    ...pen.value,
+    childStateValues: values,
+  })
+
+  if (!changed) return
+
+  meta2d.setValue(
+    {
+      id: pen.value.id,
+      childStateValues: values,
+    },
+    { render, history: false },
+  )
+}
+
+const penStateChildren = computed(() => {
+  if (!pen.value?.children || pen.value.showChild === undefined) return null
+  return getChildStateValues(pen.value).map((item, index) => {
+    const childPen = meta2d.findOne(item.childId)
+    return {
+      childId: item.childId,
+      label: childPen?.title || childPen?.nickname || childPen?.name || `状态 ${index}`,
+      value: item.value,
+    }
+  })
+})
+
+function updateChildStateValue(childId: string, value: string) {
+  const nextChildStateValues = getChildStateValues(pen.value).map((item) =>
+    item.childId === childId ? { ...item, value } : item,
+  )
+
+  const normalizedValue = String(value ?? '').trim()
+  const duplicatedItem = nextChildStateValues.find(
+    (item) => item.childId !== childId && String(item.value ?? '').trim() === normalizedValue,
+  )
+  if (duplicatedItem) {
+    window.$message.error('子状态值不能重复，请设置不同的值')
+    return
+  }
+
+  pen.value.childStateValues = nextChildStateValues
+
+  const nextPenState = {
+    ...pen.value,
+    childStateValues: nextChildStateValues,
+  }
+  const resolved = resolveShowChildIndex(nextPenState, showChildStateValue.value)
+  const patch: any = {
+    id: pen.value.id,
+    childStateValues: nextChildStateValues,
+  }
+  if (resolved.matched && resolved.index !== undefined) {
+    patch.showChild = resolved.index
+  }
+
+  meta2d.setValue(patch, { render: true })
+  showChildStateValue.value = getShowChildStateValue({
+    ...nextPenState,
+    showChild: patch.showChild ?? pen.value.showChild,
+  })
 }
 
 function syncDatasToPen() {
@@ -421,9 +511,9 @@ function changePenAnimation(v: string) {
 const penChildrenOptions = computed(() => {
   if (pen.value.children && pen.value.children.length > 0) {
     let options = []
-    pen.value.children.forEach((item, index) => {
-      const p = meta2d.findOne(item)
-      if (p) options.push({ label: p.title || index, value: index })
+    getChildStateValues(pen.value).forEach((item, index) => {
+      const p = meta2d.findOne(item.childId)
+      if (p) options.push({ label: p.title || p.nickname || p.name || index, value: item.value })
     })
     if (options.length > 0) return options
     return null
@@ -492,6 +582,7 @@ function updatePenProp(index: number, key: string, value: any) {
 function updateTabs(key: string) {
   if (key === 'structure') {
     pens.value = meta2d.data().pens || []
+    structureTreeScrollVersion.value += 1
   }
 }
 
@@ -541,12 +632,18 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <div class="w-full h-full" :key="KEY">
-    <n-tabs v-model:value="activeTab" @update:value="updateTabs">
+  <div class="element-props w-full h-full" :key="KEY">
+    <n-tabs class="element-props__tabs" v-model:value="activeTab" @update:value="updateTabs">
       <n-tab-pane name="appearance" tab="外观" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form label-placement="left" label-width="100px" label-align="left" v-if="pen && rect">
-            <n-collapse :default-expanded-names="['1', '2', '3']">
+        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+            v-if="pen && rect"
+          >
+            <n-collapse class="element-props__collapse" :default-expanded-names="['1', '2', '3']">
               <n-collapse-item title="样式" name="2">
                 <n-form-item label="背景颜色">
                   <color-picker
@@ -781,9 +878,29 @@ onUnmounted(() => {
                 <n-form-item label="状态值" v-if="penChildrenOptions">
                   <n-select
                     :options="penChildrenOptions"
-                    v-model:value="pen.showChild"
+                    v-model:value="showChildStateValue"
                     @update:value="changePen($event, 'showChild')"
                   />
+                </n-form-item>
+                <n-form-item
+                  label="子状态配置"
+                  v-if="penStateChildren && penStateChildren.length > 0"
+                  label-placement="top"
+                >
+                  <div class="state-child-config">
+                    <div
+                      v-for="item in penStateChildren"
+                      :key="item.childId"
+                      class="state-child-config__row"
+                    >
+                      <n-text class="state-child-config__label">{{ item.label }}</n-text>
+                      <n-input
+                        :value="String(item.value ?? '')"
+                        placeholder="请输入状态值"
+                        @update:value="updateChildStateValue(item.childId, $event)"
+                      />
+                    </div>
+                  </div>
                 </n-form-item>
               </n-collapse-item>
             </n-collapse>
@@ -791,8 +908,14 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="event" tab="事件" ref="tabPaneRef" class="w-full h-full">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }" class="p-2 right-0">
-          <n-form v-if="pen?.id" label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -817,7 +940,7 @@ onUnmounted(() => {
             </n-button>
           </div>
           <n-divider />
-          <n-collapse :default-expanded-names="eventNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="eventNames">
             <n-collapse-item
               v-for="(item, index) in events"
               :title="`事件 ${index + 1}`"
@@ -848,7 +971,7 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="effect" tab="动画">
-        <n-form label-placement="left" label-width="auto">
+        <n-form class="element-props__form" label-placement="left" label-width="auto">
           <n-form-item label="动画效果">
             <n-select
               :options="AnimationFramesOptions"
@@ -884,8 +1007,14 @@ onUnmounted(() => {
         </n-form>
       </n-tab-pane>
       <n-tab-pane name="data" tab="数据" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }" class="p-2 right-0">
-          <n-form v-if="pen?.id" label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -909,7 +1038,7 @@ onUnmounted(() => {
               添加数据
             </n-button>
           </div>
-          <n-collapse :default-expanded-names="dataNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="dataNames">
             <n-collapse-item
               :title="`数据 ${index + 1}`"
               v-for="(item, index) in displayDatas"
@@ -941,13 +1070,14 @@ onUnmounted(() => {
       </n-tab-pane>
       <n-tab-pane name="structure" tab="图层" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar
-          class="structure-tree-tab-scrollbar"
+          class="structure-tree-tab-scrollbar element-props__scroll"
           :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
         >
           <StructureTree
             :draw-uid="drawStore.draw.uid"
             :pens="getPens"
             :current-pen-id="pen?.id || ''"
+            :scroll-to-selection-version="structureTreeScrollVersion"
             @select-pen="onCheckPen"
             @change-visible="changeVisible"
             @change-locked="changeLocked"
@@ -984,16 +1114,98 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-::v-deep(.n-tabs) {
+.element-props {
   height: 100%;
+}
+
+::v-deep(.element-props__tabs.n-tabs) {
+  height: 100%;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav) {
+  padding: 0 14px;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav-scroll-wrapper) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__tabs .n-tabs-tab) {
+  padding-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+::v-deep(.element-props__tabs .n-tab-pane) {
+  padding-top: 8px;
 }
 
 ::v-deep(.n-tabs-tab-pad) {
   width: 26px;
 }
 
+.element-props__scroll {
+  padding: 0 10px 18px;
+}
+
+::v-deep(.element-props__scroll .n-scrollbar-content) {
+  padding-bottom: 18px;
+}
+
+.state-child-config {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.state-child-config__row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.state-child-config__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::v-deep(.element-props__form .n-form-item) {
+  padding: 10px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__form .n-form-item:last-child) {
+  border-bottom: 0;
+}
+
+::v-deep(.element-props__form .n-form-item-label) {
+  font-weight: 500;
+  color: #334155;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__header) {
+  min-height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__content-inner) {
+  padding-top: 2px;
+  padding-bottom: 10px;
+}
+
 ::v-deep(.structure-tree-tab-scrollbar .n-scrollbar-content) {
   padding-right: 4px;
+  padding-bottom: 18px;
 }
 
 ::v-deep(

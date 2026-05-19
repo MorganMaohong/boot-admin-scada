@@ -184,44 +184,56 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex gap-2 mb-2">
-    <n-button @click="showUpdateCategoryModal('')" type="primary" size="small">新增分组</n-button>
-    <n-button @click="showUpdateDrawModal('')" type="primary" size="small">新增弹窗图纸</n-button>
+  <div class="manage-panel">
+    <div class="manage-panel__toolbar">
+      <div class="manage-panel__title">
+        <div class="manage-panel__headline">弹窗目录</div>
+        <div class="manage-panel__caption">维护弹窗分组、标题和默认尺寸</div>
+      </div>
+      <div class="manage-panel__actions">
+        <n-button @click="showUpdateCategoryModal('')" type="primary" ghost>新增分组</n-button>
+        <n-button @click="showUpdateDrawModal('')" type="primary">新增弹窗图纸</n-button>
+      </div>
+    </div>
+
+    <div class="manage-table-shell">
+      <vxe-table
+        class="manage-table"
+        :loading="loading"
+        :key="tableKey"
+        :data="drawData.categoryVoList"
+        :tree-config="{ childrenField: 'drawList', expandAll: true }"
+        max-height="500"
+      >
+        <vxe-column
+          field="name"
+          title="名称"
+          show-overflow="tooltip"
+          tree-node
+          width="90%"
+        ></vxe-column>
+        <vxe-column fixed="right" title="操作" align="center" width="140">
+          <template #default="{ row }">
+            <div class="manage-table__row-actions">
+              <n-button
+                type="primary"
+                text
+                @click="row.drawList ? showUpdateCategoryModal(row.uid) : showUpdateDrawModal(row.uid)"
+                >编辑
+              </n-button>
+              <n-button
+                type="error"
+                text
+                v-if="!row.def"
+                @click="row.drawList ? showDeleteCategoryModal(row.uid) : showDeleteDrawModal(row.uid)"
+                >删除
+              </n-button>
+            </div>
+          </template>
+        </vxe-column>
+      </vxe-table>
+    </div>
   </div>
-  <vxe-table
-    :loading="loading"
-    :key="tableKey"
-    :data="drawData.categoryVoList"
-    :tree-config="{ childrenField: 'drawList', expandAll: true }"
-    max-height="500"
-  >
-    <vxe-column
-      field="name"
-      title="名称"
-      show-overflow="tooltip"
-      tree-node
-      width="90%"
-    ></vxe-column>
-    <vxe-column fixed="right" title="操作" align="center">
-      <template #default="{ row }">
-        <div class="flex gap-2">
-          <n-button
-            type="info"
-            text
-            @click="row.drawList ? showUpdateCategoryModal(row.uid) : showUpdateDrawModal(row.uid)"
-            >编辑
-          </n-button>
-          <n-button
-            type="error"
-            text
-            v-if="!row.def"
-            @click="row.drawList ? showDeleteCategoryModal(row.uid) : showDeleteDrawModal(row.uid)"
-            >删除
-          </n-button>
-        </div>
-      </template>
-    </vxe-column>
-  </vxe-table>
   <n-modal
     :mask-closable="false"
     type="error"
@@ -243,64 +255,138 @@ onMounted(() => {
     preset="dialog"
   />
   <n-modal v-model:show="showUpdateCategory" title="分组信息" preset="card" style="width: 600px">
-    <n-form>
-      <n-form-item label="分组名称">
-        <n-input v-model:value="drawCategoryFormData.name" />
-      </n-form-item>
-    </n-form>
+    <div class="manage-modal">
+      <n-form label-placement="top">
+        <n-form-item label="分组名称">
+          <n-input v-model:value="drawCategoryFormData.name" />
+        </n-form-item>
+      </n-form>
+    </div>
     <template #footer>
-      <div class="flex justify-end">
+      <div class="manage-modal__footer">
         <n-button type="primary" @click="confirmUpdateDrawCategory">确定</n-button>
       </div>
     </template>
   </n-modal>
   <n-modal v-model:show="showUpdateDraw" title="弹窗信息" preset="card" style="width: 600px">
-    <n-form ref="formRef" :model="drawFormData" :rules="formRule">
-      <n-grid cols="2" x-gap="12">
-        <n-gi span="2">
-          <n-form-item label="分组" path="categoryUid">
-            <n-select
-              v-model:value="drawFormData.categoryUid"
-              :options="drawFormData.categoryOptions"
-            />
-          </n-form-item>
-        </n-gi>
-        <n-gi span="2">
-          <n-form-item label="弹窗名称" path="name">
-            <n-input v-model:value="drawFormData.name" />
-          </n-form-item>
-        </n-gi>
-        <n-gi span="2">
-          <n-form-item label="弹窗标题" path="title">
-            <n-input v-model:value="drawFormData.title" />
-          </n-form-item>
-        </n-gi>
-        <n-gi>
-          <n-form-item label="宽度" path="width">
-            <n-input-number
-              v-model:value="drawFormData.width"
-              :show-button="false"
-              class="w-full"
-            />
-          </n-form-item>
-        </n-gi>
-        <n-gi>
-          <n-form-item label="高度" path="height">
-            <n-input-number
-              v-model:value="drawFormData.height"
-              :show-button="false"
-              class="w-full"
-            />
-          </n-form-item>
-        </n-gi>
-      </n-grid>
-    </n-form>
+    <div class="manage-modal">
+      <n-form ref="formRef" :model="drawFormData" :rules="formRule" label-placement="top">
+        <n-grid cols="2" x-gap="12">
+          <n-gi span="2">
+            <n-form-item label="分组" path="categoryUid">
+              <n-select
+                v-model:value="drawFormData.categoryUid"
+                :options="drawFormData.categoryOptions"
+              />
+            </n-form-item>
+          </n-gi>
+          <n-gi span="2">
+            <n-form-item label="弹窗名称" path="name">
+              <n-input v-model:value="drawFormData.name" />
+            </n-form-item>
+          </n-gi>
+          <n-gi span="2">
+            <n-form-item label="弹窗标题" path="title">
+              <n-input v-model:value="drawFormData.title" />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="宽度" path="width">
+              <n-input-number
+                v-model:value="drawFormData.width"
+                :show-button="false"
+                class="w-full"
+              />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="高度" path="height">
+              <n-input-number
+                v-model:value="drawFormData.height"
+                :show-button="false"
+                class="w-full"
+              />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+      </n-form>
+    </div>
     <template #footer>
-      <div class="flex justify-end">
+      <div class="manage-modal__footer">
         <n-button type="primary" @click="confirmUpdateDraw">确定</n-button>
       </div>
     </template>
   </n-modal>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.manage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.manage-panel__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manage-panel__headline {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.manage-panel__caption {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.manage-panel__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.manage-table-shell {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.manage-table__row-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.manage-modal {
+  padding-top: 4px;
+}
+
+.manage-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+::v-deep(.manage-table .vxe-table--header-wrapper) {
+  background: #f8fafc;
+}
+
+::v-deep(.manage-table .vxe-header--column) {
+  font-weight: 600;
+  color: #334155;
+}
+
+::v-deep(.manage-table .vxe-body--row:hover) {
+  background: #f8fbff;
+}
+
+::v-deep(.manage-table .vxe-body--column) {
+  height: 46px;
+  color: #1f2937;
+}
+</style>

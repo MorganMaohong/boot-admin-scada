@@ -70,6 +70,8 @@ import {
   removeMeta2dPens,
   reorderMeta2dPens,
 } from '@/utils/meta2dPens.ts'
+import { ensureChildStateValues } from '@/utils/statefulChildren.ts'
+import { normalizePenLayerUid } from '@/utils/layer.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -152,6 +154,7 @@ function init() {
   // data.bkImage = ''
   meta2d.open(data)
   cleanupMeta2dPens({ render: false })
+  installMeta2dAddPenLayerGuard()
 
   // 参数设置
   meta2d.store.data.disableScale = false
@@ -178,7 +181,19 @@ function init() {
   meta2d.on('paste', processPaste as any)
 }
 
+function installMeta2dAddPenLayerGuard() {
+  if (!meta2d?.addPen || (meta2d as any).__layerGuardInstalled) return
+
+  const originalAddPen = meta2d.addPen.bind(meta2d)
+  ;(meta2d as any).addPen = (...args: any[]) => {
+    normalizePenLayerUid(args[0], layerStore.layer?.uid)
+    return originalAddPen(...args)
+  }
+  ;(meta2d as any).__layerGuardInstalled = true
+}
+
 function processPaste(pens: Pen[]) {
+  normalizePenLayerUid(pens as any[], layerStore.layer?.uid)
   remapPastedPenRefs(pens as any[])
   meta2d.setValue(pens as any, { render: true })
   emitter.emit('pensSorted')
@@ -447,6 +462,19 @@ function combine() {
 function combineState() {
   if (!selections.pens) return
   meta2d.combine(selections.pens as any, 0)
+  const statePen = meta2d.store.active?.[0]
+  if (statePen?.id) {
+    const { values, changed } = ensureChildStateValues(statePen)
+    if (changed) {
+      meta2d.setValue(
+        {
+          id: statePen.id,
+          childStateValues: values,
+        },
+        { render: false, history: false },
+      )
+    }
+  }
   meta2d.render()
   syncPensAfterChange()
   showMenu.value = false

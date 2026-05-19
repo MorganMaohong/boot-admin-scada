@@ -60,6 +60,7 @@ const animationFormData = ref<LineAnimationForm>({
 const pens = ref<any[]>([])
 const tags = ref([])
 const AUTO_SYNC_DATA_NAME = '默认值同步'
+const structureTreeScrollVersion = ref(0)
 onMounted(() => {
   pens.value = meta2d.data().pens || []
   emitter.on('pensSorted', handleSorted)
@@ -480,6 +481,7 @@ function handleSorted() {
 function updateTabs(key: string) {
   if (key === 'structure') {
     pens.value = meta2d.data().pens || []
+    structureTreeScrollVersion.value += 1
   }
 }
 
@@ -507,13 +509,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full h-full" :key="KEY">
-    <n-tabs v-model:value="activeTab" @update:value="updateTabs">
+  <div class="element-props w-full h-full" :key="KEY">
+    <n-tabs class="element-props__tabs" v-model:value="activeTab" @update:value="updateTabs">
       <n-tab-pane name="appearance" tab="外观" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-collapse :expanded-names="['layout']">
+        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-collapse class="element-props__collapse" :expanded-names="['layout']">
             <n-collapse-item title="样式" name="layout">
-              <n-form label-placement="left" label-width="120px" label-align="left">
+              <n-form class="element-props__form" label-placement="left" label-width="120px" label-align="left">
                 <n-form-item label="线条样式">
                   <n-select
                     :options="LineDashOptions"
@@ -592,8 +594,14 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="event" tab="事件" ref="tabPaneRef" class="w-full h-full">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }" class="p-2 right-0">
-          <n-form v-if="pen?.id" label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -618,7 +626,7 @@ onUnmounted(() => {
             </n-button>
           </div>
           <n-divider />
-          <n-collapse :default-expanded-names="eventNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="eventNames">
             <n-collapse-item
               v-for="(item, index) in events"
               :title="`事件 ${index + 1}`"
@@ -649,8 +657,8 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="effect" tab="动画" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form label-align="left" label-width="100px" label-placement="left">
+        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form class="element-props__form" label-align="left" label-width="100px" label-placement="left">
             <n-form-item label="动画效果">
               <n-select
                 v-model:value="pen.lineAnimateType"
@@ -720,8 +728,14 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="data" tab="数据" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form v-if="pen?.id" label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -745,7 +759,7 @@ onUnmounted(() => {
               添加数据
             </n-button>
           </div>
-          <n-collapse :default-expanded-names="dataNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="dataNames">
             <n-collapse-item
               :title="`数据 ${index + 1}`"
               v-for="(item, index) in displayDatas"
@@ -772,13 +786,14 @@ onUnmounted(() => {
       </n-tab-pane>
       <n-tab-pane name="structure" tab="图层" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar
-          class="structure-tree-tab-scrollbar"
+          class="structure-tree-tab-scrollbar element-props__scroll"
           :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
         >
           <StructureTree
             :draw-uid="drawStore.draw.uid"
             :pens="getPens"
             :current-pen-id="pen?.id || ''"
+            :scroll-to-selection-version="structureTreeScrollVersion"
             @select-pen="onCheckPen"
             @change-visible="changeVisible"
             @change-locked="changeLocked"
@@ -814,16 +829,78 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-::v-deep(.n-tabs) {
+.element-props {
   height: 100%;
+}
+
+::v-deep(.element-props__tabs.n-tabs) {
+  height: 100%;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav) {
+  padding: 0 14px;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav-scroll-wrapper) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__tabs .n-tabs-tab) {
+  padding-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+::v-deep(.element-props__tabs .n-tab-pane) {
+  padding-top: 8px;
 }
 
 ::v-deep(.n-tabs-tab-pad) {
   width: 26px;
 }
 
+.element-props__scroll {
+  padding: 0 10px 18px;
+}
+
+::v-deep(.element-props__scroll .n-scrollbar-content) {
+  padding-bottom: 18px;
+}
+
+::v-deep(.element-props__form .n-form-item) {
+  padding: 10px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__form .n-form-item:last-child) {
+  border-bottom: 0;
+}
+
+::v-deep(.element-props__form .n-form-item-label) {
+  font-weight: 500;
+  color: #334155;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__header) {
+  min-height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__content-inner) {
+  padding-top: 2px;
+  padding-bottom: 10px;
+}
+
 ::v-deep(.structure-tree-tab-scrollbar .n-scrollbar-content) {
   padding-right: 4px;
+  padding-bottom: 18px;
 }
 
 ::v-deep(

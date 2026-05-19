@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import type { TreeDropInfo } from 'naive-ui'
 import { NButton, NCheckbox, NIcon, NTag, NTooltip } from 'naive-ui'
 import { Copy, Edit, Star, Add } from '@vicons/carbon'
@@ -37,6 +37,7 @@ const props = defineProps<{
   drawUid?: string
   pens?: any[]
   currentPenId?: string
+  scrollToSelectionVersion?: number
 }>()
 
 const emit = defineEmits<{
@@ -59,6 +60,8 @@ const showLayerModal = ref(false)
 const showCopyModal = ref(false)
 const layerForm = ref<ProjectMonitorLayerForm>({} as ProjectMonitorLayerForm)
 const checkedPenIds = ref<string[]>([])
+const structureTreeRef = ref<HTMLElement | null>(null)
+const pendingScrollToSelected = ref(false)
 const knownLayerUidSet = computed(
   () => new Set(layers.value.map((layer) => layer.uid).filter(Boolean)),
 )
@@ -94,6 +97,7 @@ async function loadLayers(drawUid = props.drawUid) {
   if (!drawUid) return
   loading.value = true
   try {
+    await layerStore.ensureDefaultLayer(drawUid, drawStore.draw.projectUid)
     layers.value = await MonitorLayerService.select(drawUid)
     syncCurrentLayer()
   } finally {
@@ -208,8 +212,30 @@ watch(
       nodes.flatMap((item) => item.children || []).map((item) => getPenId(item.pen)),
     )
     checkedPenIds.value = checkedPenIds.value.filter((id) => validPenIds.has(id))
+    if (pendingScrollToSelected.value) {
+      nextTick(() => {
+        scrollSelectedIntoView()
+      })
+    }
   },
   { immediate: true },
+)
+
+watch(
+  () => props.scrollToSelectionVersion,
+  () => {
+    queueScrollSelectedIntoView()
+  },
+)
+
+watch(
+  () => props.currentPenId,
+  () => {
+    if (!pendingScrollToSelected.value) return
+    nextTick(() => {
+      scrollSelectedIntoView()
+    })
+  },
 )
 
 const selectedKeys = computed(() => {
@@ -519,6 +545,25 @@ function handleUpdateSelectedKeys(_keys: Array<string | number>, options: Array<
   if (selected.type === 'pen' && selected.pen) {
     emit('select-pen', selected.pen)
   }
+}
+
+function queueScrollSelectedIntoView() {
+  pendingScrollToSelected.value = true
+  nextTick(() => {
+    scrollSelectedIntoView()
+  })
+}
+
+function scrollSelectedIntoView() {
+  const root = structureTreeRef.value
+  const selectedNode = root?.querySelector('.n-tree-node-wrapper--selected') as HTMLElement | null
+  if (!selectedNode) return
+  pendingScrollToSelected.value = false
+  selectedNode.scrollIntoView({
+    block: 'center',
+    inline: 'nearest',
+    behavior: 'smooth',
+  })
 }
 
 function moveItem<T>(list: T[], fromIndex: number, toIndex: number) {
@@ -966,7 +1011,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 </script>
 
 <template>
-  <div class="structure-tree">
+  <div ref="structureTreeRef" class="structure-tree">
     <div class="structure-tree__header">
       <div>
         <div class="structure-tree__header-title">图层</div>
@@ -1107,8 +1152,8 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 }
 
 :deep(.n-tree-node-wrapper--selected) {
-  background: rgba(32, 128, 240, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(32, 128, 240, 0.16);
+  background: rgba(32, 128, 240, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(32, 128, 240, 0.28);
 }
 
 :deep(.n-tree-node-content) {
@@ -1203,7 +1248,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 }
 
 .structure-tree__label-text--active {
-  color: #2080f0;
+  color: #1668d9;
 }
 
 .structure-tree__default-tag,
@@ -1230,7 +1275,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 }
 
 .structure-tree__pen-label--active {
-  color: #2080f0;
+  color: #1668d9;
   font-weight: 600;
 }
 

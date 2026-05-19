@@ -216,12 +216,12 @@ const dragStart = (e: any, elem: any) => {
   <n-grid :cols="3" x-gap="12" y-gap="12">
     <n-gi v-for="item in data">
       <div
-        class="flex flex-col justify-center items-center p-2 hovers"
+        class="resource-graph-item"
         :draggable="true"
         @dragstart="dragStart($event, item)"
       >
         <SvgIcon :name="item.icon" size="32" />
-        <div class="text-xs w-full text-center whitespace-nowrap overflow-hidden text-ellipsis">
+        <div class="resource-graph-item__label">
           {{ item.name }}
         </div>
       </div>
@@ -230,11 +230,38 @@ const dragStart = (e: any, elem: any) => {
 </template>
 
 <style lang="scss" scoped>
-.hovers {
-  border: 1px solid transparent;
+.resource-graph-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 82px;
+  padding: 10px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: grab;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
 }
 
-.hovers:hover {
-  border: 1px solid #1b56fd;
+.resource-graph-item:hover {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.resource-graph-item__label {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #334155;
 }
 </style>

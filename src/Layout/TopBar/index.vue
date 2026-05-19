@@ -357,91 +357,71 @@ function updatePresetValue(v: number, d: OptionVo) {
   drawFormData.value.width = r.width
   drawFormData.value.height = r.height
 }
+
+function getToolActionClass(active = false) {
+  return ['toolbar-action', active ? 'toolbar-action--active' : '']
+}
+
+function getLockLabel() {
+  if (locked.value === LockState.DisableEdit) return '预览'
+  if (locked.value === LockState.Disable) return '锁定'
+  return '编辑'
+}
 </script>
 
 <template>
-  <div class="flex w-full h-full items-center px-4 gap-12">
-    <!-- 编辑操作 -->
-    <div class="flex justify-start items-center gap-8">
-      <!--      <div class="flex flex-col cursor-pointer items-center">
-              <n-dropdown
-                trigger="hover"
-                :options="fileOptions"
-                @select="handleSelectFile"
-                key-field="value"
-              >
-                <div class="flex flex-col items-center">
-                  <n-icon size="20">
-                    <Folder16Regular />
-                  </n-icon>
-                  <div class="text-xs">文件</div>
-                </div>
-              </n-dropdown>
-            </div>-->
-      <!--      <div class="flex flex-col cursor-pointer items-center">-->
-      <!--        <n-icon size="20">-->
-      <!--          <Edit />-->
-      <!--        </n-icon>-->
-      <!--        <div class="text-xs">编辑</div>-->
-      <!--      </div>-->
-      <div class="flex flex-col cursor-pointer items-center" @click="save">
-        <n-icon size="20">
+  <div class="toolbar-shell">
+    <div class="toolbar-group toolbar-group--start">
+      <button type="button" :class="getToolActionClass()" @click="save">
+        <n-icon size="18">
           <Save />
         </n-icon>
-        <div class="text-xs">保存</div>
-      </div>
+        <span>保存</span>
+      </button>
     </div>
-    <!-- 画布操作 -->
-    <div class="flex justify-center items-center gap-8 flex-1">
-      <div
-        class="flex flex-col cursor-pointer items-center"
+
+    <div class="toolbar-group toolbar-group--center">
+      <button
+        type="button"
+        :class="getToolActionClass(drawStore.isPenDrawLine)"
         @click="drawPenLine"
-        :style="{
-          color: drawStore.isPenDrawLine ? ' #1677ff' : '',
-        }"
       >
-        <n-icon size="20">
+        <n-icon size="18">
           <PenFancy />
         </n-icon>
-        <div class="text-xs">钢笔</div>
-      </div>
-      <div
-        class="flex flex-col cursor-pointer items-center"
+        <span>钢笔</span>
+      </button>
+
+      <button
+        type="button"
+        :class="getToolActionClass(drawStore.isPencilDrawLine)"
         @click="drawPencilLine"
-        :style="{
-          color: drawStore.isPencilDrawLine ? ' #1677ff' : '',
-        }"
       >
-        <n-icon size="20">
+        <n-icon size="18">
           <PencilAlt />
         </n-icon>
-        <div class="text-xs">铅笔</div>
-      </div>
-      <div class="flex flex-col cursor-pointer items-center" @click="showMagnifier">
-        <n-icon size="20">
+        <span>铅笔</span>
+      </button>
+
+      <button
+        type="button"
+        :class="getToolActionClass(isMagnifier)"
+        @click="showMagnifier"
+      >
+        <n-icon size="18">
           <Search />
         </n-icon>
-        <div class="text-xs">放大镜</div>
-      </div>
-      <div class="flex flex-col cursor-pointer items-center" @click="changeHawkeyeMap">
-        <n-icon size="20">
+        <span>放大镜</span>
+      </button>
+
+      <button type="button" :class="getToolActionClass(isMap)" @click="changeHawkeyeMap">
+        <n-icon size="18">
           <MapPin />
         </n-icon>
-        <div class="text-xs">鹰眼地图</div>
-      </div>
-      <!--      <div class="flex flex-col cursor-pointer items-center">
-              <n-icon size="20">
-                <Folder16Regular />
-              </n-icon>
-              <div class="text-xs">起点</div>
-            </div>
-            <div class="flex flex-col cursor-pointer items-center">
-              <n-icon size="20">
-                <Folder16Regular />
-              </n-icon>
-              <div class="text-xs">终点</div>
-            </div>-->
-      <div class="cursor-pointer">
+        <span>鹰眼地图</span>
+      </button>
+
+      <div class="toolbar-dropdown">
         <n-dropdown
           trigger="hover"
           :options="LineNameOptions"
@@ -449,66 +429,57 @@ function updatePresetValue(v: number, d: OptionVo) {
           @select="handleSelectLine"
           key-field="value"
         >
-          <div class="flex flex-col items-center">
-            <SvgIcon v-if="currentLineType === LineNameEnums.curve" name="curve" size="20" />
-            <SvgIcon v-if="currentLineType === LineNameEnums.line" name="line" size="20" />
-            <SvgIcon v-if="currentLineType === LineNameEnums.polyline" name="polyline" size="20" />
-            <div class="text-xs">连线</div>
-          </div>
+          <button type="button" :class="getToolActionClass()">
+            <SvgIcon v-if="currentLineType === LineNameEnums.curve" name="curve" size="18" />
+            <SvgIcon v-if="currentLineType === LineNameEnums.line" name="line" size="18" />
+            <SvgIcon v-if="currentLineType === LineNameEnums.polyline" name="polyline" size="18" />
+            <span>连线</span>
+          </button>
         </n-dropdown>
       </div>
-      <!--      <div class="flex flex-col cursor-pointer items-center">
-              <n-icon size="20">
-                <Folder16Regular />
-              </n-icon>
-              <div class="text-xs">线宽</div>
-            </div>-->
-      <div>
+
+      <div class="toolbar-dropdown">
         <n-popover trigger="hover">
           <template #trigger>
-            <div class="flex flex-col cursor-pointer items-center">
-              <n-text style="color: #fff">{{ Math.floor(scale * 100) }}%</n-text>
-              <div class="text-xs">视图</div>
-            </div>
+            <button type="button" :class="getToolActionClass()">
+              <span class="toolbar-scale">{{ Math.floor(scale * 100) }}%</span>
+              <span>视图</span>
+            </button>
           </template>
-          <n-input-group>
-            <n-input-number v-model:value="scale" @update:value="changeScale" step="0.1" />
-            <n-button @click="resizeWindow">窗口大小</n-button>
-            <n-button @click="resizeScale">重置</n-button>
-          </n-input-group>
+          <div class="toolbar-scale-panel">
+            <n-input-group>
+              <n-input-number v-model:value="scale" @update:value="changeScale" step="0.1" />
+              <n-button @click="resizeWindow">窗口大小</n-button>
+              <n-button @click="resizeScale">重置</n-button>
+            </n-input-group>
+          </div>
         </n-popover>
       </div>
-      <div class="flex flex-col cursor-pointer items-center" @click="showImageGallery = true">
-        <n-icon size="20">
+
+      <button type="button" :class="getToolActionClass(showImageGallery)" @click="showImageGallery = true">
+        <n-icon size="18">
           <Folder16Regular />
         </n-icon>
-        <div class="text-xs">图库</div>
-      </div>
+        <span>图库</span>
+      </button>
     </div>
-    <!-- 其他操作 -->
-    <div class="flex justify-end items-center gap-8">
-      <div class="flex flex-col cursor-pointer items-center" @click="changeLocked">
-        <n-icon size="20">
+
+    <div class="toolbar-group toolbar-group--end">
+      <button type="button" :class="getToolActionClass(locked !== LockState.None)" @click="changeLocked">
+        <n-icon size="18">
           <LockOpen v-if="locked === LockState.None" />
           <Lock v-else-if="locked === LockState.DisableEdit" />
           <LockOff v-else-if="locked === LockState.Disable" />
         </n-icon>
-        <div class="text-xs" v-if="locked === LockState.None">编辑</div>
-        <div class="text-xs" v-else-if="locked === LockState.DisableEdit">预览</div>
-        <div class="text-xs" v-else-if="locked === LockState.Disable">锁定</div>
-      </div>
-      <!--      <div class="flex flex-col cursor-pointer items-center">
-              <n-icon size="20">
-                <Folder16Regular />
-              </n-icon>
-              <div class="text-xs">编辑</div>
-            </div>-->
-      <div class="flex flex-col cursor-pointer items-center" @click="onView">
-        <n-icon size="20">
+        <span>{{ getLockLabel() }}</span>
+      </button>
+
+      <button type="button" :class="getToolActionClass()" @click="onView">
+        <n-icon size="18">
           <View />
         </n-icon>
-        <div class="text-xs">预览</div>
-      </div>
+        <span>预览</span>
+      </button>
     </div>
   </div>
   <n-modal v-model:show="showUpdateCategory" title="分组信息" preset="card" style="width: 600px">
@@ -629,4 +600,99 @@ function updatePresetValue(v: number, d: OptionVo) {
   <!--  <FastModalUpload v-model:show="showUploadImage" />-->
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.toolbar-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.toolbar-group--start {
+  justify-content: flex-start;
+}
+
+.toolbar-group--center {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.toolbar-group--end {
+  justify-content: flex-end;
+}
+
+.toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.toolbar-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #fff;
+}
+
+.toolbar-action--active {
+  background: rgba(22, 119, 255, 0.16);
+  border-color: rgba(56, 189, 248, 0.48);
+  color: #dbeafe;
+}
+
+.toolbar-action:active {
+  transform: translateY(1px);
+}
+
+.toolbar-dropdown {
+  display: inline-flex;
+}
+
+.toolbar-scale {
+  min-width: 38px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.toolbar-scale-panel {
+  min-width: 320px;
+}
+
+@media (max-width: 1400px) {
+  .toolbar-shell {
+    grid-template-columns: auto auto auto;
+    gap: 10px;
+    min-width: max-content;
+    padding: 0;
+  }
+
+  .toolbar-group--start,
+  .toolbar-group--center,
+  .toolbar-group--end {
+    justify-content: flex-start;
+  }
+}
+</style>

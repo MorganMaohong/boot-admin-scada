@@ -8,6 +8,7 @@ import { VarService } from '@/services/VarService.ts'
 import type { Pen } from '@meta2d/core'
 import type { Payload } from '@/model'
 import { type DataForm, ValueTypeEnum } from '@/model/drawData.ts'
+import { resolveShowChildIndex } from '@/utils/statefulChildren.ts'
 
 export const useDrawStore = defineStore('draw', () => {
   const draw = ref<ProjectMonitorDraw>({})
@@ -71,12 +72,30 @@ export const useDrawStore = defineStore('draw', () => {
       if (cond.cond && !isInRange) continue
 
       if (cond.valueType === ValueTypeEnum.varValue) {
+        if (cond.prop === 'showChild') {
+          const resolved = resolveShowChildIndex(pen, value)
+          if (!resolved.matched || resolved.index === undefined || pen[cond.prop] === resolved.index) {
+            continue
+          }
+          meta2d.setValue({ id: pen.id, [cond.prop]: resolved.index }, { render: true })
+          continue
+        }
+
         if (pen[cond.prop] === value) continue
 
         meta2d.setValue({ id: pen.id, [cond.prop]: value }, { render: true })
       }
 
       if (cond.valueType === ValueTypeEnum.customValue) {
+        if (cond.prop === 'showChild') {
+          const resolved = resolveShowChildIndex(pen, cond.propValue)
+          if (!resolved.matched || resolved.index === undefined || pen[cond.prop] === resolved.index) {
+            continue
+          }
+          meta2d.setValue({ id: pen.id, [cond.prop]: resolved.index }, { render: true })
+          continue
+        }
+
         if (pen[cond.prop] === cond.propValue) continue
 
         meta2d.setValue({ id: pen.id, [cond.prop]: cond.propValue }, { render: true })

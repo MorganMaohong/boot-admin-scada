@@ -39,12 +39,13 @@ const tabPaneRef = ref()
 const maxTabPaneHeightRef = ref(0)
 const key = ref('0')
 const activeTab = ref('file')
+const structureTreeScrollVersion = ref(0)
 onMounted(() => {
   emitter.on('draw', init)
   emitter.on('reloadDraw', init)
   emitter.on('pensSorted', handleSorted)
   if (!selections.pen && selections.mode === SelectionMode.File && meta2d.store) init()
-  if (tabPaneRef.value) maxTabPaneHeightRef.value = tabPaneRef.value.$el.clientHeight - 60
+  if (tabPaneRef.value) maxTabPaneHeightRef.value = tabPaneRef.value.$el.clientHeight - 20
 })
 
 function init() {
@@ -160,6 +161,7 @@ function updateTabs(key: string) {
   switch (key) {
     case 'struct':
       syncPens()
+      structureTreeScrollVersion.value += 1
       break
   }
 }
@@ -184,11 +186,19 @@ const getPens = computed(() => {
 </script>
 
 <template>
-  <div class="w-full h-full">
-    <n-tabs v-model:value="activeTab" :key="key" @update:value="updateTabs">
+  <div class="file-props">
+    <n-tabs v-model:value="activeTab" :key="key" class="file-props__tabs" @update:value="updateTabs">
       <n-tab-pane tab="图纸" name="file" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form label-placement="left" label-width="auto" label-align="left">
+        <n-scrollbar class="file-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <div class="file-props__section">
+            <div class="file-props__section-title">画布设置</div>
+            <div class="file-props__section-desc">调整网格、标尺和背景颜色</div>
+          <n-form
+            class="file-props__form"
+            label-placement="left"
+            label-width="auto"
+            label-align="left"
+          >
             <n-form-item label="网格">
               <n-switch v-model:value="data.grid" @update:value="setGridData" />
             </n-form-item>
@@ -236,26 +246,37 @@ const getPens = computed(() => {
                           />
                         </n-form-item>-->
           </n-form>
+          </div>
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane tab="布局" name="layout" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"></n-scrollbar>
+        <n-scrollbar class="file-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <div class="file-props__empty">
+            <div class="file-props__empty-title">布局设置</div>
+            <div class="file-props__empty-desc">这一块后面再接着整理。</div>
+          </div>
+        </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane tab="图层" name="struct" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar
-          class="structure-tree-tab-scrollbar"
+          class="structure-tree-tab-scrollbar file-props__scroll"
           :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
         >
-          <StructureTree
-            :draw-uid="drawStore.draw.uid"
-            :pens="getPens"
-            :current-pen-id="selections.pen?.id"
-            @select-pen="onCheckPen"
-            @change-visible="changeVisible"
-            @change-locked="changeLocked"
-            @remove-pen="removePen"
-            @sorted="handleSorted"
-          />
+          <div class="file-props__section">
+            <div class="file-props__section-title">图层与图元</div>
+            <div class="file-props__section-desc">管理显隐、锁定和层级顺序</div>
+            <StructureTree
+              :draw-uid="drawStore.draw.uid"
+              :pens="getPens"
+              :current-pen-id="selections.pen?.id"
+              :scroll-to-selection-version="structureTreeScrollVersion"
+              @select-pen="onCheckPen"
+              @change-visible="changeVisible"
+              @change-locked="changeLocked"
+              @remove-pen="removePen"
+              @sorted="handleSorted"
+            />
+          </div>
         </n-scrollbar>
       </n-tab-pane>
     </n-tabs>
@@ -263,15 +284,105 @@ const getPens = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.file-props {
+  height: 100%;
+}
+
 ::v-deep(.n-tabs) {
   height: 100%;
+}
+
+::v-deep(.file-props__tabs .n-tabs-nav) {
+  padding: 0 14px;
+}
+
+::v-deep(.file-props__tabs .n-tabs-tab) {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+::v-deep(.file-props__tabs .n-tab-pane) {
+  padding-top: 8px;
 }
 
 ::v-deep(.n-tabs-tab-pad) {
   width: 26px;
 }
 
+.file-props__scroll {
+  padding: 0 10px 18px;
+}
+
+::v-deep(.file-props__scroll .n-scrollbar-content) {
+  padding-bottom: 18px;
+}
+
+.file-props__section {
+  padding: 12px 8px 4px;
+  background: #fff;
+}
+
+.file-props__section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.file-props__section-desc {
+  margin-top: 4px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.file-props__empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 160px;
+  padding: 20px 16px;
+  border: 1px dashed #dbe4f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.file-props__empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.file-props__empty-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+::v-deep(.file-props__form .n-form-item) {
+  padding: 10px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.file-props__form .n-form-item:last-child) {
+  border-bottom: 0;
+}
+
+::v-deep(.file-props__form .n-form-item-label) {
+  font-weight: 500;
+  color: #334155;
+}
+
+::v-deep(.file-props__tabs .n-tabs-nav-scroll-wrapper) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.file-props__tabs .n-tabs-tab) {
+  padding-bottom: 12px;
+}
+
 ::v-deep(.structure-tree-tab-scrollbar .n-scrollbar-content) {
   padding-right: 4px;
+  padding-bottom: 18px;
 }
 </style>
