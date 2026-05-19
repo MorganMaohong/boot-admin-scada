@@ -4,7 +4,7 @@ import request from '@/utils/request.ts'
 import type { ProjectMonitorLayer, ProjectMonitorLayerForm } from '@/model/layer'
 
 export const MonitorLayerService = {
-  async addOrUpdate(data: ProjectMonitorLayerForm): Promise<void> {
+  async addOrUpdate(data: ProjectMonitorLayerForm): Promise<ProjectMonitorLayer> {
     try {
       const url = data.uid ? monitorLayerApi.update.url : monitorLayerApi.add.url
       let res = await request({

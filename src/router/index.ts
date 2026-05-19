@@ -1,13 +1,19 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
+import { bootstrapAuthFromUrl, getAuthToken } from '@/utils/auth'
 
 const Layouts = () => import('../Layout/index.vue')
-console.log(import.meta.env)
+const AccessRequired = () => import('@/views/access-required/index.vue')
 const router = createRouter({
   history:
     import.meta.env.VITE_ROUTER_HISTORY === 'hash'
       ? createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH)
       : createWebHistory(import.meta.env.VITE_PUBLIC_PATH),
   routes: [
+    {
+      path: '/access-required',
+      name: 'AccessRequired',
+      component: AccessRequired,
+    },
     {
       path: '/',
       name: 'Home',
@@ -32,15 +38,22 @@ const router = createRouter({
         title: '预览',
       },
     },
-    {
-      path: '/display',
-      component: () => import('@/views/display/index.vue'),
-      name: 'Display',
-      meta: {
-        title: '画面',
-      },
-    },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.path === '/access-required') {
+    next()
+    return
+  }
+
+  const token = getAuthToken() || bootstrapAuthFromUrl()
+  if (!token) {
+    next({ path: '/access-required', replace: true })
+    return
+  }
+
+  next()
 })
 
 export default router

@@ -5,6 +5,10 @@ import SvgIcon from '@/components/SvgIcon/index.vue'
 import { parseSvg } from '@meta2d/svg'
 import { deepClone } from '@meta2d/core'
 import { DefValues } from '@/Layout/Resource/components'
+import { useLayerStore } from '@/stores/module/layer.ts'
+import { normalizePenLayerUid } from '@/utils/layer.ts'
+
+const layerStore = useLayerStore()
 
 const data = ref([
   {
@@ -49,11 +53,13 @@ const dragStart = (e: any, elem: any) => {
   if (e instanceof DragEvent) {
     // 设置拖拽数据
     const pens = parseSvg(elem.data.svg)
+    normalizePenLayerUid(pens, layerStore.layer?.uid)
     // e.dataTransfer?.setData('Meta2d', JSON.stringify(elem.data))
     e.dataTransfer?.setData('Meta2d', JSON.stringify(deepClone(pens)))
   } else {
     // 支持单击添加图元。平板模式
     const pens = parseSvg(elem.data.svg)
+    normalizePenLayerUid(pens, layerStore.layer?.uid)
     meta2d.canvas.addCaches = [deepClone(pens)]
   }
 }

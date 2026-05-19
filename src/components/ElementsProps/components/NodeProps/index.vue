@@ -28,10 +28,23 @@ import { ColorPicker } from 'vue3-colorpicker'
 import { useAppStore } from '@/stores/app'
 import StructureTree from '@/components/StructureTree/index.vue'
 import { useDrawStore } from '@/stores/module/draw.ts'
+import {
+  elementsPropsActiveTab,
+  resetElementsPropsActiveTab,
+} from '@/components/ElementsProps/state.ts'
+import emitter from '@/utils/eventBus.ts'
+import { removeMeta2dPens } from '@/utils/meta2dPens.ts'
+import {
+  ensureChildStateValues,
+  getChildStateValues,
+  getShowChildStateValue,
+  resolveShowChildIndex,
+} from '@/utils/statefulChildren.ts'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
 const drawStore = useDrawStore()
+const activeTab = elementsPropsActiveTab
 const KEY = ref('')
 const pen = ref<any>(null)
 // 位置数据。当前版本位置需要动态计算获取
@@ -51,11 +64,14 @@ const animationFormData = ref<NodeAnimationForm>({
   frames: [],
   keepAnimateState: false,
 })
-const pens = ref([])
+const pens = ref<any[]>([])
 const AUTO_SYNC_DATA_NAME = '默认值同步'
+const showChildStateValue = ref<string | number | undefined>('')
+const structureTreeScrollVersion = ref(0)
 
 onMounted(() => {
   pens.value = meta2d.data().pens || []
+  emitter.on('pensSorted', handleSorted)
   getPen()
   console.log(tabPaneRef.value)
   maxTabPaneHeightRef.value = tabPaneRef.value.$el.clientHeight - 20
@@ -66,11 +82,25 @@ const eventNames = computed(() => {
 })
 
 const dataNames = computed(() => {
-  return datas.value.map((item) => item.id)
+  return displayDatas.value.map((item) => item.id)
+})
+
+const displayDatas = computed(() => {
+  return datas.value.filter((item: any) => isValidDataItem(item))
+})
+
+const propsContextKey = computed(() => {
+  const modalUid = drawStore.globalModal?.show ? drawStore.globalModal?.draw?.uid : ''
+  if (modalUid) return `modal:${modalUid}`
+  return `draw:${drawStore.draw?.uid || ''}`
 })
 
 // 监听选中不同图元
-const watcher = watch(() => selections.pen.id, getPen)
+const watcher = watch(() => selections.pen?.id, getPen)
+const propsContextWatcher = watch(propsContextKey, (next, prev) => {
+  if (!prev || next === prev) return
+  resetElementsPropsActiveTab()
+})
 
 watch(
   () => appStore.targetPicker.pickedPenId,
@@ -97,8 +127,17 @@ watch(
 )
 
 function getPen() {
-  pen.value = selections.pen
-  rect.value = meta2d.getPenRect(pen.value)
+  pen.value = selections.pen || {}
+  pens.value = [...(meta2d.data().pens || [])]
+  rect.value = pen.value?.id ? meta2d.getPenRect(pen.value) : null
+
+  if (!pen.value?.id) {
+    events.value = []
+    datas.value = []
+    showChildStateValue.value = ''
+    KEY.value = s8()
+    return
+  }
 
   if (pen.value.globalAlpha == undefined) {
     pen.value.globalAlpha = 1
@@ -118,6 +157,8 @@ function getPen() {
 
   events.value = pen.value.events || []
   datas.value = pen.value.datas || []
+  normalizeDatas()
+  syncStatefulChildrenConfig(false)
 
   for (const key in pen.value) {
     if (animationFormData.value.hasOwnProperty(key)) {
@@ -132,14 +173,124 @@ function changePen(value: any, prop: string) {
   const v: any = { id: pen.value.id }
   if (prop === 'dash') {
     v.lineDash = lineDashs[value]
+  } else if (prop === 'showChild') {
+    const resolved = resolveShowChildIndex(pen.value, value)
+    if (!resolved.matched || resolved.index === undefined) {
+      window.$message.error('状态值未匹配到任何子图元')
+      return
+    }
+    v[prop] = resolved.index
+    showChildStateValue.value = value
   } else {
     v[prop] = value
   }
   meta2d.setValue(v, { render: true })
 }
 
+function syncStatefulChildrenConfig(render = true) {
+  if (!pen.value?.id || pen.value.showChild === undefined) {
+    showChildStateValue.value = ''
+    return
+  }
+
+  const { values, changed } = ensureChildStateValues(pen.value)
+  pen.value.childStateValues = values
+  showChildStateValue.value = getShowChildStateValue({
+    ...pen.value,
+    childStateValues: values,
+  })
+
+  if (!changed) return
+
+  meta2d.setValue(
+    {
+      id: pen.value.id,
+      childStateValues: values,
+    },
+    { render, history: false },
+  )
+}
+
+const penStateChildren = computed(() => {
+  if (!pen.value?.children || pen.value.showChild === undefined) return null
+  return getChildStateValues(pen.value).map((item, index) => {
+    const childPen = meta2d.findOne(item.childId)
+    return {
+      childId: item.childId,
+      label: childPen?.title || childPen?.nickname || childPen?.name || `状态 ${index}`,
+      value: item.value,
+    }
+  })
+})
+
+function updateChildStateValue(childId: string, value: string) {
+  const nextChildStateValues = getChildStateValues(pen.value).map((item) =>
+    item.childId === childId ? { ...item, value } : item,
+  )
+
+  const normalizedValue = String(value ?? '').trim()
+  const duplicatedItem = nextChildStateValues.find(
+    (item) => item.childId !== childId && String(item.value ?? '').trim() === normalizedValue,
+  )
+  if (duplicatedItem) {
+    window.$message.error('子状态值不能重复，请设置不同的值')
+    return
+  }
+
+  pen.value.childStateValues = nextChildStateValues
+
+  const nextPenState = {
+    ...pen.value,
+    childStateValues: nextChildStateValues,
+  }
+  const resolved = resolveShowChildIndex(nextPenState, showChildStateValue.value)
+  const patch: any = {
+    id: pen.value.id,
+    childStateValues: nextChildStateValues,
+  }
+  if (resolved.matched && resolved.index !== undefined) {
+    patch.showChild = resolved.index
+  }
+
+  meta2d.setValue(patch, { render: true })
+  showChildStateValue.value = getShowChildStateValue({
+    ...nextPenState,
+    showChild: patch.showChild ?? pen.value.showChild,
+  })
+}
+
 function syncDatasToPen() {
   meta2d.setValue({ id: pen.value.id, datas: datas.value }, { render: true })
+}
+
+function normalizeDatas() {
+  if (!pen.value?.id || !Array.isArray(datas.value) || datas.value.length === 0) return
+
+  let changed = false
+  const fallbackKey = pen.value.key || ''
+  const fallbackName = pen.value.nickname || pen.value.name || fallbackKey
+
+  datas.value.forEach((item: any) => {
+    if (!item || typeof item !== 'object') return
+
+    if (!item.key && fallbackKey) {
+      item.key = fallbackKey
+      changed = true
+    }
+
+    if (!item.name) {
+      if (item.autoSync === true) {
+        item.name = AUTO_SYNC_DATA_NAME
+      } else if (fallbackName) {
+        item.name = fallbackName
+      }
+      changed = true
+    }
+  })
+
+  if (changed) {
+    syncDatasToPen()
+  }
 }
 
 function ensureAutoSyncData(varKey?: string) {
@@ -180,6 +331,13 @@ function ensureAutoSyncData(varKey?: string) {
   }
 
   syncDatasToPen()
+}
+
+function renamePenByVariableName(variableName?: string) {
+  const nextName = variableName?.trim()
+  if (!nextName) return
+  pen.value.nickname = nextName
+  changePen(nextName, 'nickname')
 }
 
 function handleBindVariable(value: string) {
@@ -353,9 +511,9 @@ function changePenAnimation(v: string) {
 const penChildrenOptions = computed(() => {
   if (pen.value.children && pen.value.children.length > 0) {
     let options = []
-    pen.value.children.forEach((item, index) => {
-      const p = meta2d.findOne(item)
-      if (p) options.push({ label: p.title || index, value: index })
+    getChildStateValues(pen.value).forEach((item, index) => {
+      const p = meta2d.findOne(item.childId)
+      if (p) options.push({ label: p.title || p.nickname || p.name || index, value: item.value })
     })
     if (options.length > 0) return options
     return null
@@ -377,15 +535,16 @@ function findPenIndex(targetPen: any) {
 
 function changeVisible(targetPen) {
   const index = findPenIndex(targetPen)
-  const value = !(targetPen.visible === false || targetPen.visible === true ? targetPen.visible : false)
+  const value = !(targetPen.visible === false || targetPen.visible === true
+    ? targetPen.visible
+    : false)
   meta2d.setValue({ id: targetPen.id, visible: value }, { render: true })
   if (index >= 0) updatePenProp(index, 'visible', value)
 }
 
 function removePen(targetPen) {
   const index = findPenIndex(targetPen)
-  meta2d.delete([targetPen], true)
-  meta2d.render()
+  removeMeta2dPens([targetPen], { render: true })
   if (index >= 0) {
     pens.value.splice(index, 1)
   }
@@ -421,12 +580,18 @@ function updatePenProp(index: number, key: string, value: any) {
 }
 
 function updateTabs(key: string) {
-  switch (key) {
-    case 'struct':
-      pens.value = meta2d.data().pens || []
-      console.log(pens.value)
-      break
+  if (key === 'structure') {
+    pens.value = meta2d.data().pens || []
+    structureTreeScrollVersion.value += 1
   }
+}
+
+function isValidDataItem(item: any) {
+  if (!item || typeof item !== 'object') return false
+  if (item.autoSync === true) return true
+  return Boolean(
+    item.id || item.name || item.key || (Array.isArray(item.condData) && item.condData.length),
+  )
 }
 
 function handleSorted() {
@@ -462,15 +627,23 @@ function changeTextColor(color: string) {
 
 onUnmounted(() => {
   watcher()
+  propsContextWatcher()
+  emitter.off('pensSorted', handleSorted)
 })
 </script>
 <template>
-  <div class="w-full h-full" :key="KEY">
-    <n-tabs default-value="appearance" @update:value="updateTabs">
+  <div class="element-props w-full h-full" :key="KEY">
+    <n-tabs class="element-props__tabs" v-model:value="activeTab" @update:value="updateTabs">
       <n-tab-pane name="appearance" tab="外观" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form label-placement="left" label-width="100px" label-align="left" v-if="pen && rect">
-            <n-collapse :default-expanded-names="['1', '2', '3']">
+        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+            v-if="pen && rect"
+          >
+            <n-collapse class="element-props__collapse" :default-expanded-names="['1', '2', '3']">
               <n-collapse-item title="样式" name="2">
                 <n-form-item label="背景颜色">
                   <color-picker
@@ -705,9 +878,29 @@ onUnmounted(() => {
                 <n-form-item label="状态值" v-if="penChildrenOptions">
                   <n-select
                     :options="penChildrenOptions"
-                    v-model:value="pen.showChild"
+                    v-model:value="showChildStateValue"
                     @update:value="changePen($event, 'showChild')"
                   />
+                </n-form-item>
+                <n-form-item
+                  label="子状态配置"
+                  v-if="penStateChildren && penStateChildren.length > 0"
+                  label-placement="top"
+                >
+                  <div class="state-child-config">
+                    <div
+                      v-for="item in penStateChildren"
+                      :key="item.childId"
+                      class="state-child-config__row"
+                    >
+                      <n-text class="state-child-config__label">{{ item.label }}</n-text>
+                      <n-input
+                        :value="String(item.value ?? '')"
+                        placeholder="请输入状态值"
+                        @update:value="updateChildStateValue(item.childId, $event)"
+                      />
+                    </div>
+                  </div>
                 </n-form-item>
               </n-collapse-item>
             </n-collapse>
@@ -715,8 +908,14 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="event" tab="事件" ref="tabPaneRef" class="w-full h-full">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }" class="p-2 right-0">
-          <n-form label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -724,7 +923,12 @@ onUnmounted(() => {
               <n-input v-model:value="pen.nickname" @update:value="changePen($event, 'nickname')" />
             </n-form-item>
             <n-form-item label="绑定变量" label-placement="top">
-              <GatewayVarSelect :model-value="pen.key" @update:model-value="handleBindVariable" />
+              <GatewayVarSelect
+                :model-value="pen.key"
+                :model-name="pen.nickname"
+                @update:model-value="handleBindVariable"
+                @update:model-name="renamePenByVariableName"
+              />
             </n-form-item>
             <n-text depth="3" class="text-xs">
               选择变量后会自动同步到当前图元的 value，事件可直接使用
@@ -736,10 +940,10 @@ onUnmounted(() => {
             </n-button>
           </div>
           <n-divider />
-          <n-collapse :default-expanded-names="eventNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="eventNames">
             <n-collapse-item
               v-for="(item, index) in events"
-              :title="`事件${index + 1}`"
+              :title="`事件 ${index + 1}`"
               :name="item.id"
             >
               <template #header-extra>
@@ -767,7 +971,7 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="effect" tab="动画">
-        <n-form label-placement="left" label-width="auto">
+        <n-form class="element-props__form" label-placement="left" label-width="auto">
           <n-form-item label="动画效果">
             <n-select
               :options="AnimationFramesOptions"
@@ -803,8 +1007,14 @@ onUnmounted(() => {
         </n-form>
       </n-tab-pane>
       <n-tab-pane name="data" tab="数据" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form label-placement="left" label-width="100px" label-align="left">
+        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+          <n-form
+            class="element-props__form"
+            v-if="pen?.id"
+            label-placement="left"
+            label-width="100px"
+            label-align="left"
+          >
             <n-form-item label="ID">
               <n-text>{{ pen.id }}</n-text>
             </n-form-item>
@@ -812,7 +1022,12 @@ onUnmounted(() => {
               <n-input v-model:value="pen.nickname" @update:value="changePen($event, 'nickname')" />
             </n-form-item>
             <n-form-item label="绑定变量" label-placement="top">
-              <GatewayVarSelect :model-value="pen.key" @update:model-value="handleBindVariable" />
+              <GatewayVarSelect
+                :model-value="pen.key"
+                :model-name="pen.nickname"
+                @update:model-value="handleBindVariable"
+                @update:model-name="renamePenByVariableName"
+              />
             </n-form-item>
             <n-text depth="3" class="text-xs">
               已默认同步变量值到图元 value，只有复杂映射时再添加数据
@@ -823,10 +1038,10 @@ onUnmounted(() => {
               添加数据
             </n-button>
           </div>
-          <n-collapse :default-expanded-names="dataNames">
+          <n-collapse class="element-props__collapse" :default-expanded-names="dataNames">
             <n-collapse-item
-              :title="`数据${index + 1}`"
-              v-for="(item, index) in datas"
+              :title="`数据 ${index + 1}`"
+              v-for="(item, index) in displayDatas"
               :name="item.id"
             >
               <template #header-extra>
@@ -854,11 +1069,15 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="structure" tab="图层" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+        <n-scrollbar
+          class="structure-tree-tab-scrollbar element-props__scroll"
+          :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
+        >
           <StructureTree
             :draw-uid="drawStore.draw.uid"
             :pens="getPens"
-            :current-pen-id="pen?.id"
+            :current-pen-id="pen?.id || ''"
+            :scroll-to-selection-version="structureTreeScrollVersion"
             @select-pen="onCheckPen"
             @change-visible="changeVisible"
             @change-locked="changeLocked"
@@ -895,12 +1114,98 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-::v-deep(.n-tabs) {
+.element-props {
   height: 100%;
+}
+
+::v-deep(.element-props__tabs.n-tabs) {
+  height: 100%;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav) {
+  padding: 0 14px;
+}
+
+::v-deep(.element-props__tabs .n-tabs-nav-scroll-wrapper) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__tabs .n-tabs-tab) {
+  padding-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+::v-deep(.element-props__tabs .n-tab-pane) {
+  padding-top: 8px;
 }
 
 ::v-deep(.n-tabs-tab-pad) {
   width: 26px;
+}
+
+.element-props__scroll {
+  padding: 0 10px 18px;
+}
+
+::v-deep(.element-props__scroll .n-scrollbar-content) {
+  padding-bottom: 18px;
+}
+
+.state-child-config {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.state-child-config__row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.state-child-config__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::v-deep(.element-props__form .n-form-item) {
+  padding: 10px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__form .n-form-item:last-child) {
+  border-bottom: 0;
+}
+
+::v-deep(.element-props__form .n-form-item-label) {
+  font-weight: 500;
+  color: #334155;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item) {
+  border-bottom: 1px solid #eef2f7;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__header) {
+  min-height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+::v-deep(.element-props__collapse .n-collapse-item__content-inner) {
+  padding-top: 2px;
+  padding-bottom: 10px;
+}
+
+::v-deep(.structure-tree-tab-scrollbar .n-scrollbar-content) {
+  padding-right: 4px;
+  padding-bottom: 18px;
 }
 
 ::v-deep(

@@ -7,6 +7,7 @@ import emitter from '@/utils/eventBus.ts'
 import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
+import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
 
 const layerStore = useLayerStore()
 const drawStore = useDrawStore()
@@ -30,10 +31,11 @@ function select() {
     .then((res) => {
       data.value = res
     })
-    .finally(() => {
+    .finally(async () => {
       if (!drawStore.draw || !currentDrawValue.value) {
         currentDrawValue.value = data.value.defDraw.uid
         drawStore.draw = data.value.defDraw
+        await layerStore.ensureDefaultLayer(drawStore.draw.uid, drawStore.draw.projectUid)
         emitter.emit('draw')
         key.value = s16()
       }
@@ -43,12 +45,14 @@ function select() {
 function changeDraw(v: string) {
   // 如果传入的 UID 与当前的不同，才更新并通知
   if (drawStore.draw.uid !== v) {
+    showRequestOverlay('正在切换图纸，请稍候...')
     // 切换时更新保存上一个数据
     // drawStore.draw.data = JSON.stringify(meta2d.data())
     // MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid).then(() => {
     MonitorDrawService.selectByUid(v)
-      .then((res) => {
+      .then(async (res) => {
         drawStore.draw = res
+        await layerStore.ensureDefaultLayer(drawStore.draw.uid, drawStore.draw.projectUid)
         meta2d.open(JSON.parse(drawStore.draw.data))
         meta2d.fitView(true, 5)
         meta2d.render()
@@ -56,7 +60,7 @@ function changeDraw(v: string) {
         // })
       })
       .finally(() => {
-        layerStore.getDefaultLayer()
+        hideRequestOverlay()
       })
   }
 }
@@ -64,6 +68,7 @@ function changeDraw(v: string) {
 
 <template>
   <n-menu
+    class="resource-menu"
     :key="key"
     :options="data.categoryVoList"
     label-field="name"
@@ -75,4 +80,12 @@ function changeDraw(v: string) {
   ></n-menu>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.resource-menu {
+  --n-item-height: 38px;
+  --n-item-color-active: transparent;
+  --n-item-text-color-active: #0f172a;
+  --n-item-icon-color-active: #0f172a;
+  --n-arrow-color: #64748b;
+}
+</style>

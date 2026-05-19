@@ -1,100 +1,57 @@
 <template>
   <div id="meta2d"></div>
-  <template v-if="drawStore.isMobile">
-    <n-modal
-      v-model:show="showControlVar"
-      preset="card"
-      title="变量控制"
-      :mask-closable="false"
-      style="width: 500px"
-    >
-      <n-form-item label="变量">
-        <GatewayVarSelect v-model:model-value="controlVarFormData.key" disabled />
-      </n-form-item>
-      <n-form-item label="变量值">
-        <n-input
-          v-model:value="controlVarFormData.value"
-          readonly
+  <DisplayModal
+    :show="showControlVar"
+    title="变量控制"
+    width="500px"
+    :mask-closable="false"
+    @update:show="showControlVar = $event"
+  >
+    <div class="control-var-form">
+      <label class="control-var-field">
+        <span class="control-var-label">变量</span>
+        <input :value="controlVarFormData.key" class="control-var-input control-var-input--readonly" readonly />
+      </label>
+      <label class="control-var-field">
+        <span class="control-var-label">变量值</span>
+        <input
+          v-model="controlVarFormData.value"
+          :readonly="drawStore.isMobile"
+          class="control-var-input"
           placeholder="请输入要写入的值"
-          @click="showKey = true"
-        />
-      </n-form-item>
-      <van-number-keyboard
-        :show="showKey"
-        @input="onInput"
-        @delete="onDelete"
-        extra-key="."
-        close-button-text="完成"
-        @close="showKey = false"
-      />
-      <template #footer>
-        <div class="flex justify-end">
-          <n-button @click="closeControlVar">取消</n-button>
-          <n-button
-            @click="writeVar"
-            type="primary"
-            class="ml-2"
-            :loading="controlVarSubmitting"
-            :disabled="!canSubmitControlVar"
-          >
-            确定
-          </n-button>
-        </div>
-      </template>
-    </n-modal>
-  </template>
-  <template v-else>
-    <n-modal
-      v-model:show="showControlVar"
-      preset="card"
-      title="变量控制"
-      :mask-closable="false"
-      style="width: 500px"
-    >
-      <n-form-item label="变量">
-        <GatewayVarSelect v-model:model-value="controlVarFormData.key" disabled />
-      </n-form-item>
-      <n-form-item>
-        <n-input
-          v-model:value="controlVarFormData.value"
-          placeholder="请输入要写入的值"
+          @click="drawStore.isMobile && (showKey = true)"
           @keydown.enter.prevent="writeVar"
         />
-      </n-form-item>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <n-button @click="closeControlVar">取消</n-button>
-          <n-button
-            @click="writeVar"
-            type="primary"
-            class="ml-2"
-            :loading="controlVarSubmitting"
-            :disabled="!canSubmitControlVar"
-          >
-            确定
-          </n-button>
-        </div>
-      </template>
-    </n-modal>
-  </template>
-  <div v-if="drawStore.globalModal.show">
-    <n-modal
-      v-model:show="drawStore.globalModal.show"
-      :title="drawStore.globalModal.draw.title"
-      preset="card"
-      :style="modalStyle"
-      content-style="padding: 0;"
-      transform-origin="center"
-      :mask-closable="false"
-      :show-mask="false"
-    >
-      <GlobalModalMeta2d />
-    </n-modal>
-  </div>
+      </label>
+    </div>
+    <van-number-keyboard
+      v-if="drawStore.isMobile"
+      :show="showKey"
+      @input="onInput"
+      @delete="onDelete"
+      extra-key="."
+      close-button-text="完成"
+      @close="showKey = false"
+    />
+    <template #footer>
+      <div class="control-var-actions" :class="{ 'control-var-actions--mobile': drawStore.isMobile }">
+        <button type="button" class="control-var-button" @click="closeControlVar">取消</button>
+        <button
+          type="button"
+          class="control-var-button control-var-button--primary"
+          :disabled="controlVarSubmitting || !canSubmitControlVar"
+          @click="writeVar"
+        >
+          {{ controlVarSubmitting ? '处理中...' : '确定' }}
+        </button>
+      </div>
+    </template>
+  </DisplayModal>
+  <DrawPopupHost v-if="drawPopupStore.show" />
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   LockState,
   Meta2d,
@@ -113,24 +70,24 @@ import { formPens } from '@meta2d/form-diagram'
 import { chartsPens } from '@meta2d/le5le-charts'
 import { ftaAnchors, ftaPens, ftaPensbyCtx } from '@meta2d/fta-diagram'
 import type { Payload } from '@/model'
-import { type DataForm, ValueTypeEnum } from '@/components/ElementsProps/model'
+import { type DataForm, ValueTypeEnum } from '@/model/drawData.ts'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { getUrlParams } from '@/utils'
-import { useMessage } from 'naive-ui'
 import { mqttUtil } from '@/utils/mqttUtil.ts'
 import emitter from '@/utils/eventBus.ts'
-import GatewayVarSelect from '@/components/ElementsProps/components/GatewayVarSelect/index.vue'
 import { VarService } from '@/services/VarService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
-import GlobalModalMeta2d from '@/components/GlobalModalMeta2d/index.vue'
+import { useDrawPopupStore } from '@/stores/module/drawPopup.ts'
+import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
+import DisplayModal from '@/components/DisplayModal.vue'
 
 const drawStore = useDrawStore()
-window['$message'] = useMessage()
-// 使用计算属性
-const modalStyle = computed(() => ({
-  width: drawStore.globalModal.draw.width + 'px',
-  height: drawStore.globalModal.draw.height + 'px',
-}))
+const drawPopupStore = useDrawPopupStore()
+const VanNumberKeyboard = defineAsyncComponent(async () => {
+  await import('vant/lib/index.css')
+  const mod = await import('vant')
+  return mod.NumberKeyboard
+})
 const monitorDraw = ref()
 const meta2dOptions: any = {
   rule: true,
@@ -151,11 +108,7 @@ const canSubmitControlVar = computed(() => {
 
 function resize() {
   if (resizeTimer.value) clearTimeout(resizeTimer.value)
-
   resizeTimer.value = window.setTimeout(() => {
-    console.log('移动完成')
-    // window.$message.error('移动完成!!')
-    console.log(meta2d)
     meta2d.fitView(true, 5)
   }, 200)
 }
@@ -202,11 +155,8 @@ function closeControlVar() {
 }
 
 function init() {
-  // 创建实例
   new Meta2d('meta2d', meta2dOptions)
 
-  // 按需注册图形库
-  // 以下为自带基础图形库
   register(flowPens())
   registerAnchors(flowAnchors())
   register(activityDiagram())
@@ -221,9 +171,7 @@ function init() {
   registerCanvasDraw(ftaPensbyCtx())
   registerAnchors(ftaAnchors())
 
-  // 注册其他自定义图形库
-  // ...
-  let data = JSON.parse(monitorDraw.value.draw.data)
+  const data = JSON.parse(monitorDraw.value.draw.data)
   data.locked = 1
   data.disableScale = true
   data.disableTranslate = true
@@ -243,16 +191,11 @@ function init() {
   drawStore.selectVarCacheData()
   listenerMqtt()
 
-  meta2d.on('active', (pens) => {
+  meta2d.on('active', () => {
     meta2d.inactive()
-    return
   })
   meta2d.on('enter', (pen) => {
     pen.calculative.hover = false
-    return
-  })
-  meta2d.on("click",(pen)=>{
-    console.log(pen)
   })
 }
 
@@ -268,8 +211,6 @@ function detectWeChatMiniProgram() {
 
 function setDefVisible() {
   const pens = meta2d.data().pens
-
-  // 收集所有组合图元的子图元 ID
   const allChildIds = new Set<string>()
   pens.forEach((pen) => {
     if (pen.children) {
@@ -278,11 +219,8 @@ function setDefVisible() {
   })
 
   pens.forEach((pen) => {
-    // 如果是子图元，就跳过，不处理它的 visible
     if (allChildIds.has(pen.id)) return
-    // 如果pen 已经被隐藏则不需要设置默认隐藏状态
     if (pen.visible === false) return
-    // 否则，设置它自己的 visible 状态
     meta2d.setValue({ id: pen.id, visible: pen.defVisible }, { render: true })
   })
 }
@@ -298,13 +236,9 @@ function listenerMqtt() {
 function listenerData() {
   if (!mqttUtil.client.value) return
   mqttUtil.client?.value.on('message', (topic: string, message) => {
-    // debugger
     const payload: Payload = JSON.parse(message.toString())
-    console.log(payload)
     if (!payload) return
-    console.log(meta2d.data().pens)
     meta2d.data().pens.forEach((pen) => {
-      // debugger
       if (!pen) return
       if (!pen.key) return
       drawStore.cacheData = { ...drawStore.cacheData, ...payload }
@@ -333,11 +267,85 @@ onUnmounted(() => {
   mqttUtil.destroyConnection()
 })
 </script>
+
 <style lang="scss" scoped>
 #meta2d {
   height: 100vh;
   width: 100vw;
   z-index: 1;
   overflow: hidden;
+}
+
+.control-var-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.control-var-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-var-label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #475569;
+}
+
+.control-var-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+}
+
+.control-var-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.control-var-input--readonly {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.control-var-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.control-var-actions--mobile {
+  gap: 8px;
+}
+
+.control-var-button {
+  min-width: 76px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.control-var-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.control-var-button--primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
 }
 </style>

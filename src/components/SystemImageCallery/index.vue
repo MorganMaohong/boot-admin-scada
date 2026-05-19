@@ -12,7 +12,7 @@ import type {
   SystemMonitorImageVo,
 } from '@/model/image'
 import FastUpload from '@/components/FastUpload/index.vue'
-import { deepClone, LockState } from '@meta2d/core'
+import { CanvasLayer, deepClone, LockState } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
 
 const layerStore = useLayerStore()
@@ -249,7 +249,8 @@ async function insertImage(flag: boolean) {
     color: '#00000000',
     background: '#00000000',
     imageRatio: true,
-  }
+    canvasLayer: CanvasLayer.CanvasMain,
+  } as any
 
   item.layerUid = layerStore.layer.uid
 
@@ -276,29 +277,37 @@ function removeImage() {
 </script>
 
 <template>
-  <n-tabs default-value="system" v-model:value="currentTabValue" @update:value="updateTabValue">
+  <div class="gallery-panel">
+    <div class="gallery-panel__header">
+      <div>
+        <div class="gallery-panel__headline">图库资源</div>
+        <div class="gallery-panel__caption">统一管理系统图库和项目图库资源</div>
+      </div>
+    </div>
+    <n-tabs
+      class="gallery-panel__tabs"
+      default-value="system"
+      v-model:value="currentTabValue"
+      @update:value="updateTabValue"
+    >
     <n-tab-pane tab="系统图库" name="system">
-      <div class="w-full h-full flex flex-col">
-        <div class="flex p-2 gap-12" style="height: 400px">
-          <div class="basis-1/5">
+      <div class="gallery-layout">
+        <div class="gallery-layout__body">
+          <div class="gallery-layout__categories">
             <n-scrollbar style="max-height: 360px; overflow: hidden">
               <div
-                class="flex justify-between items-center"
+                class="gallery-category-item"
                 v-for="(item, index) in systemImageCategory.list"
-                :class="
-                  currentValue === item.uid
-                    ? 'p-2 cursor-pointer image-option image-option-active'
-                    : 'p-2 cursor-pointer image-option'
-                "
+                :class="{ 'gallery-category-item--active': currentValue === item.uid }"
                 @mousemove="currentHoverValue = index"
                 @mouseleave="currentHoverValue = null"
                 @click="updateValue(item.uid)"
               >
-                <div>
+                <div class="gallery-category-item__name">
                   {{ item.name }}
                 </div>
                 <div
-                  class="flex items-center gap-2"
+                  class="gallery-category-item__actions"
                   v-if="currentHoverValue === index || currentValue === index"
                 >
                   <n-button text @click.stop="showAddOptionsModal(item)">
@@ -317,17 +326,14 @@ function removeImage() {
               </div>
             </n-scrollbar>
           </div>
-          <div class="basis-4/5">
+          <div class="gallery-layout__images">
             <n-scrollbar style="max-height: 270px">
               <div class="flex flex-col w-full h-full">
                 <n-grid x-gap="12" y-gap="12" cols="8" class="flex-1">
                   <n-gi v-for="(item, index) in systemImageList" :key="index">
                     <div
-                      :class="
-                        currentImageValue === item.uid
-                          ? 'p-2 cursor-pointer image-option image-option-active'
-                          : 'p-2 cursor-pointer image-option'
-                      "
+                      class="gallery-image-item"
+                      :class="{ 'gallery-image-item--active': currentImageValue === item.uid }"
                       @mousemove="currentImageIndex = index"
                       @mouseleave="currentImageIndex = null"
                       @click="updateImageValue(item.uid)"
@@ -350,19 +356,19 @@ function removeImage() {
             </n-scrollbar>
           </div>
         </div>
-        <div class="flex justify-between">
-          <div>
-            <n-button class="w-full" type="info" @click="showAddOptionsModal(null)">
+        <div class="gallery-layout__footer">
+          <div class="gallery-layout__footer-left">
+            <n-button class="w-full" type="primary" ghost @click="showAddOptionsModal(null)">
               新增选项
             </n-button>
           </div>
-          <div class="flex gap-2">
+          <div class="gallery-layout__footer-actions">
             <FastUpload
               @before-upload="beforeUpload"
               :auto-upload="false"
               v-if="currentValue && systemImageCategory.list.length > 0"
             >
-              <n-button type="info">上传图片</n-button>
+              <n-button type="primary" ghost>上传图片</n-button>
             </FastUpload>
             <n-button type="error" v-if="currentImageValue" @click="removeImage">删除</n-button>
             <n-popconfirm
@@ -382,27 +388,23 @@ function removeImage() {
       </div>
     </n-tab-pane>
     <n-tab-pane tab="项目图库" name="project">
-      <div class="w-full h-full flex flex-col">
-        <div class="flex p-2 gap-12" style="height: 400px">
-          <div class="basis-1/5">
+      <div class="gallery-layout">
+        <div class="gallery-layout__body">
+          <div class="gallery-layout__categories">
             <n-scrollbar style="max-height: 360px; overflow: hidden">
               <div
-                class="flex justify-between items-center"
+                class="gallery-category-item"
                 v-for="(item, index) in projectImageCategory.list"
-                :class="
-                  currentValue === item.uid
-                    ? 'p-2 cursor-pointer image-option image-option-active'
-                    : 'p-2 cursor-pointer image-option'
-                "
+                :class="{ 'gallery-category-item--active': currentValue === item.uid }"
                 @mousemove="currentHoverValue = index"
                 @mouseleave="currentHoverValue = null"
                 @click="updateValue(item.uid)"
               >
-                <div>
+                <div class="gallery-category-item__name">
                   {{ item.name }}
                 </div>
                 <div
-                  class="flex items-center gap-2"
+                  class="gallery-category-item__actions"
                   v-if="currentHoverValue === index || currentValue === index"
                 >
                   <n-button text @click.stop="showAddOptionsModal(item)">
@@ -421,17 +423,14 @@ function removeImage() {
               </div>
             </n-scrollbar>
           </div>
-          <div class="basis-4/5">
+          <div class="gallery-layout__images">
             <n-scrollbar style="max-height: 270px">
               <div class="flex flex-col w-full h-full">
                 <n-grid x-gap="12" y-gap="12" cols="8" class="flex-1">
                   <n-gi v-for="(item, index) in projectImageList" :key="index">
                     <div
-                      :class="
-                        currentImageValue === item.uid
-                          ? 'p-2 cursor-pointer image-option image-option-active'
-                          : 'p-2 cursor-pointer image-option'
-                      "
+                      class="gallery-image-item"
+                      :class="{ 'gallery-image-item--active': currentImageValue === item.uid }"
                       @mousemove="currentImageIndex = index"
                       @mouseleave="currentImageIndex = null"
                       @click="updateImageValue(item.uid)"
@@ -454,27 +453,30 @@ function removeImage() {
             </n-scrollbar>
           </div>
         </div>
-        <div class="flex justify-between">
-          <div>
-            <n-button class="w-full" type="info" @click="showAddOptionsModal(null)">
+        <div class="gallery-layout__footer">
+          <div class="gallery-layout__footer-left">
+            <n-button class="w-full" type="primary" ghost @click="showAddOptionsModal(null)">
               新增选项
             </n-button>
           </div>
-          <div class="flex gap-2">
+          <div class="gallery-layout__footer-actions">
             <FastUpload
               @before-upload="beforeUpload"
               :auto-upload="false"
               v-if="currentValue && projectImageCategory.list.length > 0"
             >
-              <n-button type="info">上传图片</n-button>
+              <n-button type="primary" ghost>上传图片</n-button>
             </FastUpload>
             <n-button type="error" v-if="currentImageValue" @click="removeImage">删除</n-button>
-            <n-button type="primary" v-if="currentImageValue" @click="insertImage(true)">插入</n-button>
+            <n-button type="primary" v-if="currentImageValue" @click="insertImage(true)"
+              >插入</n-button
+            >
           </div>
         </div>
       </div>
     </n-tab-pane>
-  </n-tabs>
+    </n-tabs>
+  </div>
 
   <n-modal
     v-model:show="showAddOrUpdateOptions"
@@ -504,11 +506,116 @@ function removeImage() {
 </template>
 
 <style lang="scss" scoped>
-.image-option:hover {
-  background-color: #f5f7fa;
+.gallery-panel__header {
+  margin-bottom: 12px;
 }
 
-.image-option-active {
-  background-color: #f5f7fa;
+.gallery-panel__headline {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.gallery-panel__caption {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.gallery-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gallery-layout__body {
+  display: flex;
+  gap: 16px;
+  height: 400px;
+}
+
+.gallery-layout__categories {
+  flex: 0 0 22%;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.gallery-layout__images {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.gallery-category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.gallery-category-item:hover,
+.gallery-category-item--active {
+  background-color: #f5f8ff;
+}
+
+.gallery-category-item__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-category-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gallery-image-item {
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.gallery-image-item:hover,
+.gallery-image-item--active {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
+.gallery-layout__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gallery-layout__footer-left,
+.gallery-layout__footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 1200px) {
+  .gallery-layout__body,
+  .gallery-layout__footer {
+    flex-direction: column;
+  }
+
+  .gallery-layout__categories {
+    flex-basis: auto;
+  }
 }
 </style>

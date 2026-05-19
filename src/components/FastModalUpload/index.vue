@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits } from 'vue'
-import { UploadFileInfo } from 'naive-ui'
+import type { UploadFileInfo } from 'naive-ui'
 import { FileService } from '@/services/FileService'
 import { ArchiveOutline as ArchiveIcon } from '@vicons/ionicons5'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'

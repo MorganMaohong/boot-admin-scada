@@ -8,7 +8,17 @@
 </head>
 <body>
 <div id="app"></div>
-<script type="module" src="/src/main.ts"></script>
+<script type="module">
+  const hash = window.location.hash || ''
+  const path = window.location.pathname || ''
+  const isDisplay = hash.startsWith('#/display') || path.endsWith('/display')
+
+  if (isDisplay) {
+    import('/src/entry-display.ts')
+  } else {
+    import('/src/entry-editor.ts')
+  }
+</script>
 </body>
 </html>
 <style>

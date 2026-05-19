@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, nextTick, ref, watch } from 'vue'
 import type { TreeDropInfo } from 'naive-ui'
-import { NButton, NIcon, NTag, NTooltip } from 'naive-ui'
-import { Copy, Edit, Renew, Star, Add } from '@vicons/carbon'
+import { NButton, NCheckbox, NIcon, NTag, NTooltip } from 'naive-ui'
+import { Copy, Edit, Star, Add } from '@vicons/carbon'
 import { Eye, EyeOff, Lock, LockOff, LockOpen, Menu2 } from '@vicons/tabler'
 import { MdTrash } from '@vicons/ionicons4'
 import { LockState, deepClone } from '@meta2d/core'
@@ -11,6 +11,15 @@ import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import type { ProjectMonitorLayer, ProjectMonitorLayerForm } from '@/model/layer'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
+import { useSelection } from '@/services/selections.ts'
+import {
+  cleanupMeta2dPens,
+  collectValidMeta2dPens,
+  countInvalidMeta2dPens,
+  getRuntimeMeta2dPen,
+  removeMeta2dPens,
+  reorderMeta2dPens,
+} from '@/utils/meta2dPens.ts'
 
 interface StructureTreeNode {
   key: string
@@ -28,6 +37,7 @@ const props = defineProps<{
   drawUid?: string
   pens?: any[]
   currentPenId?: string
+  scrollToSelectionVersion?: number
 }>()
 
 const emit = defineEmits<{
@@ -40,6 +50,7 @@ const emit = defineEmits<{
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
+const { select, selections, selects } = useSelection()
 const layers = ref<ProjectMonitorLayer[]>([])
 const loading = ref(false)
 const draggingNode = ref<StructureTreeNode | null>(null)
@@ -47,7 +58,13 @@ const expandedKeys = ref<Array<string | number>>([])
 const currentLayerUid = ref('')
 const showLayerModal = ref(false)
 const showCopyModal = ref(false)
-const layerForm = ref<ProjectMonitorLayerForm>({})
+const layerForm = ref<ProjectMonitorLayerForm>({} as ProjectMonitorLayerForm)
+const checkedPenIds = ref<string[]>([])
+const structureTreeRef = ref<HTMLElement | null>(null)
+const pendingScrollToSelected = ref(false)
+const knownLayerUidSet = computed(
+  () => new Set(layers.value.map((layer) => layer.uid).filter(Boolean)),
+)
 
 watch(
   () => props.drawUid,
@@ -73,13 +90,14 @@ function createEmptyLayerForm(): ProjectMonitorLayerForm {
     pens: '',
     defaultLayer: false,
     sort: layers.value.length + 1,
-  } as ProjectMonitorLayerForm
+  } as unknown as ProjectMonitorLayerForm
 }
 
 async function loadLayers(drawUid = props.drawUid) {
   if (!drawUid) return
   loading.value = true
   try {
+    await layerStore.ensureDefaultLayer(drawUid, drawStore.draw.projectUid)
     layers.value = await MonitorLayerService.select(drawUid)
     syncCurrentLayer()
   } finally {
@@ -118,7 +136,9 @@ function isPenVisible(pen: any) {
 }
 
 function getPenLayerUid(pen: any) {
-  return pen?.layerUid || UNASSIGNED_LAYER_UID
+  const layerUid = pen?.layerUid
+  if (!layerUid || !knownLayerUidSet.value.has(layerUid)) return UNASSIGNED_LAYER_UID
+  return layerUid
 }
 
 function buildPenNode(pen: any): StructureTreeNode {
@@ -151,11 +171,14 @@ function buildLayerPensMap(pens: any[], frontFirst = true) {
 }
 
 function getLayerPens(layerUid: string) {
-  return (meta2d.data().pens || []).filter((pen: any) => getPenLayerUid(pen) === layerUid)
+  if (!layerUid || layerUid === UNASSIGNED_LAYER_UID) return []
+  return collectValidMeta2dPens(meta2d.data().pens || []).pens.filter(
+    (pen: any) => pen?.layerUid === layerUid,
+  )
 }
 
 const treeData = computed<StructureTreeNode[]>(() => {
-  const penList = (props.pens || []).filter(Boolean)
+  const penList = collectValidMeta2dPens(props.pens || []).pens
   const layerPensMap = buildLayerPensMap(penList)
 
   const nodes: StructureTreeNode[] = layers.value.map((layer) => ({
@@ -185,8 +208,34 @@ watch(
   treeData,
   (nodes) => {
     expandedKeys.value = nodes.map((item) => item.key)
+    const validPenIds = new Set(
+      nodes.flatMap((item) => item.children || []).map((item) => getPenId(item.pen)),
+    )
+    checkedPenIds.value = checkedPenIds.value.filter((id) => validPenIds.has(id))
+    if (pendingScrollToSelected.value) {
+      nextTick(() => {
+        scrollSelectedIntoView()
+      })
+    }
   },
   { immediate: true },
+)
+
+watch(
+  () => props.scrollToSelectionVersion,
+  () => {
+    queueScrollSelectedIntoView()
+  },
+)
+
+watch(
+  () => props.currentPenId,
+  () => {
+    if (!pendingScrollToSelected.value) return
+    nextTick(() => {
+      scrollSelectedIntoView()
+    })
+  },
 )
 
 const selectedKeys = computed(() => {
@@ -195,10 +244,72 @@ const selectedKeys = computed(() => {
   return []
 })
 
+const selectedPenIds = computed(() => {
+  return new Set([
+    ...(selections.pens || []).map((pen: any) => pen?.id).filter(Boolean),
+    ...checkedPenIds.value,
+  ])
+})
+
+const selectedPensCount = computed(() => selectedPenIds.value.size)
+const checkedPensCount = computed(() => checkedPenIds.value.length)
+const invalidPensCount = computed(() => countInvalidMeta2dPens(props.pens || []))
+
+function getLayerPenIds(option: StructureTreeNode) {
+  return (option.children || []).map((item) => getPenId(item.pen)).filter(Boolean)
+}
+
+function isLayerChecked(option: StructureTreeNode) {
+  const penIds = getLayerPenIds(option)
+  return penIds.length > 0 && penIds.every((id) => checkedPenIds.value.includes(id))
+}
+
+function isLayerIndeterminate(option: StructureTreeNode) {
+  const penIds = getLayerPenIds(option)
+  const checkedCount = penIds.filter((id) => checkedPenIds.value.includes(id)).length
+  return checkedCount > 0 && checkedCount < penIds.length
+}
+
+function setCheckedPenIds(ids: string[]) {
+  checkedPenIds.value = [...new Set(ids.filter(Boolean))]
+}
+
+function togglePenChecked(pen: any, checked: boolean) {
+  const penId = getPenId(pen)
+  if (!penId) return
+  if (checked) {
+    setCheckedPenIds([...checkedPenIds.value, penId])
+    return
+  }
+  setCheckedPenIds(checkedPenIds.value.filter((id) => id !== penId))
+}
+
+function toggleLayerChecked(option: StructureTreeNode, checked: boolean) {
+  const penIds = getLayerPenIds(option)
+  if (penIds.length === 0) return
+  if (checked) {
+    setCheckedPenIds([...checkedPenIds.value, ...penIds])
+    return
+  }
+  const removeIds = new Set(penIds)
+  setCheckedPenIds(checkedPenIds.value.filter((id) => !removeIds.has(id)))
+}
+
+function clearCheckedPens() {
+  checkedPenIds.value = []
+}
+
 function renderLabel({ option }: { option: StructureTreeNode }) {
   if (option.type === 'layer') {
     return h('div', { class: 'structure-tree__layer-label' }, [
       h('div', { class: 'structure-tree__layer-prefix' }, [
+        h(NCheckbox, {
+          checked: isLayerChecked(option),
+          indeterminate: isLayerIndeterminate(option),
+          disabled: !option.children?.length,
+          onClick: (e: MouseEvent) => e.stopPropagation(),
+          'onUpdate:checked': (checked: boolean) => toggleLayerChecked(option, checked),
+        }),
         h(NIcon, { class: 'structure-tree__drag-icon' }, { default: () => h(Menu2) }),
         h(
           'span',
@@ -218,7 +329,12 @@ function renderLabel({ option }: { option: StructureTreeNode }) {
           option.layer?.defaultLayer
             ? h(
                 NTag,
-                { size: 'small', bordered: false, type: 'warning', class: 'structure-tree__default-tag' },
+                {
+                  size: 'small',
+                  bordered: false,
+                  type: 'warning',
+                  class: 'structure-tree__default-tag',
+                },
                 { default: () => '默认' },
               )
             : null,
@@ -233,13 +349,19 @@ function renderLabel({ option }: { option: StructureTreeNode }) {
   }
 
   return h('div', { class: 'structure-tree__pen-label-wrap' }, [
+    h(NCheckbox, {
+      checked: checkedPenIds.value.includes(getPenId(option.pen)),
+      onClick: (e: MouseEvent) => e.stopPropagation(),
+      'onUpdate:checked': (checked: boolean) => togglePenChecked(option.pen, checked),
+    }),
     h(NIcon, { class: 'structure-tree__drag-icon' }, { default: () => h(Menu2) }),
     h(
       'span',
       {
         class: [
           'structure-tree__pen-label',
-          option.pen?.id === props.currentPenId && 'structure-tree__pen-label--active',
+          (option.pen?.id === props.currentPenId || selectedPenIds.value.has(option.pen?.id)) &&
+            'structure-tree__pen-label--active',
         ],
       },
       option.label,
@@ -286,30 +408,85 @@ function renderLayerSuffix(option: StructureTreeNode) {
   const visibleIcon = layer.visible === false ? EyeOff : Eye
 
   return h('div', { class: 'structure-tree__actions' }, [
-    buildIconButton(Star, (e) => {
-      e.stopPropagation()
-      changeDefaultLayer(layer.uid)
-    }, layer.defaultLayer ? 'structure-tree__action-btn structure-tree__action-btn--active' : 'structure-tree__action-btn', '设为默认图层'),
-    buildIconButton(lockIcon, (e) => {
-      e.stopPropagation()
-      updateLayerLock(layer, !layer.locked)
-    }, '锁定图层'),
-    buildIconButton(visibleIcon, (e) => {
-      e.stopPropagation()
-      updateLayerVisible(layer, layer.visible === false)
-    }, '显示/隐藏图层'),
-    buildIconButton(Edit, (e) => {
-      e.stopPropagation()
-      openUpdateLayerModal(layer)
-    }, '编辑图层'),
-    buildIconButton(Copy, (e) => {
-      e.stopPropagation()
-      openCopyLayerModal(layer)
-    }, '复制图层'),
-    buildIconButton(MdTrash, (e) => {
-      e.stopPropagation()
-      deleteLayer(layer)
-    }, '删除图层'),
+    selectedPensCount.value > 0
+      ? h(
+          NTooltip,
+          { delay: 300 },
+          {
+            trigger: () =>
+              h(
+                NButton,
+                {
+                  text: true,
+                  size: 'tiny',
+                  class: 'structure-tree__migrate-btn',
+                  onClick: (e: MouseEvent) => {
+                    e.stopPropagation()
+                    migrateSelectedPensToLayer(layer)
+                  },
+                },
+                { default: () => '迁入' },
+              ),
+            default: () => `迁移 ${selectedPensCount.value} 个已选图元到此图层`,
+          },
+        )
+      : null,
+    buildIconButton(
+      Star,
+      (e) => {
+        e.stopPropagation()
+        changeDefaultLayer(layer.uid)
+      },
+      layer.defaultLayer
+        ? 'structure-tree__action-btn structure-tree__action-btn--active'
+        : 'structure-tree__action-btn',
+      '设为默认图层',
+    ),
+    buildIconButton(
+      lockIcon,
+      (e) => {
+        e.stopPropagation()
+        updateLayerLock(layer, !layer.locked)
+      },
+      undefined,
+      '锁定图层',
+    ),
+    buildIconButton(
+      visibleIcon,
+      (e) => {
+        e.stopPropagation()
+        updateLayerVisible(layer, layer.visible === false)
+      },
+      undefined,
+      '显示/隐藏图层',
+    ),
+    buildIconButton(
+      Edit,
+      (e) => {
+        e.stopPropagation()
+        openUpdateLayerModal(layer)
+      },
+      undefined,
+      '编辑图层',
+    ),
+    buildIconButton(
+      Copy,
+      (e) => {
+        e.stopPropagation()
+        openCopyLayerModal(layer)
+      },
+      undefined,
+      '复制图层',
+    ),
+    buildIconButton(
+      MdTrash,
+      (e) => {
+        e.stopPropagation()
+        deleteLayer(layer)
+      },
+      undefined,
+      '删除图层',
+    ),
   ])
 }
 
@@ -318,25 +495,36 @@ function renderPenSuffix(option: StructureTreeNode) {
   const pen = option.pen
 
   const lockIcon =
-    pen.locked === LockState.None
-      ? LockOpen
-      : pen.locked === LockState.DisableEdit
-        ? Lock
-        : LockOff
+    pen.locked === LockState.None ? LockOpen : pen.locked === LockState.DisableEdit ? Lock : LockOff
 
   return h('div', { class: 'structure-tree__actions' }, [
-    buildIconButton(lockIcon, (e) => {
-      e.stopPropagation()
-      emit('change-locked', pen)
-    }, '锁定图元'),
-    buildIconButton(isPenVisible(pen) ? Eye : EyeOff, (e) => {
-      e.stopPropagation()
-      emit('change-visible', pen)
-    }, '显示/隐藏图元'),
-    buildIconButton(MdTrash, (e) => {
-      e.stopPropagation()
-      emit('remove-pen', pen)
-    }, '删除图元'),
+    buildIconButton(
+      lockIcon,
+      (e) => {
+        e.stopPropagation()
+        emit('change-locked', pen)
+      },
+      undefined,
+      '锁定图元',
+    ),
+    buildIconButton(
+      isPenVisible(pen) ? Eye : EyeOff,
+      (e) => {
+        e.stopPropagation()
+        emit('change-visible', pen)
+      },
+      undefined,
+      '显示/隐藏图元',
+    ),
+    buildIconButton(
+      MdTrash,
+      (e) => {
+        e.stopPropagation()
+        emit('remove-pen', pen)
+      },
+      undefined,
+      '删除图元',
+    ),
   ])
 }
 
@@ -359,6 +547,25 @@ function handleUpdateSelectedKeys(_keys: Array<string | number>, options: Array<
   }
 }
 
+function queueScrollSelectedIntoView() {
+  pendingScrollToSelected.value = true
+  nextTick(() => {
+    scrollSelectedIntoView()
+  })
+}
+
+function scrollSelectedIntoView() {
+  const root = structureTreeRef.value
+  const selectedNode = root?.querySelector('.n-tree-node-wrapper--selected') as HTMLElement | null
+  if (!selectedNode) return
+  pendingScrollToSelected.value = false
+  selectedNode.scrollIntoView({
+    block: 'center',
+    inline: 'nearest',
+    behavior: 'smooth',
+  })
+}
+
 function moveItem<T>(list: T[], fromIndex: number, toIndex: number) {
   if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return list
   const item = list.splice(fromIndex, 1)[0]
@@ -368,6 +575,7 @@ function moveItem<T>(list: T[], fromIndex: number, toIndex: number) {
 
 function saveDraw() {
   if (!props.drawUid) return Promise.resolve()
+  cleanupMeta2dPens({ render: false })
   return MonitorDrawService.save(JSON.stringify(meta2d.data()), props.drawUid)
 }
 
@@ -380,13 +588,14 @@ function replacePens(nextPens: any[]) {
     if (!layerUids.includes(layerUid)) layerUids.push(layerUid)
   })
 
+  const orderedPens: any[] = []
   for (let layerIndex = layerUids.length - 1; layerIndex >= 0; layerIndex -= 1) {
     const pens = layerPensMap.get(layerUids[layerIndex]) || []
     for (let penIndex = pens.length - 1; penIndex >= 0; penIndex -= 1) {
-      meta2d.top(pens[penIndex])
+      orderedPens.push(pens[penIndex])
     }
   }
-  meta2d.render()
+  reorderMeta2dPens(orderedPens)
   emit('sorted')
 }
 
@@ -412,7 +621,52 @@ function rebuildPensByLayerOrder(sourcePens: any[]) {
   return rebuildPensFromLayerMap(buildLayerPensMap(sourcePens))
 }
 
-async function reorderLayers(dragLayerUid: string, targetLayerUid: string, dropPosition: 'before' | 'after') {
+function getPenId(pen: any) {
+  return pen?.id ? String(pen.id) : ''
+}
+
+function getRuntimePen(pen: any) {
+  return getRuntimeMeta2dPen(pen)
+}
+
+function getUniqueRuntimePens(pens: any[]) {
+  const penMap = new Map<string, any>()
+  pens.forEach((pen) => {
+    const runtimePen = getRuntimePen(pen)
+    const penId = getPenId(runtimePen)
+    if (!penId) return
+    penMap.set(penId, runtimePen)
+  })
+  return [...penMap.values()]
+}
+
+function getSelectedRuntimePens() {
+  const checkedPens = checkedPenIds.value
+    .map((penId) => getRuntimeMeta2dPen({ id: penId }))
+    .filter(Boolean)
+  return getUniqueRuntimePens([...(selections.pens || []), ...checkedPens])
+}
+
+function getDragPens(dragPen: any) {
+  const dragPenId = getPenId(dragPen)
+  const selectedPens = getSelectedRuntimePens()
+  if (selectedPens.some((pen) => getPenId(pen) === dragPenId)) return selectedPens
+  return getUniqueRuntimePens([dragPen])
+}
+
+function syncMovedSelection(pens: any[]) {
+  const movedPens = getUniqueRuntimePens(pens)
+  if (movedPens.length === 0) return
+  select(movedPens)
+  selects(movedPens)
+  meta2d.active(movedPens)
+}
+
+async function reorderLayers(
+  dragLayerUid: string,
+  targetLayerUid: string,
+  dropPosition: 'before' | 'after',
+) {
   const fromIndex = layers.value.findIndex((item) => item.uid === dragLayerUid)
   const targetIndex = layers.value.findIndex((item) => item.uid === targetLayerUid)
   if (fromIndex < 0 || targetIndex < 0) return
@@ -423,7 +677,7 @@ async function reorderLayers(dragLayerUid: string, targetLayerUid: string, dropP
   layers.value = nextLayers.map((item, index) => ({ ...item, sort: index + 1 }))
   syncCurrentLayer()
 
-  const nextPens = rebuildPensByLayerOrder([...(meta2d.data().pens || [])])
+  const nextPens = rebuildPensByLayerOrder(collectValidMeta2dPens(meta2d.data().pens || []).pens)
   replacePens(nextPens)
 
   await Promise.all([
@@ -436,19 +690,22 @@ async function reorderLayers(dragLayerUid: string, targetLayerUid: string, dropP
 }
 
 async function reorderPens(
-  dragPen: any,
+  dragPens: any[],
   targetNode: StructureTreeNode,
   dropPosition: 'before' | 'inside' | 'after',
 ) {
-  const sourcePens = [...(meta2d.data().pens || [])]
+  const movingPens = getUniqueRuntimePens(dragPens)
+  if (movingPens.length === 0) return
+
+  const sourcePens = collectValidMeta2dPens(meta2d.data().pens || []).pens
   const layerPensMap = buildLayerPensMap(sourcePens)
-  const dragPenId = dragPen.id
-  const sourceLayerUid = getPenLayerUid(dragPen)
+  const dragPenIds = new Set(movingPens.map(getPenId).filter(Boolean))
+  const sourceLayerUids = new Set(movingPens.map(getPenLayerUid))
 
   layerPensMap.forEach((pens, key) => {
     layerPensMap.set(
       key,
-      pens.filter((item) => item.id !== dragPenId),
+      pens.filter((item) => !dragPenIds.has(getPenId(item))),
     )
   })
 
@@ -462,31 +719,72 @@ async function reorderPens(
   const targetPens = [...(layerPensMap.get(targetLayerUid) || [])]
 
   if (targetNode.type === 'layer' || dropPosition === 'inside') {
-    targetPens.push(dragPen)
+    targetPens.push(...movingPens)
   } else {
     const targetIndex = targetPens.findIndex((item) => item.id === targetNode.pen?.id)
     const insertIndex = dropPosition === 'before' ? targetIndex : targetIndex + 1
-    targetPens.splice(insertIndex, 0, dragPen)
+    targetPens.splice(insertIndex, 0, ...movingPens)
   }
 
   const nextLayerUid = targetLayerUid === UNASSIGNED_LAYER_UID ? undefined : targetLayerUid
-  dragPen.layerUid = nextLayerUid
-  meta2d.setValue(
-    {
-      id: dragPen.id,
-      layerUid: nextLayerUid,
-    },
-    { render: false, history: false, doEvent: false },
-  )
+  movingPens.forEach((pen) => {
+    pen.layerUid = nextLayerUid
+    meta2d.setValue(
+      {
+        id: pen.id,
+        layerUid: nextLayerUid,
+      },
+      { render: false, history: false, doEvent: false },
+    )
+  })
 
   layerPensMap.set(targetLayerUid, targetPens)
-  if (!layerPensMap.has(sourceLayerUid)) {
-    layerPensMap.set(sourceLayerUid, [])
-  }
+  sourceLayerUids.forEach((layerUid) => {
+    if (!layerPensMap.has(layerUid)) layerPensMap.set(layerUid, [])
+  })
 
   const orderedPens = rebuildPensFromLayerMap(layerPensMap)
   replacePens(orderedPens)
+  syncMovedSelection(movingPens)
+  clearCheckedPens()
   await saveDraw()
+}
+
+async function migrateSelectedPensToLayer(layer: ProjectMonitorLayer) {
+  if (!layer?.uid) return
+  const movingPens = getSelectedRuntimePens()
+  if (movingPens.length === 0) {
+    window.$message.warning('请先在画布或图层树中选择要迁移的图元')
+    return
+  }
+
+  await reorderPens(
+    movingPens,
+    {
+      key: `layer-${layer.uid}`,
+      label: layer.name || '未命名图层',
+      type: 'layer',
+      isLeaf: false,
+      layer,
+    },
+    'inside',
+  )
+  setCurrentLayer(layer)
+  window.$message.success(`已迁移 ${movingPens.length} 个图元到「${layer.name || '未命名图层'}」`)
+}
+
+async function cleanInvalidPens() {
+  const result = cleanupMeta2dPens()
+  if (!result.changed) {
+    window.$message.info('当前图层没有需要清理的无效图元')
+    return
+  }
+
+  clearCheckedPens()
+  emit('sorted')
+  await saveDraw()
+  const removedCount = result.removedIds.length
+  window.$message.success(removedCount > 0 ? `已清理 ${removedCount} 个无效图元` : '已清理无效图元引用')
 }
 
 function handleDragStart(info: { node: any; event?: DragEvent }) {
@@ -518,34 +816,44 @@ function allowDrop({
       targetNode.type === 'layer' &&
       targetNode.layer?.uid !== UNASSIGNED_LAYER_UID &&
       targetNode.layer?.uid !== undefined &&
-      dropPosition !== 'inside'
+      targetNode.layer?.uid !== dragNode.layer?.uid
     )
   }
 
   if (dragNode.type === 'pen') {
+    const dragPens = getDragPens(dragNode.pen)
+    const dragPenIds = new Set(dragPens.map(getPenId).filter(Boolean))
     if (targetNode.type === 'layer') {
-      return dropPosition === 'inside'
+      return true
     }
-    return targetNode.type === 'pen' && dropPosition !== 'inside' && dragNode.pen?.id !== targetNode.pen?.id
+    return (
+      targetNode.type === 'pen' &&
+      dropPosition !== 'inside' &&
+      !dragPenIds.has(getPenId(targetNode.pen))
+    )
   }
 
   return false
 }
 
 async function handleDrop(info: TreeDropInfo) {
-  const dragNode = info.dragNode as StructureTreeNode
-  const targetNode = info.node as StructureTreeNode
+  const dragNode = info.dragNode as unknown as StructureTreeNode
+  const targetNode = info.node as unknown as StructureTreeNode
 
   try {
     if (dragNode.type === 'layer' && targetNode.type === 'layer' && targetNode.layer?.uid) {
-      await reorderLayers(dragNode.layer!.uid, targetNode.layer.uid, info.dropPosition)
+      const dropPosition = info.dropPosition === 'before' ? 'before' : 'after'
+      await reorderLayers(dragNode.layer!.uid, targetNode.layer.uid, dropPosition)
       window.$message.success('图层顺序已更新')
       return
     }
 
     if (dragNode.type === 'pen' && dragNode.pen) {
-      await reorderPens(dragNode.pen, targetNode, info.dropPosition)
-      window.$message.success('图元层级已更新')
+      const dragPens = getDragPens(dragNode.pen)
+      await reorderPens(dragPens, targetNode, info.dropPosition)
+      if (targetNode.type === 'layer') {
+        window.$message.success(`已迁移 ${dragPens.length} 个图元`)
+      }
     }
   } catch (error) {
     window.$message.error('排序失败')
@@ -574,7 +882,7 @@ function openCopyLayerModal(layer: ProjectMonitorLayer) {
     uid: null,
     name: `${layer.name || '未命名图层'}-副本`,
     defaultLayer: false,
-  } as ProjectMonitorLayerForm
+  } as unknown as ProjectMonitorLayerForm
   showCopyModal.value = true
 }
 
@@ -611,7 +919,7 @@ async function onCopyLayer() {
   const copyLayer = await MonitorLayerService.copy(layerForm.value)
   const pens = getLayerPens(sourceLayerUid)
   pens.forEach((pen) => {
-    const copyPen = deepClone(pen)
+    const copyPen = deepClone(pen) as any
     copyPen.id = null
     copyPen.layerUid = copyLayer.uid
     meta2d.addPen(copyPen, false, false, true)
@@ -651,7 +959,10 @@ async function updateLayerLock(layer: ProjectMonitorLayer, locked: boolean) {
   await MonitorLayerService.addOrUpdate(nextLayer)
   const layerPens = getLayerPens(layer.uid)
   layerPens.forEach((pen) => {
-    meta2d.setValue({ id: pen.id, locked: locked ? LockState.Disable : LockState.None }, { render: false })
+    meta2d.setValue(
+      { id: pen.id, locked: locked ? LockState.Disable : LockState.None },
+      { render: false },
+    )
   })
   meta2d.render()
   await saveDraw()
@@ -668,31 +979,57 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
     return
   }
 
-  await MonitorLayerService.delete(layer.uid)
-  const layerPens = getLayerPens(layer.uid)
+  const layerUid = layer.uid
+  const layerName = layer.name || '未命名图层'
+  const layerPens = getLayerPens(layerUid)
+  const layerPenIds = new Set(layerPens.map(getPenId).filter(Boolean))
+
+  await MonitorLayerService.delete(layerUid)
+
   if (layerPens.length) {
-    meta2d.delete(layerPens)
-    meta2d.render()
+    removeMeta2dPens(layerPens, { render: true })
+    checkedPenIds.value = checkedPenIds.value.filter((id) => !layerPenIds.has(id))
+    const selectedDeleted =
+      (selections.pen?.id && layerPenIds.has(String(selections.pen.id))) ||
+      (selections.pens || []).some((pen: any) => layerPenIds.has(getPenId(pen)))
+    if (selectedDeleted) {
+      meta2d.inactive()
+      select()
+      selects()
+    }
     await saveDraw()
   }
   await loadLayers()
   layerStore.getDefaultLayer()
-  window.$message.success('图层已删除')
+  emit('sorted')
+  window.$message.success(
+    layerPens.length
+      ? `已删除图层「${layerName}」及 ${layerPens.length} 个图元`
+      : `已删除图层「${layerName}」`,
+  )
 }
 </script>
 
 <template>
-  <div class="structure-tree">
+  <div ref="structureTreeRef" class="structure-tree">
     <div class="structure-tree__header">
       <div>
         <div class="structure-tree__header-title">图层</div>
+        <div v-if="checkedPensCount > 0" class="structure-tree__header-desc">
+          已勾选 {{ checkedPensCount }} 个图元，可点击目标图层“迁入”
+        </div>
       </div>
       <div class="structure-tree__header-actions">
-        <n-button quaternary size="small" @click="loadLayers">
-          <template #icon>
-            <n-icon><Renew /></n-icon>
-          </template>
-          刷新
+        <n-button
+          size="small"
+          quaternary
+          :type="invalidPensCount > 0 ? 'warning' : 'default'"
+          @click="cleanInvalidPens"
+        >
+          {{ invalidPensCount > 0 ? `清理 ${invalidPensCount}` : '清理' }}
+        </n-button>
+        <n-button v-if="checkedPensCount > 0" size="small" quaternary @click="clearCheckedPens">
+          清空
         </n-button>
         <n-button type="primary" size="small" @click="openCreateLayerModal">
           <template #icon>
@@ -704,6 +1041,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
     </div>
     <n-tree
       block-line
+      block-node
       selectable
       draggable
       :data="treeData"
@@ -750,14 +1088,17 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 
 <style scoped lang="scss">
 .structure-tree {
+  --n-font-size: 13px;
+  --n-node-font-size: 13px;
   user-select: none;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  font-size: 13px;
 }
 
 .structure-tree__header {
-  padding: 8px;
+  padding: 8px 9px;
   border: 1px solid #e7ebf3;
   border-radius: 8px;
   background: linear-gradient(180deg, #fbfcfe 0%, #f5f7fb 100%);
@@ -773,23 +1114,37 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   color: #1f2937;
 }
 
+.structure-tree__header-desc {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #64748b;
+}
+
 .structure-tree__header-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
 }
 
 .structure-tree__header-actions :deep(.n-button) {
-  height: 26px;
-  padding: 0 8px;
+  height: 24px;
+  padding: 0 7px;
   font-size: 12px;
+}
+
+:deep(.n-tree) {
+  --n-font-size: 13px;
+  font-size: 13px;
 }
 
 :deep(.n-tree-node-wrapper) {
   margin: 2px 0;
-  border-radius: 10px;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 :deep(.n-tree-node-wrapper:hover) {
@@ -797,13 +1152,14 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 }
 
 :deep(.n-tree-node-wrapper--selected) {
-  background: rgba(32, 128, 240, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(32, 128, 240, 0.16);
+  background: rgba(32, 128, 240, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(32, 128, 240, 0.28);
 }
 
 :deep(.n-tree-node-content) {
-  min-height: 34px;
+  min-height: 32px;
   padding-right: 4px;
+  font-size: 13px;
 }
 
 :deep(.n-tree-node-content__text) {
@@ -812,23 +1168,39 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 }
 
 :deep(.n-tree-node-indent) {
-  width: 16px;
+  width: 14px;
 }
 
 :deep(.n-tree-node-switcher) {
-  width: 24px;
+  width: 20px;
   color: #94a3b8;
+  font-size: 13px;
 }
 
 :deep(.n-tree-node-drop-indicator) {
-  height: 4px;
+  height: 3px;
   border-radius: 999px;
   background-color: #2080f0;
   box-shadow: 0 0 0 2px rgba(32, 128, 240, 0.12);
 }
 
 :deep(.n-tree-node-drag-image) {
-  border-radius: 10px;
+  border-radius: 8px;
+}
+
+:deep(.n-checkbox) {
+  --n-size: 14px;
+  --n-label-font-size: 13px;
+  flex-shrink: 0;
+}
+
+:deep(.n-checkbox-box) {
+  width: 14px;
+  height: 14px;
+}
+
+:deep(.n-checkbox-icon) {
+  font-size: 11px;
 }
 
 .structure-tree__layer-label {
@@ -838,7 +1210,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 5px 6px;
+  padding: 5px 7px;
   border-radius: 6px;
   background: linear-gradient(180deg, #f9fafc 0%, #f3f6fb 100%);
 }
@@ -847,7 +1219,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 .structure-tree__pen-label-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
   flex: 1;
 }
@@ -855,7 +1227,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 .structure-tree__layer-meta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .structure-tree__drag-icon {
@@ -863,7 +1235,7 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   align-items: center;
   color: #94a3b8;
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .structure-tree__label-text {
@@ -871,11 +1243,12 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #0f172a;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .structure-tree__label-text--active {
-  color: #2080f0;
+  color: #1668d9;
 }
 
 .structure-tree__default-tag,
@@ -883,8 +1256,14 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   flex-shrink: 0;
 }
 
+.structure-tree__default-tag :deep(.n-tag__content),
+.structure-tree__count :deep(.n-tag__content) {
+  font-size: 11px;
+  line-height: 18px;
+}
+
 .structure-tree__pen-label-wrap {
-  padding: 4px 6px;
+  padding: 4px 7px;
 }
 
 .structure-tree__pen-label {
@@ -892,10 +1271,11 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #334155;
+  font-size: 13px;
 }
 
 .structure-tree__pen-label--active {
-  color: #2080f0;
+  color: #1668d9;
   font-weight: 600;
 }
 
@@ -915,13 +1295,13 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 
 .structure-tree__action-btn {
   color: #64748b;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   padding: 0;
 }
 
 .structure-tree__action-btn :deep(.n-button__icon) {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .structure-tree__action-btn:hover {
@@ -930,5 +1310,11 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
 
 .structure-tree__action-btn--active {
   color: #d97706;
+}
+
+.structure-tree__migrate-btn {
+  height: 22px;
+  padding: 0 5px;
+  font-size: 12px;
 }
 </style>

@@ -19,7 +19,7 @@ const appStore = useAppStore()
       :inverted="true"
       bordered
       :class="[
-        'h-12 flex items-center justify-between px-5 flex-shrink-0 border-b border-gray-300',
+        'h-12 flex items-center justify-between px-5 flex-shrink-0 border-b border-gray-300 overflow-x-auto overflow-y-hidden',
         appStore.targetPicker.active ? 'picker-disabled' : '',
       ]"
     >

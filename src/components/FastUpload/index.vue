@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { defineEmits, defineProps } from 'vue'
-import { UploadFileInfo } from 'naive-ui'
+import type { UploadFileInfo } from 'naive-ui'
 import { FileService } from '@/services/FileService'
 
 // 定义上传类型

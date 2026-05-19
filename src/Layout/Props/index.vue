@@ -8,8 +8,16 @@ const { selections } = useSelection()
 </script>
 
 <template>
-  <FileProps v-if="selections.mode === SelectionMode.File" />
-  <ElementsProps v-else-if="selections.mode === SelectionMode.Pen" />
+  <div class="props-shell">
+    <FileProps v-if="selections.mode === SelectionMode.File" />
+    <ElementsProps v-else-if="selections.mode === SelectionMode.Pen" />
+  </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.props-shell {
+  height: 100%;
+  background: #fff;
+  overflow: hidden;
+}
+</style>
