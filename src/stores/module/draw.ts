@@ -6,8 +6,8 @@ import { getUrlParams } from '@/utils'
 import store from '@/stores'
 import { VarService } from '@/services/VarService.ts'
 import type { Pen } from '@meta2d/core'
-import { type DataForm, ValueTypeEnum } from '@/components/ElementsProps/model'
 import type { Payload } from '@/model'
+import { type DataForm, ValueTypeEnum } from '@/model/drawData.ts'
 
 export const useDrawStore = defineStore('draw', () => {
   const draw = ref<ProjectMonitorDraw>({})

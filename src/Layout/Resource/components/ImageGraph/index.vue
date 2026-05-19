@@ -3,7 +3,7 @@ import { ref, watch, onMounted, reactive } from 'vue'
 import type { BasicGraph } from '@/model/res/basic'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import { parseSvg } from '@meta2d/svg'
-import { deepClone, LockState } from '@meta2d/core'
+import { CanvasLayer, deepClone, LockState } from '@meta2d/core'
 import FastUpload from '@/components/FastUpload/index.vue'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { DefValues } from '@/Layout/Resource/components'
@@ -26,6 +26,7 @@ onMounted(() => {
           color: '#00000000',
           background: '#00000000',
           imageRatio: true,
+          canvasLayer: CanvasLayer.CanvasMain,
         },
       })
     })

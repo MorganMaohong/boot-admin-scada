@@ -1,5 +1,10 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
-import { getAuthToken } from '@/utils/auth'
+import { clearAuthToken, getAuthToken } from '@/utils/auth'
+import {
+  beginRequestLoading,
+  endRequestLoading,
+  resetRequestLoading,
+} from '@/stores/requestLoading'
 // 创建 axios 实例
 const service = axios.create({
   baseURL: import.meta.env.VITE_BASE_API,
@@ -10,15 +15,19 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    beginRequestLoading()
+    const headers = config.headers as any
+    headers['x-client-system'] = 'scada'
     const token = getAuthToken()
     if (token) {
-      const headers = config.headers as any
+      headers['x-token'] = token
       headers.satoken = token
     }
 
     return config
   },
   (error: any) => {
+    endRequestLoading()
     return Promise.reject(error)
   },
 )
@@ -26,7 +35,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log(response, 'response')
+    endRequestLoading()
     // 假设 response.data 是 Blob 类型，表示文件下载
     if (response.config.responseType === 'blob') {
       // 获取 Content-Disposition 响应头
@@ -64,6 +73,7 @@ service.interceptors.response.use(
           }
           return response.data
         case 501:
+          clearAuthToken()
           window.$message.error('登陆失效，请重新登陆')
           break
       }
@@ -74,18 +84,21 @@ service.interceptors.response.use(
     return response.data
   },
   (error: any) => {
-    console.log('请求出错了')
-    console.log(error)
+    endRequestLoading()
     if (error.response?.data) {
       const { code, msg } = error.response.data
       // token 过期，跳转登录页
       if (code === 501) {
+        clearAuthToken()
         window.$message.error('登陆失效，请重新登陆')
       } else {
         window.$message.error(msg || '系统出错')
       }
     } else {
       window.$message.error('服务器异常，请稍后再试')
+    }
+    if (!error.response) {
+      resetRequestLoading()
     }
     return Promise.reject(error.message)
   },

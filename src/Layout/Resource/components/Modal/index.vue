@@ -7,6 +7,7 @@ import emitter from '@/utils/eventBus.ts'
 import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
+import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
 const layerStore = useLayerStore()
 const drawStore = useDrawStore()
 const data = ref<ProjectMonitorVo>({
@@ -43,19 +44,23 @@ function select() {
 function changeDraw(v: string) {
   // 如果传入的 UID 与当前的不同，才更新并通知
   if (drawStore.draw.uid !== v) {
+    showRequestOverlay('正在切换图纸，请稍候...')
     // 切换时更新保存上一个数据
     // drawStore.draw.data = JSON.stringify(meta2d.data())
     // MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid).then(() => {
-    MonitorDrawService.selectByUid(v).then((res) => {
-      drawStore.draw = res
-      meta2d.open(JSON.parse(drawStore.draw.data))
-      meta2d.fitView(true, 0)
-      meta2d.render()
-      emitter.emit('reloadDraw')
-      // })
-    }).finally(() => {
-      layerStore.getDefaultLayer();
-    })
+    MonitorDrawService.selectByUid(v)
+      .then((res) => {
+        drawStore.draw = res
+        meta2d.open(JSON.parse(drawStore.draw.data))
+        meta2d.fitView(true, 0)
+        meta2d.render()
+        emitter.emit('reloadDraw')
+        // })
+      })
+      .finally(() => {
+        layerStore.getDefaultLayer()
+        hideRequestOverlay()
+      })
   }
 }
 </script>

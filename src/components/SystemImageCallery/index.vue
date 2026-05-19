@@ -12,7 +12,7 @@ import type {
   SystemMonitorImageVo,
 } from '@/model/image'
 import FastUpload from '@/components/FastUpload/index.vue'
-import { deepClone, LockState } from '@meta2d/core'
+import { CanvasLayer, deepClone, LockState } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
 
 const layerStore = useLayerStore()
@@ -249,7 +249,8 @@ async function insertImage(flag: boolean) {
     color: '#00000000',
     background: '#00000000',
     imageRatio: true,
-  }
+    canvasLayer: CanvasLayer.CanvasMain,
+  } as any
 
   item.layerUid = layerStore.layer.uid
 
@@ -469,7 +470,9 @@ function removeImage() {
               <n-button type="info">上传图片</n-button>
             </FastUpload>
             <n-button type="error" v-if="currentImageValue" @click="removeImage">删除</n-button>
-            <n-button type="primary" v-if="currentImageValue" @click="insertImage(true)">插入</n-button>
+            <n-button type="primary" v-if="currentImageValue" @click="insertImage(true)"
+              >插入</n-button
+            >
           </div>
         </div>
       </div>

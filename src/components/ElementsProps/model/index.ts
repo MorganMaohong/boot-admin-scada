@@ -224,33 +224,30 @@ export enum PresetJsKeyEnums {
 
 function writeVarValueFn() {
   debugger
-  const queryString = window.location.search
-  const urlParams = new URLSearchParams(queryString)
-  const result: Record<string, string> = {}
-
-  for (const [key, value] of urlParams.entries()) {
-    result[key] = value
+  const normalizeToken = (token?: string | null) => {
+    if (!token) return ''
+    const value = token.trim()
+    return value && value !== 'undefined' && value !== 'null' ? value : ''
   }
-  const cookieToken = document.cookie
-    .split('; ')
-    .find((item) => item.startsWith('x-token='))
-    ?.split('=')[1]
   const accessToken =
-    result.accessToken ||
-    (cookieToken ? decodeURIComponent(cookieToken) : '') ||
-    localStorage.getItem('x-token') ||
-    sessionStorage.getItem('x-token') ||
-    ''
+    normalizeToken(localStorage.getItem('scada-x-token')) ||
+    normalizeToken(sessionStorage.getItem('scada-x-token'))
 
   console.log('pen:', pen)
   console.log('params:', params)
+  if (!accessToken) {
+    window.$message.error('登录凭证缺失，请重新进入组态系统')
+    return
+  }
   let value = params.value
   if (params.prop != 'custom') value = pen[params.prop]
   // fetch(`https://bohao.wang/api/comport/variable/write/${params.key}/${params.value}`, {
   fetch(`/api/comport/variable/write/${params.key}/${value}`, {
     method: 'POST',
     headers: {
+      'x-token': accessToken,
       satoken: accessToken,
+      'x-client-system': 'scada',
     },
   })
     .then((response) => response.json())
@@ -475,7 +472,7 @@ export const GlobalFnOptions: OptionVo[] = [
   { label: '写入变量值', value: GlobalFnEnums.writeVar },
   { label: '显示变量控制', value: GlobalFnEnums.controlVar },
   { label: '显示全屏', value: GlobalFnEnums.openFullScreen },
-  { label: '打开弹窗', value: GlobalFnEnums.openModal },
+  { label: '打开弹窗图纸', value: GlobalFnEnums.openModal },
 ]
 
 export const PenLockedOptions: OptionVo[] = [

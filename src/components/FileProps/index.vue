@@ -1,17 +1,23 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { deepClone, LockState, s16 } from '@meta2d/core'
 import { ColorPicker } from 'vue3-colorpicker'
 import emitter from '@/utils/eventBus.ts'
 import { SelectionMode, useSelection } from '@/services/selections.ts'
 import StructureTree from '@/components/StructureTree/index.vue'
 import { useDrawStore } from '@/stores/module/draw.ts'
+import {
+  cleanupMeta2dPens,
+  collectValidMeta2dPens,
+  getRuntimeMeta2dPen,
+  removeMeta2dPens,
+} from '@/utils/meta2dPens.ts'
 
 const { select, selections, selects } = useSelection()
 const drawStore = useDrawStore()
 
 // 图纸数据
-const pens = ref([])
+const pens = ref<any[]>([])
 const data = ref({
   grid: false,
   gridSize: 20,
@@ -32,20 +38,28 @@ const options = ref({
 const tabPaneRef = ref()
 const maxTabPaneHeightRef = ref(0)
 const key = ref('0')
+const activeTab = ref('file')
 onMounted(() => {
   emitter.on('draw', init)
   emitter.on('reloadDraw', init)
+  emitter.on('pensSorted', handleSorted)
   if (!selections.pen && selections.mode === SelectionMode.File && meta2d.store) init()
   if (tabPaneRef.value) maxTabPaneHeightRef.value = tabPaneRef.value.$el.clientHeight - 60
 })
 
 function init() {
   key.value = ''
+  activeTab.value = 'file'
+  cleanupMeta2dPens({ render: false })
   data.value = deepClone(meta2d.store.data)
-  pens.value = meta2d.data().pens || []
+  syncPens()
   options.value = deepClone(meta2d.store.options)
   options.value.ruleColor = data.value.ruleColor
   key.value = s16()
+}
+
+function syncPens() {
+  pens.value = [...collectValidMeta2dPens(meta2d.data().pens || []).pens]
 }
 
 function setRuleData() {
@@ -69,7 +83,7 @@ function setData(v: any, prop: string) {
 }
 
 function onCheckPen(pen) {
-  const currentPen = meta2d.findOne(pen?.id) || meta2d.store.pens?.[pen?.id]
+  const currentPen = getRuntimeMeta2dPen(pen)
   if (!currentPen) return
   meta2d.active([currentPen])
   meta2d.render()
@@ -81,44 +95,58 @@ function findPenIndex(pen: any) {
 }
 
 function changeVisible(pen) {
-  const index = findPenIndex(pen)
-  let v = false
-  if (pen.visible == false || pen.visible == true) {
-    v = !pen.visible
+  const currentPen = getRuntimeMeta2dPen(pen)
+  if (!currentPen) {
+    syncPens()
+    return
   }
-  meta2d.setValue({ id: pen.id, visible: v }, { render: true })
+  const index = findPenIndex(currentPen)
+  let v = false
+  if (currentPen.visible == false || currentPen.visible == true) {
+    v = !currentPen.visible
+  }
+  meta2d.setValue({ id: currentPen.id, visible: v }, { render: true })
   if (index >= 0) updatePenProp(index, 'visible', v)
 }
 
 function removePen(pen) {
-  const index = findPenIndex(pen)
-  meta2d.delete([pen], true)
-  meta2d.render()
+  const currentPen = getRuntimeMeta2dPen(pen)
+  if (!currentPen) {
+    syncPens()
+    return
+  }
+  const index = findPenIndex(currentPen)
+  removeMeta2dPens([currentPen], { render: true })
   if (index >= 0) {
     pens.value.splice(index, 1)
   }
+  emitter.emit('pensSorted')
 }
 
 function changeLocked(pen) {
-  const index = findPenIndex(pen)
-  if (!pen) return
-  if (pen.locked === LockState.None) {
-    pen.locked = LockState.DisableEdit
+  const currentPen = getRuntimeMeta2dPen(pen)
+  if (!currentPen) {
+    syncPens()
+    return
+  }
+  const index = findPenIndex(currentPen)
+  if (currentPen.locked === LockState.None) {
+    currentPen.locked = LockState.DisableEdit
     if (index >= 0) {
       pens.value[index]['locked'] = LockState.DisableEdit
       updatePenProp(index, 'locked', LockState.DisableEdit)
     }
-  } else if (pen.locked === LockState.DisableEdit) {
-    pen.locked = LockState.Disable
+  } else if (currentPen.locked === LockState.DisableEdit) {
+    currentPen.locked = LockState.Disable
     if (index >= 0) {
       pens.value[index]['locked'] = LockState.Disable
       updatePenProp(index, 'locked', LockState.Disable)
     }
-  } else if (pen.locked === LockState.Disable) {
-    pen.locked = LockState.None
+  } else if (currentPen.locked === LockState.Disable) {
+    currentPen.locked = LockState.None
     if (index >= 0) updatePenProp(index, 'locked', LockState.None)
   }
-  meta2d.setValue({ id: pen.id, locked: pen.locked }, { render: true })
+  meta2d.setValue({ id: currentPen.id, locked: currentPen.locked }, { render: true })
 }
 
 function updatePenProp(index: number, key: string, value: any) {
@@ -131,15 +159,20 @@ function updatePenProp(index: number, key: string, value: any) {
 function updateTabs(key: string) {
   switch (key) {
     case 'struct':
-      pens.value = meta2d.data().pens || []
-      console.log(pens.value)
+      syncPens()
       break
   }
 }
 
 function handleSorted() {
-  pens.value = [...(meta2d.data().pens || [])]
+  syncPens()
 }
+
+onUnmounted(() => {
+  emitter.off('draw', init)
+  emitter.off('reloadDraw', init)
+  emitter.off('pensSorted', handleSorted)
+})
 
 const getPens = computed(() => {
   if (pens.value) {
@@ -152,7 +185,7 @@ const getPens = computed(() => {
 
 <template>
   <div class="w-full h-full">
-    <n-tabs default-value="file" :key="key" @update:value="updateTabs">
+    <n-tabs v-model:value="activeTab" :key="key" @update:value="updateTabs">
       <n-tab-pane tab="图纸" name="file" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
           <n-form label-placement="left" label-width="auto" label-align="left">
@@ -209,7 +242,10 @@ const getPens = computed(() => {
         <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"></n-scrollbar>
       </n-tab-pane>
       <n-tab-pane tab="图层" name="struct" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+        <n-scrollbar
+          class="structure-tree-tab-scrollbar"
+          :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
+        >
           <StructureTree
             :draw-uid="drawStore.draw.uid"
             :pens="getPens"
@@ -233,5 +269,9 @@ const getPens = computed(() => {
 
 ::v-deep(.n-tabs-tab-pad) {
   width: 26px;
+}
+
+::v-deep(.structure-tree-tab-scrollbar .n-scrollbar-content) {
+  padding-right: 4px;
 }
 </style>

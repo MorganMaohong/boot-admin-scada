@@ -8,13 +8,17 @@ import emitter from '@/utils/eventBus.ts'
 import { LockState } from '@meta2d/core'
 import { mqttUtil } from '@/utils/mqttUtil.ts'
 import { useDrawStoreHook } from '@/stores/module/draw.ts'
+import { useDrawPopupStoreHook } from '@/stores/module/drawPopup.ts'
+import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
 
 const drawStore = useDrawStoreHook()
+const drawPopupStore = useDrawPopupStoreHook()
 
 export function openDraw(pen: any, params: any) {
   // drawStore.topics.forEach((topic) => {
   //   mqttUtil.doUnSubscribe(topic, 0)
   // })
+  showRequestOverlay('正在切换图纸，请稍候...')
   MonitorDrawService.form(getUrlParams().projectUid, params).then((res) => {
     const dj = JSON.parse(res.data)
     dj.rule = false
@@ -27,6 +31,8 @@ export function openDraw(pen: any, params: any) {
     meta2d.fitView(true, 0)
     meta2d.render()
     drawStore.selectVarCacheData()
+  }).finally(() => {
+    hideRequestOverlay()
   })
 }
 
@@ -102,12 +108,7 @@ export function openFullScreen(pen: any, params: any) {
 
 export function openModal(pen: any, params: any) {
   console.log('openModal', pen, params)
-drawStore.globalModal.show = false
-  const urlParams = getUrlParams()
-  MonitorDrawService.display(urlParams.projectUid, params).then((data) => {
-    drawStore.globalModal.draw = data.draw
-    drawStore.globalModal.show = true
-  })
+  drawPopupStore.open(params)
 }
 
 // 注册到 globalThis

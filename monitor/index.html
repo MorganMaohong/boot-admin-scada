@@ -5,12 +5,34 @@
   <link rel="icon" href="/monitor/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>组态编辑</title>
-  <script type="module" crossorigin src="/monitor/static/index-KfSMU9Lx.js"></script>
-  <link rel="stylesheet" crossorigin href="/monitor/static/index-D2eq0GLU.css">
+  <script>
+    const __monitorDisplayAssets = {"title":"组态编辑","styles":["/monitor/static/globals-BYrD7TnU.css","/monitor/static/index-DdhuI6iJ.css","/monitor/static/display-4YiRScT-.css"],"scripts":["/monitor/static/display-CI0pxR7M.js"]};
+    const __monitorEditorAssets = {"title":"组态编辑","styles":["/monitor/static/globals-BYrD7TnU.css","/monitor/static/editor-DAGzDm-S.css"],"scripts":["/monitor/static/editor-Samm_oxK.js"]};
+    const __monitorIsDisplayRoute = (() => {
+      const hash = window.location.hash || '';
+      const pathname = window.location.pathname || '';
+      return hash.startsWith('#/display') || pathname.endsWith('/display');
+    })();
+    const __monitorAssets = __monitorIsDisplayRoute ? __monitorDisplayAssets : __monitorEditorAssets;
+
+    for (const href of __monitorAssets.styles) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.crossOrigin = '';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+
+    for (const src of __monitorAssets.scripts) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.crossOrigin = '';
+      script.src = src;
+      document.head.appendChild(script);
+    }
+  </script>
 </head>
 <body>
 <div id="app"></div>
 </body>
 </html>
-<style>
-</style>

@@ -8,6 +8,7 @@ import { resetRef } from '@/utils'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { LockState, deepClone } from '@meta2d/core'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
+import { cleanupMeta2dPens, collectValidMeta2dPens, removeMeta2dPens } from '@/utils/meta2dPens.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -90,12 +91,13 @@ function changeDefaultLayer(layerUid: string) {
 }
 
 function save() {
+  cleanupMeta2dPens({ render: false })
   drawStore.draw.data = JSON.stringify(meta2d.data())
   MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid)
 }
 
 function getLayerPens(layerUid: string) {
-  const pens = meta2d.data().pens
+  const pens = collectValidMeta2dPens(meta2d.data().pens || []).pens
   console.log(pens)
   // 预先建立索引
   const layerPensMap = new Map()
@@ -149,7 +151,7 @@ function deleteLayer() {
     .then((res) => {
       select()
       const layerPens = getLayerPens(currentLayer.value.uid)
-      meta2d.delete(layerPens)
+      removeMeta2dPens(layerPens, { render: true })
       save()
     })
     .finally(() => {

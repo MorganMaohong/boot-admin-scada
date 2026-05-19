@@ -46,7 +46,7 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Pen } from '@meta2d/core'
-import { Meta2d, register, registerAnchors, registerCanvasDraw, LockState } from '@meta2d/core'
+import { deepClone, Meta2d, register, registerAnchors, registerCanvasDraw, LockState } from '@meta2d/core'
 import { flowPens, flowAnchors } from '@meta2d/flow-diagram'
 import { activityDiagram, activityDiagramByCtx } from '@meta2d/activity-diagram'
 import { classPens } from '@meta2d/class-diagram'
@@ -63,6 +63,13 @@ import { ProjectService } from '@/services/ProjectService.ts'
 import { getUrlParams } from '@/utils'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { useAppStore } from '@/stores/app'
+import {
+  cleanupMeta2dPens,
+  collectValidMeta2dPens,
+  installMeta2dSafetyGuards,
+  removeMeta2dPens,
+  reorderMeta2dPens,
+} from '@/utils/meta2dPens.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -74,13 +81,13 @@ const menuPosition = ref({
   y: 0,
 })
 const resizeTimer = ref(0)
-const cachedLocked = ref<number | null>(null)
+const cachedLocked = ref<LockState | null | undefined>(null)
+const pendingPasteSourcePens = ref<any[]>([])
 
 function resize() {
   if (resizeTimer.value) clearTimeout(resizeTimer.value)
 
   resizeTimer.value = window.setTimeout(() => {
-    console.log('移动完成')
     // window.$message.error('移动完成!!')
     meta2d.fitView(true, 5)
   }, 200)
@@ -116,6 +123,7 @@ watch(
 function init() {
   // 创建实例
   new Meta2d('meta2d')
+  installMeta2dSafetyGuards()
   // 按需注册图形库
   // 以下为自带基础图形库
   register(flowPens())
@@ -143,6 +151,7 @@ function init() {
   let data = JSON.parse(draw.data)
   // data.bkImage = ''
   meta2d.open(data)
+  cleanupMeta2dPens({ render: false })
 
   // 参数设置
   meta2d.store.data.disableScale = false
@@ -165,34 +174,57 @@ function init() {
   // 点击画布
   meta2d.on('click', handleCanvasClick)
 
-  console.log('---------------------')
-  console.log(meta2d.data())
-  console.log('---------------------')
   emitter.emit('meta2d-ready')
-  meta2d.on('paste', processPaste)
+  meta2d.on('paste', processPaste as any)
 }
 
-function processPaste(pens: pen[]) {
-  debugger
-  console.log('新的pen')
-  console.log('---------------------')
-  console.log('---------------------')
-  for (const pen of pens) {
-    if (!pen) continue
-    if (!pen.events) continue
-    if (!pen.key) continue
-    for (const e of pen.events) {
-      if (
-        e.action === EventActionEnums.StartAnimate ||
-        e.action === EventActionEnums.PauseAnimate ||
-        e.action === EventActionEnums.StopAnimate ||
-        e.action === EventActionEnums.SetProps
-      ) {
-        e.params = pen.id
-      }
-    }
+function processPaste(pens: Pen[]) {
+  remapPastedPenRefs(pens as any[])
+  meta2d.setValue(pens as any, { render: true })
+  emitter.emit('pensSorted')
+}
+
+function remapPastedPenRefs(pastedPens: any[]) {
+  const sourcePens = pendingPasteSourcePens.value || []
+  pendingPasteSourcePens.value = []
+  if (!Array.isArray(sourcePens) || sourcePens.length === 0) return
+
+  const idMap = new Map<string, string>()
+  const pairCount = Math.min(sourcePens.length, pastedPens.length)
+  for (let index = 0; index < pairCount; index += 1) {
+    const sourceId = getPenId(sourcePens[index])
+    const pastedId = getPenId(pastedPens[index])
+    if (sourceId && pastedId) idMap.set(sourceId, pastedId)
   }
-  meta2d.setValue(pens, { render: true })
+
+  if (idMap.size === 0) return
+
+  pastedPens.forEach((pen: any) => {
+    if (!Array.isArray(pen?.events)) return
+    pen.events = pen.events.map((event: any) => remapPastedEvent(event, idMap))
+  })
+}
+
+function remapPastedEvent(event: any, idMap: Map<string, string>) {
+  if (!event || typeof event !== 'object') return event
+
+  const nextEvent = { ...event }
+  if (nextEvent.action === EventActionEnums.SetProps) {
+    nextEvent.params = remapMaybePenId(nextEvent.params, idMap)
+  }
+  if (
+    nextEvent.action === EventActionEnums.StartAnimate ||
+    nextEvent.action === EventActionEnums.PauseAnimate ||
+    nextEvent.action === EventActionEnums.StopAnimate
+  ) {
+    nextEvent.value = remapMaybePenId(nextEvent.value, idMap)
+  }
+  return nextEvent
+}
+
+function remapMaybePenId(value: any, idMap: Map<string, string>) {
+  if (typeof value !== 'string') return value
+  return idMap.get(value) || value
 }
 
 const active = (pens?: Pen[]) => {
@@ -206,8 +238,22 @@ const active = (pens?: Pen[]) => {
     return
   }
   if (drawStore.isPenDrawLine || drawStore.isPencilDrawLine) return
-  select(pens)
-  selects(pens)
+  const activePens = getActivePens(pens)
+  select(activePens)
+  selects(activePens)
+}
+
+function getActivePens(pens?: Pen[]) {
+  const activePens = Array.isArray(meta2d?.store?.active) ? meta2d.store.active : []
+  const sourcePens = (activePens.length > 0 ? activePens : pens || []) as Pen[]
+  const uniquePens = new Map<string, Pen>()
+
+  sourcePens.forEach((pen) => {
+    if (!pen?.id) return
+    uniquePens.set(pen.id, pen)
+  })
+
+  return [...uniquePens.values()]
 }
 
 const inactive = () => {
@@ -216,7 +262,7 @@ const inactive = () => {
   select()
 }
 
-const showContextMenu = (e) => {
+const showContextMenu = (e: any) => {
   if (appStore.targetPicker.active) return
   if (!selections.pens) return
   showMenu.value = true
@@ -232,7 +278,97 @@ function handleCanvasClick(pen?: Pen) {
   appStore.completeTargetPick(targetPen.id)
 }
 
+function getPenLayerUid(pen?: Pen) {
+  return (pen as any)?.layerUid || '__unassigned__'
+}
+
+function getPenId(pen: any) {
+  return pen?.id ? String(pen.id) : ''
+}
+
+function buildLayerGroups(pens: any[]) {
+  const layerOrder: string[] = []
+  const layerMap = new Map<string, any[]>()
+
+  pens.forEach((pen) => {
+    const layerUid = getPenLayerUid(pen)
+    if (!layerMap.has(layerUid)) {
+      layerMap.set(layerUid, [])
+      layerOrder.push(layerUid)
+    }
+    layerMap.get(layerUid)?.push(pen)
+  })
+
+  return { layerOrder, layerMap }
+}
+
+function moveSelectedToLayerTop(layerPens: Pen[], selectedIds: Set<string>) {
+  const selectedPens = layerPens.filter((pen) => selectedIds.has(getPenId(pen)))
+  if (selectedPens.length === 0) return layerPens
+  return [...layerPens.filter((pen) => !selectedIds.has(getPenId(pen))), ...selectedPens]
+}
+
+function moveSelectedToLayerBottom(layerPens: Pen[], selectedIds: Set<string>) {
+  const selectedPens = layerPens.filter((pen) => selectedIds.has(getPenId(pen)))
+  if (selectedPens.length === 0) return layerPens
+  return [...selectedPens, ...layerPens.filter((pen) => !selectedIds.has(getPenId(pen)))]
+}
+
+function moveSelectedOneStepUp(layerPens: Pen[], selectedIds: Set<string>) {
+  const nextPens = [...layerPens]
+  for (let index = nextPens.length - 2; index >= 0; index -= 1) {
+    const currentPen = nextPens[index]
+    const nextPen = nextPens[index + 1]
+    if (!selectedIds.has(getPenId(currentPen)) || selectedIds.has(getPenId(nextPen))) continue
+    nextPens[index] = nextPen
+    nextPens[index + 1] = currentPen
+  }
+  return nextPens
+}
+
+function moveSelectedOneStepDown(layerPens: Pen[], selectedIds: Set<string>) {
+  const nextPens = [...layerPens]
+  for (let index = 1; index < nextPens.length; index += 1) {
+    const currentPen = nextPens[index]
+    const prevPen = nextPens[index - 1]
+    if (!selectedIds.has(getPenId(currentPen)) || selectedIds.has(getPenId(prevPen))) continue
+    nextPens[index] = prevPen
+    nextPens[index - 1] = currentPen
+  }
+  return nextPens
+}
+
+function reorderSelectedInOwnLayers(
+  reorderLayerPens: (layerPens: Pen[], selectedIds: Set<string>) => Pen[],
+) {
+  const selectedPens = (selections.pens || []) as any[]
+  const selectedIds = new Set(selectedPens.map(getPenId).filter(Boolean))
+  if (selectedIds.size === 0) return
+
+  const allPens = collectValidMeta2dPens(meta2d.data().pens || []).pens as any[]
+  const { layerOrder, layerMap } = buildLayerGroups(allPens)
+
+  layerOrder.forEach((layerUid) => {
+    const layerPens = layerMap.get(layerUid) || []
+    layerMap.set(layerUid, reorderLayerPens(layerPens, selectedIds))
+  })
+
+  const nextPens = layerOrder.flatMap((layerUid) => layerMap.get(layerUid) || [])
+  reorderMeta2dPens(nextPens)
+  emitter.emit('pensSorted')
+  selects(selectedPens)
+  select(selectedPens)
+}
+
+function syncPensAfterChange() {
+  cleanupMeta2dPens({ render: false })
+  emitter.emit('pensSorted')
+}
+
 function handleKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+    pendingPasteSourcePens.value = deepClone(meta2d.store.clipboard?.pens || [])
+  }
   if (e.key !== 'Escape') return
   if (!appStore.targetPicker.active) return
   appStore.cancelTargetPick()
@@ -241,95 +377,98 @@ function handleKeydown(e: KeyboardEvent) {
 
 function top() {
   if (!selections.pens) return
-  meta2d.top(selections.pens)
-  meta2d.render()
+  reorderSelectedInOwnLayers(moveSelectedToLayerTop)
   showMenu.value = false
 }
 
 function bottom() {
   if (!selections.pens) return
-  meta2d.bottom(selections.pens)
-  meta2d.render()
+  reorderSelectedInOwnLayers(moveSelectedToLayerBottom)
   showMenu.value = false
 }
 
 function up() {
   if (!selections.pens) return
-  meta2d.up(selections.pens)
-  meta2d.render()
+  reorderSelectedInOwnLayers(moveSelectedOneStepUp)
   showMenu.value = false
 }
 
 function down() {
   if (!selections.pens) return
-  meta2d.down(selections.pens)
-  meta2d.render()
+  reorderSelectedInOwnLayers(moveSelectedOneStepDown)
   showMenu.value = false
 }
 
 function del() {
   if (!selections.pens) return
-  meta2d.delete(selections.pens)
-  meta2d.render()
+  removeMeta2dPens(selections.pens as any, { render: true })
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function cut() {
   if (!selections.pens) return
-  meta2d.cut(selections.pens)
+  meta2d.cut(selections.pens as any)
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function copy() {
   if (!selections.pens) return
-  meta2d.copy(selections.pens)
+  meta2d.copy(selections.pens as any)
   meta2d.render()
   showMenu.value = false
 }
 
 function paste() {
+  pendingPasteSourcePens.value = deepClone(meta2d.store.clipboard?.pens || [])
   meta2d.paste()
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function undo() {
   meta2d.undo()
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function combine() {
   if (!selections.pens) return
-  meta2d.combine(selections.pens)
+  meta2d.combine(selections.pens as any)
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function combineState() {
   if (!selections.pens) return
-  meta2d.combine(selections.pens, 0)
+  meta2d.combine(selections.pens as any, 0)
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function unCombine() {
   if (!selections.pen) return
-  meta2d.uncombine(selections.pen)
+  meta2d.uncombine(selections.pen as any)
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 function unCombineState() {
   if (!selections.pen) return
-  meta2d.uncombine(selections.pen)
+  meta2d.uncombine(selections.pen as any)
   meta2d.render()
+  syncPensAfterChange()
   showMenu.value = false
 }
 
 const hideContextMenu = () => {
-  console.log('hideContextMenu')
   showMenu.value = false
 }
 

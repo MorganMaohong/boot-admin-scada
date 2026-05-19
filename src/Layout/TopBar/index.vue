@@ -13,11 +13,13 @@ import { BASE_DRAW, type OptionVo } from '@/model'
 import type { ProjectMonitorDrawForm, ProjectMonitorVo } from '@/model/draw'
 import type { ProjectMonitorCategoryForm } from '@/model/category'
 import { MonitorCategoryService } from '@/services/MonitorCategoryService.ts'
-import { LockState, Meta2dStore, Pen, Point, s16 } from '@meta2d/core'
+import { LockState, s16 } from '@meta2d/core'
+import type { Meta2dStore, Pen, Point } from '@meta2d/core'
 import { NButton } from 'naive-ui'
 import SvgIcon from '@/components/SvgIcon/index.vue'
 import SystemImageCallery from '@/components/SystemImageCallery/index.vue'
 import { getAuthToken } from '@/utils/auth'
+import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
 
 const isMagnifier = ref<boolean>(false)
 const currentLineType = ref<string>('curve')
@@ -160,6 +162,7 @@ function onView() {
   meta2d.stopAnimate()
 
   setTimeout(() => {
+    cleanupMeta2dPens({ render: false })
     const data: any = meta2d.data()
     drawStore.draw.data = JSON.stringify(data)
 
@@ -198,6 +201,7 @@ function showMagnifier() {
 }
 
 function save() {
+  cleanupMeta2dPens({ render: false })
   drawStore.draw.data = JSON.stringify(meta2d.data())
   MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid)
 }

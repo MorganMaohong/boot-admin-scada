@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, reactive } from 'vue'
+import { defineAsyncComponent, ref } from 'vue'
 import type { EventForm } from '@/components/ElementsProps/model'
-import MonacoEditor from '@/components/MonacoEditor/index.vue'
 
 const props = defineProps<{
   eventData: EventForm
 }>()
 const showUpdateJs = ref<boolean>(false)
+const MonacoEditor = defineAsyncComponent(() => import('@/components/MonacoEditor/index.vue'))
 
 function editJsCode() {
   showUpdateJs.value = true
@@ -19,11 +19,11 @@ function editJsCode() {
   </n-form-item>
   <n-modal v-model:show="showUpdateJs" style="width: 1200px; height: 600px" preset="card">
     <MonacoEditor
+      v-if="showUpdateJs"
       :code="eventData.value"
       ref="monacoEditorRef"
       @submit="
         (v: any) => {
-          console.log(v)
           eventData.value = String(v)
           showUpdateJs = false
         }

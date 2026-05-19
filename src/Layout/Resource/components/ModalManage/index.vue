@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, watch, onMounted, reactive } from 'vue'
 import { NButton } from 'naive-ui'
-import type { ProjectMonitorDrawForm, ProjectMonitorVo } from '@/model/draw'
+import type { ProjectMonitorDraw, ProjectMonitorDrawForm, ProjectMonitorVo } from '@/model/draw'
 import { getUrlParams } from '@/utils'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { s16 } from '@meta2d/core'
@@ -61,6 +61,14 @@ function selectDraw() {
       drawData.value = res
       tableKey.value = s16()
     })
+    .catch(() => {
+      drawData.value = {
+        categoryVoList: [],
+        defCategory: {},
+        defDraw: {},
+      }
+      tableKey.value = s16()
+    })
     .finally(() => {
       loading.value = false
     })
@@ -76,10 +84,46 @@ function showUpdateCategoryModal(uid: string) {
 
 function showUpdateDrawModal(uid: string) {
   const params = getUrlParams()
-  MonitorDrawService.formModal(params.projectUid, uid).then((res) => {
-    drawFormData.value = res
-  })
+  drawFormData.value = createDrawForm(uid)
   showUpdateDraw.value = true
+}
+
+function createDrawForm(uid = ''): ProjectMonitorDrawForm {
+  const params = getUrlParams()
+  const categoryOptions = getCategoryOptions()
+  const draw = uid ? findDraw(uid) : null
+  const defaultCategoryUid = categoryOptions[0]?.value || ''
+
+  return {
+    ...(draw || {}),
+    uid,
+    projectUid: params.projectUid,
+    categoryUid: draw?.categoryUid || defaultCategoryUid,
+    name: draw?.name || '',
+    title: draw?.title || '',
+    width: draw?.width || 800,
+    height: draw?.height || 600,
+    visible: draw?.visible ?? true,
+    def: draw?.def ?? false,
+    data: draw?.data || '',
+    jsonData: draw?.data || JSON.stringify(BASE_DRAW),
+    categoryOptions,
+  } as ProjectMonitorDrawForm
+}
+
+function getCategoryOptions() {
+  return (drawData.value.categoryVoList || []).map((item) => ({
+    label: item.name,
+    value: item.uid,
+  }))
+}
+
+function findDraw(uid: string): ProjectMonitorDraw | null {
+  for (const category of drawData.value.categoryVoList || []) {
+    const draw = category.drawList?.find((item) => item.uid === uid)
+    if (draw) return draw
+  }
+  return null
 }
 
 function showDeleteCategoryModal(uid: string) {
@@ -95,8 +139,9 @@ function showDeleteDrawModal(uid: string) {
 function confirmUpdateDraw() {
   formRef.value.validate((valid) => {
     if (valid) return
-    const data = { ...BASE_DRAW }
-    drawFormData.value.jsonData = JSON.stringify(data)
+    if (!drawFormData.value.jsonData) {
+      drawFormData.value.jsonData = JSON.stringify(BASE_DRAW)
+    }
     MonitorDrawService.addOrUpdateModal(drawFormData.value).then(() => {
       showUpdateDraw.value = false
       tableKey.value = s16()
@@ -141,7 +186,7 @@ onMounted(() => {
 <template>
   <div class="flex gap-2 mb-2">
     <n-button @click="showUpdateCategoryModal('')" type="primary" size="small">新增分组</n-button>
-    <n-button @click="showUpdateDrawModal('')" type="primary" size="small">新增图纸</n-button>
+    <n-button @click="showUpdateDrawModal('')" type="primary" size="small">新增弹窗图纸</n-button>
   </div>
   <vxe-table
     :loading="loading"

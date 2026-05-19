@@ -76,12 +76,11 @@ export const mqttUtil = {
         // this.client.value.on("message", this.handleMessage);
       }
     } catch (error) {
-      console.log("mqtt.connect error:", error)
+      console.error("mqtt.connect error:", error)
     }
   },
   // 连接成功后的处理逻辑
   handleConnect() {
-    console.log("Connection successful")
     this.retryTimes = ref(0) // 初始化 retryTimes
     this.isReconnecting = ref(false) // 重置重连标志
   },
@@ -89,40 +88,32 @@ export const mqttUtil = {
   // 重连后的处理逻辑
   handleReConnect() {
     if (this.retryTimes.value >= 5) {
-      console.log("Max reconnect attempts reached.")
       this.isReconnecting.value = false // 防止重复重连
       return
     }
 
     this.retryTimes.value += 1
-    console.log(`Reconnecting... Attempt ${this.retryTimes.value}`)
   },
 
   // 连接错误处理
   handleError(error: Error) {
-    console.log("Connection error:", error)
+    console.error("Connection error:", error)
   },
 
   // 处理接收到的消息
   handleMessage(topic: string, message: mqtt.MqttMessage) {
-    console.log(`Received message on topic: ${topic}`)
-    console.log(`Message: ${message.toString()}`)
   },
 
   // 断开连接的处理逻辑
   handleClose() {
-    console.log("MQTT client connection closed")
     // 如果连接断开并且没有进行重连，则触发重连
-    console.log("Attempting to reconnect...")
     this.reconnect()
   },
 
   // 离线事件的处理
   handleOffline() {
-    console.log("MQTT client is offline")
     // 离线时尝试重连
     if (!this.isReconnecting.value) {
-      console.log("Attempting to reconnect...")
       this.isReconnecting.value = true
       this.reconnect()
     }
@@ -132,11 +123,9 @@ export const mqttUtil = {
   reconnect() {
     // 检查客户端是否连接，避免重复连接
     if (this.client.value || this.client.value.connected) {
-      console.log("Client is already connected or in reconnecting state.")
       return
     }
 
-    console.log("Attempting to reconnect...")
     this.createConnection()
   },
 
@@ -145,10 +134,9 @@ export const mqttUtil = {
     if (this.client.value) {
       this.client.value.subscribe(topic, { qos }, (error: Error, granted: mqtt.ISubscriptionGrant[]) => {
         if (error) {
-          console.log("Subscribe error:", error)
+          console.error("Subscribe error:", error)
           return
         }
-        console.log("Subscribed successfully:", granted)
       })
     }
   },
@@ -158,10 +146,9 @@ export const mqttUtil = {
     if (this.client.value) {
       this.client.value.unsubscribe(topic, (error) => {
         if (error) {
-          console.log("Unsubscribe error:", error)
+          console.error("Unsubscribe error:", error)
           return
         }
-        console.log(`Unsubscribed from topic: ${topic}`)
       })
     }
   },
@@ -171,10 +158,9 @@ export const mqttUtil = {
     if (this.client.value) {
       this.client.value.publish(topic, payload, { qos }, (error) => {
         if (error) {
-          console.log("Publish error:", error)
+          console.error("Publish error:", error)
           return
         }
-        console.log(`Published message: ${payload}`)
       })
     }
   },
@@ -185,10 +171,9 @@ export const mqttUtil = {
       try {
         this.client.value.end(false, () => {
           this.initData()
-          console.log("Disconnected successfully")
         })
       } catch (error) {
-        console.log("Disconnect error:", error)
+        console.error("Disconnect error:", error)
       }
     }
   }

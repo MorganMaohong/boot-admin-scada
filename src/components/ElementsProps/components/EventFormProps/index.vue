@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, reactive } from 'vue'
+import { ref, watch } from 'vue'
 import {
   ComparisonOptions,
   EventActionEnums,
@@ -22,7 +22,6 @@ import {
 import type { FormInst } from 'naive-ui'
 import { AddAlt } from '@vicons/carbon'
 import { RemoveCircleOutline } from '@vicons/ionicons5'
-import MonacoEditor from '@/components/MonacoEditor/index.vue'
 import GatewayVarSelect from '@/components/ElementsProps/components/GatewayVarSelect/index.vue'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { getUrlParams } from '@/utils'
@@ -62,22 +61,34 @@ const eventFormData = ref<EventForm>({})
 const setPropsArray = ref<SetPropsItem[]>([])
 const penOptions = ref<OptionVo[]>([])
 const pen = ref({})
-onMounted(() => {
-  eventFormData.value = props.value
+
+watch(
+  () => props.value,
+  () => {
+    syncFormState()
+  },
+  { immediate: true },
+)
+
+function syncFormState() {
+  eventFormData.value = props.value || ({} as EventForm)
+  pen.value = selections.pen || {}
   normalizeWhereKey()
   loadValue()
-  pen.value = selections.pen
-  if (
-    props.value.action === EventActionEnums.StartAnimate ||
-    props.value.action === EventActionEnums.PauseAnimate ||
-    props.value.action === EventActionEnums.StopAnimate ||
-    props.value.action === EventActionEnums.SetProps
-  ) {
-    if (pen.value.key) {
-      eventFormData.value.params = pen.value.id
-    }
-  }
-})
+}
+
+function getCurrentPenId() {
+  return selections.pen?.id || ''
+}
+
+function shouldUsePenOptions(action?: number) {
+  return (
+    action === EventActionEnums.SetProps ||
+    action === EventActionEnums.StartAnimate ||
+    action === EventActionEnums.PauseAnimate ||
+    action === EventActionEnums.StopAnimate
+  )
+}
 
 function normalizeWhereKey() {
   if (eventFormData.value?.where?.key === 'realtimeValue') {
@@ -86,25 +97,32 @@ function normalizeWhereKey() {
 }
 
 function loadValue() {
+  if (shouldUsePenOptions(eventFormData.value.action)) {
+    getPenOptions()
+  } else {
+    penOptions.value = []
+  }
+
   switch (eventFormData.value.action) {
     case EventActionEnums.SetProps:
       setPropsArray.value = Object.entries(eventFormData.value.value || {}).map(([key, value]) => ({
         key,
         value,
       }))
-      getPenOptions()
-      if (!eventFormData.value.id && !eventFormData.value.params) {
-        eventFormData.value.params = selections.pen?.id
+      if (!eventFormData.value.params) {
+        eventFormData.value.params = getCurrentPenId()
       }
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
     case EventActionEnums.StopAnimate:
-      getPenOptions()
-      if (!eventFormData.value.id && !eventFormData.value.value) {
-        eventFormData.value.value = selections.pen?.id
+      if (!eventFormData.value.value) {
+        eventFormData.value.value = getCurrentPenId()
       }
-
+      setPropsArray.value = []
+      break
+    default:
+      setPropsArray.value = []
       break
   }
 }
@@ -121,18 +139,23 @@ function setValue() {
         },
         {} as Record<string, any>,
       )
-      if (!eventFormData.value.id) eventFormData.value.params = selections.pen.id
+      if (!eventFormData.value.params) {
+        eventFormData.value.params = getCurrentPenId()
+      }
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
     case EventActionEnums.StopAnimate:
-      if (!eventFormData.value.value) eventFormData.value.value = selections.pen.id
+      if (!eventFormData.value.value) {
+        eventFormData.value.value = getCurrentPenId()
+      }
       break
   }
 }
 
 function getPenOptions() {
-  Object.keys(meta2d.store.pens).forEach((key) => {
+  penOptions.value = []
+  Object.keys(meta2d.store.pens || {}).forEach((key) => {
     const p = meta2d.store.pens[key]
     if (p)
       penOptions.value.push({
@@ -153,7 +176,7 @@ function updateSelectActionValue(v: number) {
       eventFormData.value.params = null
       eventFormData.value.value = null
       getPenOptions()
-      eventFormData.value.params = selections.pen.id
+      eventFormData.value.params = getCurrentPenId()
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
@@ -161,7 +184,7 @@ function updateSelectActionValue(v: number) {
       eventFormData.value.params = null
       eventFormData.value.value = null
       getPenOptions()
-      eventFormData.value.value = selections.pen.id
+      eventFormData.value.value = getCurrentPenId()
       break
     case EventActionEnums.JS:
       break

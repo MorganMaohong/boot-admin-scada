@@ -22,10 +22,12 @@ export const useSelection = () => {
     if (!pens) {
       selections.mode = SelectionMode.File
       selections.pen = undefined
+      selections.pens = undefined
     } else {
       if (pens.length === 0) {
         selections.mode = SelectionMode.File
         selections.pen = undefined
+        selections.pens = undefined
         return
       }
       selections.mode = SelectionMode.Pen
@@ -34,8 +36,10 @@ export const useSelection = () => {
   }
 
   const selects = (pens?: Pen[]) => {
-    // debugger
-    if (!pens || pens.length === 0) return
+    if (!pens || pens.length === 0) {
+      selections.pens = undefined
+      return
+    }
     selections.pens = pens
   }
   return {
