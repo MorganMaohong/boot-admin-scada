@@ -1,0 +1,3949 @@
+{
+  "x": 405.53125,
+  "y": 469.3500000000001,
+  "ex": 497.38237868789565,
+  "ey": 561.2011286878958,
+  "id": "a6a615f",
+  "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+  "name": "square",
+  "datas": [
+    {
+      "id": "329e919b",
+      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+      "name": "默认值同步",
+      "value": "",
+      "autoSync": true,
+      "condData": [
+        {
+          "max": 0,
+          "min": 0,
+          "cond": false,
+          "prop": "value",
+          "valueType": "varValue"
+        }
+      ]
+    }
+  ],
+  "flipX": false,
+  "flipY": false,
+  "input": false,
+  "width": 91.85112868789567,
+  "center": {
+    "x": 451.4568143439478,
+    "y": 515.275564343948
+  },
+  "events": [
+    {
+      "id": "169fcec2",
+      "name": "click",
+      "title": "",
+      "value": {
+        "background": "rgb(216, 27, 67)"
+      },
+      "where": {
+        "key": "value",
+        "type": "comparison",
+        "value": "0",
+        "comparison": "=="
+      },
+      "action": 1,
+      "params": "a6a615f",
+      "trigger": "comparison",
+      "isPresetJs": true,
+      "presetJsKey": "writeVarValue"
+    },
+    {
+      "id": "0b4aa7d",
+      "name": "click",
+      "title": "",
+      "value": {
+        "background": "rgb(31, 135, 232)"
+      },
+      "where": {
+        "key": "value",
+        "type": "comparison",
+        "value": "1",
+        "comparison": "=="
+      },
+      "action": 1,
+      "params": "a6a615f",
+      "trigger": "comparison",
+      "isPresetJs": true,
+      "presetJsKey": "writeVarValue"
+    }
+  ],
+  "height": 91.85112868789567,
+  "locked": 0,
+  "anchors": [
+    {
+      "x": 0.5,
+      "y": 0,
+      "id": "0",
+      "penId": "a6a615f"
+    },
+    {
+      "x": 1,
+      "y": 0.5,
+      "id": "1",
+      "penId": "a6a615f"
+    },
+    {
+      "x": 0.5,
+      "y": 1,
+      "id": "2",
+      "penId": "a6a615f"
+    },
+    {
+      "x": 0,
+      "y": 0.5,
+      "id": "3",
+      "penId": "a6a615f"
+    }
+  ],
+  "visible": true,
+  "children": [],
+  "fontSize": 12,
+  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+  "nickname": "000",
+  "progress": 0,
+  "lineWidth": 1,
+  "defVisible": true,
+  "imageRatio": false,
+  "lineHeight": 1.5,
+  "paddingTop": 0,
+  "globalAlpha": 1,
+  "paddingLeft": 0,
+  "paddingRight": 0,
+  "disableAnchor": true,
+  "paddingBottom": 0,
+  "progressColor": "#000000",
+  "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+  "reverseProgress": false,
+  "verticalProgress": false,
+  "lineAnimateImages": [],
+  "calculative": {
+    "canvas": {
+      "parent": {
+        "store": {
+          "data": {
+            "x": -386,
+            "y": -275,
+            "scale": 0.23645833333333333,
+            "pens": [
+              {
+                "x": 390.5032120212292,
+                "y": 590.489242048743,
+                "ex": 844.5032120212292,
+                "ey": 845.8642420487427,
+                "id": "b4e430",
+                "name": "square",
+                "flipX": false,
+                "flipY": false,
+                "input": false,
+                "width": 453.99999999999994,
+                "center": {
+                  "x": 617.5032120212292,
+                  "y": 718.1767420487428
+                },
+                "height": 255.3749999999996,
+                "locked": 10,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "b4e430"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "b4e430"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "b4e430"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "b4e430"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "square",
+                "progress": 0,
+                "lineWidth": 1,
+                "defVisible": true,
+                "imageRatio": false,
+                "lineHeight": 1.5,
+                "paddingTop": 0,
+                "globalAlpha": 1,
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "disableAnchor": true,
+                "paddingBottom": 0,
+                "progressColor": "#000000",
+                "reverseProgress": false,
+                "verticalProgress": false,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 390.5032120212292,
+                  "y": 590.489242048743,
+                  "ex": 844.5032120212293,
+                  "ey": 845.8642420487427,
+                  "id": "b4e430",
+                  "name": "square",
+                  "flipX": false,
+                  "flipY": false,
+                  "input": false,
+                  "width": 454,
+                  "height": 255.37499999999963,
+                  "locked": 10,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "square",
+                  "progress": 0,
+                  "lineWidth": 0.23645833333333333,
+                  "defVisible": true,
+                  "imageRatio": false,
+                  "lineHeight": 1.5,
+                  "paddingTop": 0,
+                  "globalAlpha": 1,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "disableAnchor": true,
+                  "paddingBottom": 0,
+                  "progressColor": "#000000",
+                  "reverseProgress": false,
+                  "verticalProgress": false,
+                  "worldRect": {
+                    "x": 390.5032120212292,
+                    "y": 590.489242048743,
+                    "width": 453.99999999999994,
+                    "height": 255.3749999999996,
+                    "rotate": 0,
+                    "ex": 844.5032120212292,
+                    "ey": 845.8642420487427,
+                    "center": {
+                      "x": 617.5032120212292,
+                      "y": 718.1767420487428
+                    }
+                  },
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 617.5032120212292,
+                      "y": 590.489242048743,
+                      "id": "0",
+                      "penId": "b4e430"
+                    },
+                    {
+                      "x": 844.5032120212292,
+                      "y": 718.1767420487428,
+                      "id": "1",
+                      "penId": "b4e430"
+                    },
+                    {
+                      "x": 617.5032120212292,
+                      "y": 845.8642420487427,
+                      "id": "2",
+                      "penId": "b4e430"
+                    },
+                    {
+                      "x": 390.5032120212292,
+                      "y": 718.1767420487428,
+                      "id": "3",
+                      "penId": "b4e430"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 390.5032120212292,
+                    "y": 590.489242048743,
+                    "width": 453.99999999999994,
+                    "height": 255.3749999999996,
+                    "ex": 844.5032120212292,
+                    "ey": 845.8642420487427
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 398.3050306215979,
+                "y": 603.2579920487476,
+                "ex": 827.284864875741,
+                "ey": 840.9843168645858,
+                "id": "2eea3444",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/17/jpg/01JXYF20YRC90Q6647JEV4V23R.jpg",
+                "width": 428.97983425414316,
+                "center": {
+                  "x": 612.7949477486695,
+                  "y": 722.1211544566667
+                },
+                "height": 237.72632481583818,
+                "locked": 10,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "2eea3444"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "2eea3444"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "2eea3444"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "2eea3444"
+                  }
+                ],
+                "visible": true,
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 398.3050306215979,
+                  "y": 603.2579920487476,
+                  "ex": 827.284864875741,
+                  "ey": 840.9843168645859,
+                  "id": "2eea3444",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/17/jpg/01JXYF20YRC90Q6647JEV4V23R.jpg",
+                  "width": 428.9798342541432,
+                  "height": 237.7263248158382,
+                  "locked": 10,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 398.3050306215979,
+                    "y": 603.2579920487476,
+                    "width": 428.97983425414316,
+                    "height": 237.72632481583818,
+                    "rotate": 0,
+                    "ex": 827.284864875741,
+                    "ey": 840.9843168645858,
+                    "center": {
+                      "x": 612.7949477486695,
+                      "y": 722.1211544566667
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 612.7949477486695,
+                      "y": 603.2579920487476,
+                      "id": "0",
+                      "penId": "2eea3444"
+                    },
+                    {
+                      "x": 827.284864875741,
+                      "y": 722.1211544566667,
+                      "id": "1",
+                      "penId": "2eea3444"
+                    },
+                    {
+                      "x": 612.7949477486695,
+                      "y": 840.9843168645858,
+                      "id": "2",
+                      "penId": "2eea3444"
+                    },
+                    {
+                      "x": 398.3050306215979,
+                      "y": 722.1211544566667,
+                      "id": "3",
+                      "penId": "2eea3444"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 398.3050306215979,
+                    "y": 603.2579920487476,
+                    "width": 428.97983425414316,
+                    "height": 237.72632481583818,
+                    "rotate": 0,
+                    "ex": 827.284864875741,
+                    "ey": 840.9843168645858,
+                    "center": {
+                      "x": 612.7949477486695,
+                      "y": 722.1211544566667
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 398.3050306215979,
+                    "y": 603.2579920487476,
+                    "width": 428.97983425414316,
+                    "height": 237.72632481583818,
+                    "ex": 827.284864875741,
+                    "ey": 840.9843168645858
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 2352,
+                  "imgNaturalHeight": 1305
+                }
+              },
+              {
+                "x": 541.875,
+                "y": 695.4767420487428,
+                "ex": 598.625,
+                "ey": 718.1767420487428,
+                "id": "94212d2",
+                "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "name": "combine",
+                "datas": [
+                  {
+                    "id": "3ecf7812",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "默认值同步",
+                    "value": "",
+                    "autoSync": true,
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "value",
+                        "valueType": "varValue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "206a46e7",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "000",
+                    "value": "",
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "showChild",
+                        "valueType": "varValue"
+                      }
+                    ],
+                    "varParams": {
+                      "label": "",
+                      "value": ""
+                    }
+                  }
+                ],
+                "width": 56.74999999999999,
+                "center": {
+                  "x": 570.25,
+                  "y": 706.8267420487429
+                },
+                "events": [
+                  {
+                    "id": "133dc3e",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "0",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "1"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  },
+                  {
+                    "id": "bd5b1c9",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "1",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "0"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  }
+                ],
+                "height": 22.69999999999997,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "94212d2"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "94212d2"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "94212d2"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "94212d2"
+                  }
+                ],
+                "children": [
+                  "5e1de",
+                  "59667c6c"
+                ],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "000",
+                "lineWidth": 1,
+                "showChild": 0,
+                "defVisible": true,
+                "lineHeight": 1.5,
+                "globalAlpha": 1,
+                "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "childStateValues": [
+                  {
+                    "value": "1",
+                    "childId": "5e1de"
+                  },
+                  {
+                    "value": "0",
+                    "childId": "59667c6c"
+                  }
+                ],
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 541.875,
+                  "y": 695.4767420487428,
+                  "ex": 495.01779535456234,
+                  "ey": 646.0569503820788,
+                  "id": "94212d2",
+                  "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "name": "combine",
+                  "width": 56.75,
+                  "height": 22.699999999999974,
+                  "locked": 0,
+                  "rotate": 0,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "000",
+                  "lineWidth": 0.23645833333333333,
+                  "showChild": 0,
+                  "defVisible": true,
+                  "lineHeight": 1.5,
+                  "globalAlpha": 1,
+                  "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "worldRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428,
+                    "center": {
+                      "x": 570.25,
+                      "y": 706.8267420487429
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 570.25,
+                      "y": 695.4767420487428,
+                      "id": "0",
+                      "penId": "94212d2"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 706.8267420487429,
+                      "id": "1",
+                      "penId": "94212d2"
+                    },
+                    {
+                      "x": 570.25,
+                      "y": 718.1767420487428,
+                      "id": "2",
+                      "penId": "94212d2"
+                    },
+                    {
+                      "x": 541.875,
+                      "y": 706.8267420487429,
+                      "id": "3",
+                      "penId": "94212d2"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 440.63237868789565,
+                "y": 625.7215337154121,
+                "ex": 497.38237868789565,
+                "ey": 648.421533715412,
+                "id": "f38de17",
+                "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "name": "combine",
+                "datas": [
+                  {
+                    "id": "3ecf7812",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "默认值同步",
+                    "value": "",
+                    "autoSync": true,
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "value",
+                        "valueType": "varValue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "206a46e7",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "000",
+                    "value": "",
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "showChild",
+                        "valueType": "varValue"
+                      }
+                    ],
+                    "varParams": {
+                      "label": "",
+                      "value": ""
+                    }
+                  }
+                ],
+                "width": 56.74999999999999,
+                "center": {
+                  "x": 469.00737868789565,
+                  "y": 637.0715337154121
+                },
+                "events": [
+                  {
+                    "id": "133dc3e",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "0",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "1"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  },
+                  {
+                    "id": "bd5b1c9",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "1",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "0"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  }
+                ],
+                "height": 22.69999999999997,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "f38de17"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "f38de17"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "f38de17"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "f38de17"
+                  }
+                ],
+                "visible": true,
+                "children": [
+                  "096a343",
+                  "33763639"
+                ],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "000",
+                "lineWidth": 1,
+                "showChild": 0,
+                "defVisible": true,
+                "lineHeight": 1.5,
+                "globalAlpha": 1,
+                "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "childStateValues": [
+                  {
+                    "value": 0,
+                    "childId": "096a343"
+                  },
+                  {
+                    "value": 1,
+                    "childId": "33763639"
+                  }
+                ],
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 440.63237868789565,
+                  "y": 625.7215337154121,
+                  "ex": 495.01779535456234,
+                  "ey": 646.0569503820788,
+                  "id": "f38de17",
+                  "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "name": "combine",
+                  "width": 56.75,
+                  "height": 22.699999999999974,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "000",
+                  "lineWidth": 0.23645833333333333,
+                  "showChild": 0,
+                  "defVisible": true,
+                  "lineHeight": 1.5,
+                  "globalAlpha": 1,
+                  "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "worldRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412,
+                    "center": {
+                      "x": 469.00737868789565,
+                      "y": 637.0715337154121
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 469.00737868789565,
+                      "y": 625.7215337154121,
+                      "id": "0",
+                      "penId": "f38de17"
+                    },
+                    {
+                      "x": 497.38237868789565,
+                      "y": 637.0715337154121,
+                      "id": "1",
+                      "penId": "f38de17"
+                    },
+                    {
+                      "x": 469.00737868789565,
+                      "y": 648.421533715412,
+                      "id": "2",
+                      "penId": "f38de17"
+                    },
+                    {
+                      "x": 440.63237868789565,
+                      "y": 637.0715337154121,
+                      "id": "3",
+                      "penId": "f38de17"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 601.625,
+                "y": 446.6500000000001,
+                "ex": 658.375,
+                "ey": 469.3500000000001,
+                "id": "50640fd",
+                "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                "name": "combine",
+                "datas": [
+                  {
+                    "id": "3ecf7812",
+                    "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                    "name": "默认值同步",
+                    "value": "",
+                    "autoSync": true,
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "value",
+                        "valueType": "varValue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "206a46e7",
+                    "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                    "name": "000",
+                    "value": "",
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "showChild",
+                        "valueType": "varValue"
+                      }
+                    ],
+                    "varParams": {
+                      "label": "",
+                      "value": ""
+                    }
+                  }
+                ],
+                "width": 56.74999999999999,
+                "center": {
+                  "x": 630,
+                  "y": 458.00000000000006
+                },
+                "events": [
+                  {
+                    "id": "133dc3e",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "0",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                      "prop": "custom",
+                      "value": "1"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  },
+                  {
+                    "id": "bd5b1c9",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "1",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                      "prop": "custom",
+                      "value": "0"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  }
+                ],
+                "height": 22.69999999999997,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "50640fd"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "50640fd"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "50640fd"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "50640fd"
+                  }
+                ],
+                "visible": true,
+                "children": [
+                  "4ce10121",
+                  "e22eb6"
+                ],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "m1",
+                "lineWidth": 1,
+                "showChild": 0,
+                "defVisible": true,
+                "lineHeight": 1.5,
+                "globalAlpha": 1,
+                "preferredVarKey": "01KPWSFVVES3PYPSXEG78P7RGW",
+                "childStateValues": [
+                  {
+                    "value": 0,
+                    "childId": "4ce10121"
+                  },
+                  {
+                    "value": 1,
+                    "childId": "e22eb6"
+                  }
+                ],
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 601.625,
+                  "y": 446.6500000000001,
+                  "ex": 495.01779535456234,
+                  "ey": 646.0569503820788,
+                  "id": "50640fd",
+                  "key": "01KPWSFVVES3PYPSXEG78P7RGW",
+                  "name": "combine",
+                  "width": 56.75,
+                  "height": 22.699999999999974,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "m1",
+                  "lineWidth": 0.23645833333333333,
+                  "showChild": 0,
+                  "defVisible": true,
+                  "lineHeight": 1.5,
+                  "globalAlpha": 1,
+                  "preferredVarKey": "01KPWSFVVES3PYPSXEG78P7RGW",
+                  "worldRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001,
+                    "center": {
+                      "x": 630,
+                      "y": 458.00000000000006
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 630,
+                      "y": 446.6500000000001,
+                      "id": "0",
+                      "penId": "50640fd"
+                    },
+                    {
+                      "x": 658.375,
+                      "y": 458.00000000000006,
+                      "id": "1",
+                      "penId": "50640fd"
+                    },
+                    {
+                      "x": 630,
+                      "y": 469.3500000000001,
+                      "id": "2",
+                      "penId": "50640fd"
+                    },
+                    {
+                      "x": 601.625,
+                      "y": 458.00000000000006,
+                      "id": "3",
+                      "penId": "50640fd"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 724.625,
+                "y": 643.6500000000001,
+                "ex": 781.375,
+                "ey": 666.35,
+                "id": "2a795990",
+                "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "name": "combine",
+                "datas": [
+                  {
+                    "id": "3ecf7812",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "默认值同步",
+                    "value": "",
+                    "autoSync": true,
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "value",
+                        "valueType": "varValue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "206a46e7",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "000",
+                    "value": "",
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "showChild",
+                        "valueType": "varValue"
+                      }
+                    ],
+                    "varParams": {
+                      "label": "",
+                      "value": ""
+                    }
+                  }
+                ],
+                "width": 56.74999999999999,
+                "center": {
+                  "x": 753,
+                  "y": 655.0000000000001
+                },
+                "events": [
+                  {
+                    "id": "133dc3e",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "0",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "1"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  },
+                  {
+                    "id": "bd5b1c9",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "1",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "0"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  }
+                ],
+                "height": 22.69999999999997,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "2a795990"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "2a795990"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "2a795990"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "2a795990"
+                  }
+                ],
+                "visible": true,
+                "children": [
+                  "c718b23",
+                  "b9f19b6"
+                ],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "000",
+                "lineWidth": 1,
+                "showChild": 0,
+                "defVisible": true,
+                "lineHeight": 1.5,
+                "globalAlpha": 1,
+                "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "childStateValues": [
+                  {
+                    "value": 0,
+                    "childId": "c718b23"
+                  },
+                  {
+                    "value": 1,
+                    "childId": "b9f19b6"
+                  }
+                ],
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 724.625,
+                  "y": 643.6500000000001,
+                  "ex": 495.01779535456234,
+                  "ey": 646.0569503820788,
+                  "id": "2a795990",
+                  "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "name": "combine",
+                  "width": 56.75,
+                  "height": 22.699999999999974,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "000",
+                  "lineWidth": 0.23645833333333333,
+                  "showChild": 0,
+                  "defVisible": true,
+                  "lineHeight": 1.5,
+                  "globalAlpha": 1,
+                  "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "worldRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 781.375,
+                    "ey": 666.35,
+                    "center": {
+                      "x": 753,
+                      "y": 655.0000000000001
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 753,
+                      "y": 643.6500000000001,
+                      "id": "0",
+                      "penId": "2a795990"
+                    },
+                    {
+                      "x": 781.375,
+                      "y": 655.0000000000001,
+                      "id": "1",
+                      "penId": "2a795990"
+                    },
+                    {
+                      "x": 753,
+                      "y": 666.35,
+                      "id": "2",
+                      "penId": "2a795990"
+                    },
+                    {
+                      "x": 724.625,
+                      "y": 655.0000000000001,
+                      "id": "3",
+                      "penId": "2a795990"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 781.375,
+                    "ey": 666.35
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 598.625,
+                "y": 662.6499999999999,
+                "ex": 655.375,
+                "ey": 685.3499999999998,
+                "id": "1a2fc0a9",
+                "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "name": "combine",
+                "datas": [
+                  {
+                    "id": "3ecf7812",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "默认值同步",
+                    "value": "",
+                    "autoSync": true,
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "value",
+                        "valueType": "varValue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "206a46e7",
+                    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                    "name": "000",
+                    "value": "",
+                    "condData": [
+                      {
+                        "max": 0,
+                        "min": 0,
+                        "cond": false,
+                        "prop": "showChild",
+                        "valueType": "varValue"
+                      }
+                    ],
+                    "varParams": {
+                      "label": "",
+                      "value": ""
+                    }
+                  }
+                ],
+                "width": 56.74999999999999,
+                "center": {
+                  "x": 627,
+                  "y": 673.9999999999999
+                },
+                "events": [
+                  {
+                    "id": "133dc3e",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "0",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "1"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  },
+                  {
+                    "id": "bd5b1c9",
+                    "name": "click",
+                    "title": "",
+                    "value": "writeVar",
+                    "where": {
+                      "key": "value",
+                      "type": "comparison",
+                      "value": "1",
+                      "comparison": "=="
+                    },
+                    "action": 6,
+                    "params": {
+                      "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                      "prop": "custom",
+                      "value": "0"
+                    },
+                    "trigger": "comparison",
+                    "isPresetJs": true,
+                    "presetJsKey": "writeVarValue"
+                  }
+                ],
+                "height": 22.69999999999997,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "1a2fc0a9"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "1a2fc0a9"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "1a2fc0a9"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "1a2fc0a9"
+                  }
+                ],
+                "visible": true,
+                "children": [
+                  "66abb3bb",
+                  "fe14ae"
+                ],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "000",
+                "lineWidth": 1,
+                "showChild": 0,
+                "defVisible": true,
+                "lineHeight": 1.5,
+                "globalAlpha": 1,
+                "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                "childStateValues": [
+                  {
+                    "value": 0,
+                    "childId": "66abb3bb"
+                  },
+                  {
+                    "value": 1,
+                    "childId": "fe14ae"
+                  }
+                ],
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 598.625,
+                  "y": 662.6499999999999,
+                  "ex": 495.01779535456234,
+                  "ey": 646.0569503820788,
+                  "id": "1a2fc0a9",
+                  "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "name": "combine",
+                  "width": 56.75,
+                  "height": 22.699999999999974,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "000",
+                  "lineWidth": 0.23645833333333333,
+                  "showChild": 0,
+                  "defVisible": true,
+                  "lineHeight": 1.5,
+                  "globalAlpha": 1,
+                  "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+                  "worldRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998,
+                    "center": {
+                      "x": 627,
+                      "y": 673.9999999999999
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 627,
+                      "y": 662.6499999999999,
+                      "id": "0",
+                      "penId": "1a2fc0a9"
+                    },
+                    {
+                      "x": 655.375,
+                      "y": 673.9999999999999,
+                      "id": "1",
+                      "penId": "1a2fc0a9"
+                    },
+                    {
+                      "x": 627,
+                      "y": 685.3499999999998,
+                      "id": "2",
+                      "penId": "1a2fc0a9"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 673.9999999999999,
+                      "id": "3",
+                      "penId": "1a2fc0a9"
+                    }
+                  ],
+                  "worldTextRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "hasImage": false
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "66abb3bb",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "66abb3bb"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "66abb3bb"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "66abb3bb"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "66abb3bb"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-手动",
+                "parentId": "1a2fc0a9",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "66abb3bb",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-手动",
+                  "parentId": "1a2fc0a9",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998,
+                    "rotate": 0,
+                    "center": {
+                      "x": 627,
+                      "y": 673.9999999999999
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 627,
+                      "y": 662.6499999999999,
+                      "id": "0",
+                      "penId": "66abb3bb"
+                    },
+                    {
+                      "x": 655.375,
+                      "y": 673.9999999999999,
+                      "id": "1",
+                      "penId": "66abb3bb"
+                    },
+                    {
+                      "x": 627,
+                      "y": 685.3499999999998,
+                      "id": "2",
+                      "penId": "66abb3bb"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 673.9999999999999,
+                      "id": "3",
+                      "penId": "66abb3bb"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998,
+                    "center": {
+                      "x": 627,
+                      "y": 673.9999999999999
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "fe14ae",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "fe14ae"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "fe14ae"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "fe14ae"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "fe14ae"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-自动",
+                "parentId": "1a2fc0a9",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "fe14ae",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-自动",
+                  "parentId": "1a2fc0a9",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998,
+                    "rotate": 0,
+                    "center": {
+                      "x": 627,
+                      "y": 673.9999999999999
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 627,
+                      "y": 662.6499999999999,
+                      "id": "0",
+                      "penId": "fe14ae"
+                    },
+                    {
+                      "x": 655.375,
+                      "y": 673.9999999999999,
+                      "id": "1",
+                      "penId": "fe14ae"
+                    },
+                    {
+                      "x": 627,
+                      "y": 685.3499999999998,
+                      "id": "2",
+                      "penId": "fe14ae"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 673.9999999999999,
+                      "id": "3",
+                      "penId": "fe14ae"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998,
+                    "center": {
+                      "x": 627,
+                      "y": 673.9999999999999
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 598.625,
+                    "y": 662.6499999999999,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 655.375,
+                    "ey": 685.3499999999998
+                  },
+                  "inView": false,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "c718b23",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "c718b23"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "c718b23"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "c718b23"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "c718b23"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-手动",
+                "parentId": "2a795990",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "c718b23",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-手动",
+                  "parentId": "2a795990",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 781.375,
+                    "ey": 666.35,
+                    "rotate": 0,
+                    "center": {
+                      "x": 753,
+                      "y": 655.0000000000001
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 753,
+                      "y": 643.6500000000001,
+                      "id": "0",
+                      "penId": "c718b23"
+                    },
+                    {
+                      "x": 781.375,
+                      "y": 655.0000000000001,
+                      "id": "1",
+                      "penId": "c718b23"
+                    },
+                    {
+                      "x": 753,
+                      "y": 666.35,
+                      "id": "2",
+                      "penId": "c718b23"
+                    },
+                    {
+                      "x": 724.625,
+                      "y": 655.0000000000001,
+                      "id": "3",
+                      "penId": "c718b23"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 781.375,
+                    "ey": 666.35,
+                    "center": {
+                      "x": 753,
+                      "y": 655.0000000000001
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 781.375,
+                    "ey": 666.35
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "b9f19b6",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "b9f19b6"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "b9f19b6"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "b9f19b6"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "b9f19b6"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-自动",
+                "parentId": "2a795990",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "b9f19b6",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-自动",
+                  "parentId": "2a795990",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 781.375,
+                    "ey": 666.35,
+                    "rotate": 0,
+                    "center": {
+                      "x": 753,
+                      "y": 655.0000000000001
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 753,
+                      "y": 643.6500000000001,
+                      "id": "0",
+                      "penId": "b9f19b6"
+                    },
+                    {
+                      "x": 781.375,
+                      "y": 655.0000000000001,
+                      "id": "1",
+                      "penId": "b9f19b6"
+                    },
+                    {
+                      "x": 753,
+                      "y": 666.35,
+                      "id": "2",
+                      "penId": "b9f19b6"
+                    },
+                    {
+                      "x": 724.625,
+                      "y": 655.0000000000001,
+                      "id": "3",
+                      "penId": "b9f19b6"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 781.375,
+                    "ey": 666.35,
+                    "center": {
+                      "x": 753,
+                      "y": 655.0000000000001
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 724.625,
+                    "y": 643.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 781.375,
+                    "ey": 666.35
+                  },
+                  "inView": false,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "4ce10121",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "4ce10121"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "4ce10121"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "4ce10121"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "4ce10121"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-手动",
+                "parentId": "50640fd",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "4ce10121",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-手动",
+                  "parentId": "50640fd",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001,
+                    "rotate": 0,
+                    "center": {
+                      "x": 630,
+                      "y": 458.00000000000006
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 630,
+                      "y": 446.6500000000001,
+                      "id": "0",
+                      "penId": "4ce10121"
+                    },
+                    {
+                      "x": 658.375,
+                      "y": 458.00000000000006,
+                      "id": "1",
+                      "penId": "4ce10121"
+                    },
+                    {
+                      "x": 630,
+                      "y": 469.3500000000001,
+                      "id": "2",
+                      "penId": "4ce10121"
+                    },
+                    {
+                      "x": 601.625,
+                      "y": 458.00000000000006,
+                      "id": "3",
+                      "penId": "4ce10121"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001,
+                    "center": {
+                      "x": 630,
+                      "y": 458.00000000000006
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "e22eb6",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "e22eb6"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "e22eb6"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "e22eb6"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "e22eb6"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-自动",
+                "parentId": "50640fd",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "e22eb6",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-自动",
+                  "parentId": "50640fd",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001,
+                    "rotate": 0,
+                    "center": {
+                      "x": 630,
+                      "y": 458.00000000000006
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 630,
+                      "y": 446.6500000000001,
+                      "id": "0",
+                      "penId": "e22eb6"
+                    },
+                    {
+                      "x": 658.375,
+                      "y": 458.00000000000006,
+                      "id": "1",
+                      "penId": "e22eb6"
+                    },
+                    {
+                      "x": 630,
+                      "y": 469.3500000000001,
+                      "id": "2",
+                      "penId": "e22eb6"
+                    },
+                    {
+                      "x": 601.625,
+                      "y": 458.00000000000006,
+                      "id": "3",
+                      "penId": "e22eb6"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001,
+                    "center": {
+                      "x": 630,
+                      "y": 458.00000000000006
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 601.625,
+                    "y": 446.6500000000001,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 658.375,
+                    "ey": 469.3500000000001
+                  },
+                  "inView": false,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "096a343",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "096a343"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "096a343"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "096a343"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "096a343"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-手动",
+                "parentId": "f38de17",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "096a343",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-手动",
+                  "parentId": "f38de17",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412,
+                    "rotate": 0,
+                    "center": {
+                      "x": 469.00737868789565,
+                      "y": 637.0715337154121
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 469.00737868789565,
+                      "y": 625.7215337154121,
+                      "id": "0",
+                      "penId": "096a343"
+                    },
+                    {
+                      "x": 497.38237868789565,
+                      "y": 637.0715337154121,
+                      "id": "1",
+                      "penId": "096a343"
+                    },
+                    {
+                      "x": 469.00737868789565,
+                      "y": 648.421533715412,
+                      "id": "2",
+                      "penId": "096a343"
+                    },
+                    {
+                      "x": 440.63237868789565,
+                      "y": 637.0715337154121,
+                      "id": "3",
+                      "penId": "096a343"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412,
+                    "center": {
+                      "x": 469.00737868789565,
+                      "y": 637.0715337154121
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "33763639",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "33763639"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "33763639"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "33763639"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "33763639"
+                  }
+                ],
+                "visible": true,
+                "children": [],
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-自动",
+                "parentId": "f38de17",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "33763639",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-自动",
+                  "parentId": "f38de17",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412,
+                    "rotate": 0,
+                    "center": {
+                      "x": 469.00737868789565,
+                      "y": 637.0715337154121
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 469.00737868789565,
+                      "y": 625.7215337154121,
+                      "id": "0",
+                      "penId": "33763639"
+                    },
+                    {
+                      "x": 497.38237868789565,
+                      "y": 637.0715337154121,
+                      "id": "1",
+                      "penId": "33763639"
+                    },
+                    {
+                      "x": 469.00737868789565,
+                      "y": 648.421533715412,
+                      "id": "2",
+                      "penId": "33763639"
+                    },
+                    {
+                      "x": 440.63237868789565,
+                      "y": 637.0715337154121,
+                      "id": "3",
+                      "penId": "33763639"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412,
+                    "center": {
+                      "x": 469.00737868789565,
+                      "y": 637.0715337154121
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 440.63237868789565,
+                    "y": 625.7215337154121,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 497.38237868789565,
+                    "ey": 648.421533715412
+                  },
+                  "inView": false,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "5e1de",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "5e1de"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "5e1de"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "5e1de"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "5e1de"
+                  }
+                ],
+                "visible": true,
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-手动",
+                "parentId": "94212d2",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "5e1de",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ360FC4MRARK0JQX38SXGN.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-手动",
+                  "parentId": "94212d2",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428,
+                    "rotate": 0,
+                    "center": {
+                      "x": 570.25,
+                      "y": 706.8267420487429
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 570.25,
+                      "y": 695.4767420487428,
+                      "id": "0",
+                      "penId": "5e1de"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 706.8267420487429,
+                      "id": "1",
+                      "penId": "5e1de"
+                    },
+                    {
+                      "x": 570.25,
+                      "y": 718.1767420487428,
+                      "id": "2",
+                      "penId": "5e1de"
+                    },
+                    {
+                      "x": 541.875,
+                      "y": 706.8267420487429,
+                      "id": "3",
+                      "penId": "5e1de"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428,
+                    "center": {
+                      "x": 570.25,
+                      "y": 706.8267420487429
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 0,
+                "y": 0,
+                "ex": 1,
+                "ey": 1,
+                "id": "59667c6c",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                "width": 1,
+                "height": 1,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "59667c6c"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "59667c6c"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "59667c6c"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "59667c6c"
+                  }
+                ],
+                "visible": false,
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image-自动",
+                "parentId": "94212d2",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 0,
+                  "y": 0,
+                  "ex": 1,
+                  "ey": 1,
+                  "id": "59667c6c",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/5/png/01JWZ365QB2DG2QYVY1CK0X3M8.png",
+                  "width": 1,
+                  "height": 1,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": false,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image-自动",
+                  "parentId": "94212d2",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428,
+                    "rotate": 0,
+                    "center": {
+                      "x": 570.25,
+                      "y": 706.8267420487429
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 570.25,
+                      "y": 695.4767420487428,
+                      "id": "0",
+                      "penId": "59667c6c"
+                    },
+                    {
+                      "x": 598.625,
+                      "y": 706.8267420487429,
+                      "id": "1",
+                      "penId": "59667c6c"
+                    },
+                    {
+                      "x": 570.25,
+                      "y": 718.1767420487428,
+                      "id": "2",
+                      "penId": "59667c6c"
+                    },
+                    {
+                      "x": 541.875,
+                      "y": 706.8267420487429,
+                      "id": "3",
+                      "penId": "59667c6c"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "rotate": 0,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428,
+                    "center": {
+                      "x": 570.25,
+                      "y": 706.8267420487429
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 541.875,
+                    "y": 695.4767420487428,
+                    "width": 56.74999999999999,
+                    "height": 22.69999999999997,
+                    "ex": 598.625,
+                    "ey": 718.1767420487428
+                  },
+                  "inView": false,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 366,
+                  "imgNaturalHeight": 146
+                }
+              },
+              {
+                "x": 510.94494395449135,
+                "y": 769.8825335045799,
+                "ex": 523.5052505569895,
+                "ey": 782.442840107078,
+                "id": "88ace2",
+                "name": "image",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/9/png/01JX9Q1GHYPZKP4M03NS71E47K.png",
+                "width": 12.560306602498095,
+                "center": {
+                  "x": 517.2250972557404,
+                  "y": 776.1626868058289
+                },
+                "height": 12.560306602498095,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "88ace2"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "88ace2"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "88ace2"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "88ace2"
+                  }
+                ],
+                "visible": true,
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image",
+                "lineWidth": 1,
+                "background": "#00000000",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 510.94494395449135,
+                  "y": 769.8825335045799,
+                  "ex": 523.5052505569895,
+                  "ey": 782.4428401070782,
+                  "id": "88ace2",
+                  "name": "image",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/9/png/01JX9Q1GHYPZKP4M03NS71E47K.png",
+                  "width": 12.560306602498096,
+                  "height": 12.560306602498096,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "#00000000",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "worldRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "rotate": 0,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078,
+                    "center": {
+                      "x": 517.2250972557404,
+                      "y": 776.1626868058289
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 517.2250972557404,
+                      "y": 769.8825335045799,
+                      "id": "0",
+                      "penId": "88ace2"
+                    },
+                    {
+                      "x": 523.5052505569895,
+                      "y": 776.1626868058289,
+                      "id": "1",
+                      "penId": "88ace2"
+                    },
+                    {
+                      "x": 517.2250972557404,
+                      "y": 782.442840107078,
+                      "id": "2",
+                      "penId": "88ace2"
+                    },
+                    {
+                      "x": 510.94494395449135,
+                      "y": 776.1626868058289,
+                      "id": "3",
+                      "penId": "88ace2"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "rotate": 0,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078,
+                    "center": {
+                      "x": 517.2250972557404,
+                      "y": 776.1626868058289
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 512,
+                  "imgNaturalHeight": 512
+                }
+              },
+              {
+                "x": 510.94494395449135,
+                "y": 769.8825335045799,
+                "ex": 523.5052505569895,
+                "ey": 782.442840107078,
+                "id": "ed32c58",
+                "name": "image",
+                "text": "",
+                "color": "#00000000",
+                "image": "https://bohao.wang/minios/files/images/2025/6/6/png/01JX298H8EK410GKQKHBCDHFXG.png",
+                "width": 12.560306602498095,
+                "center": {
+                  "x": 517.2250972557404,
+                  "y": 776.1626868058289
+                },
+                "height": 12.560306602498095,
+                "locked": 0,
+                "rotate": 0,
+                "anchors": [
+                  {
+                    "x": 0.5,
+                    "y": 0,
+                    "id": "0",
+                    "penId": "ed32c58"
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.5,
+                    "id": "1",
+                    "penId": "ed32c58"
+                  },
+                  {
+                    "x": 0.5,
+                    "y": 1,
+                    "id": "2",
+                    "penId": "ed32c58"
+                  },
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "id": "3",
+                    "penId": "ed32c58"
+                  }
+                ],
+                "visible": true,
+                "fontSize": 12,
+                "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                "nickname": "image",
+                "lineWidth": 1,
+                "background": "rgba(0, 0, 0, 0)",
+                "defVisible": true,
+                "imageRatio": true,
+                "lineHeight": 1.5,
+                "canvasLayer": 3,
+                "globalAlpha": 1,
+                "hoverBackground": "rgba(0, 0, 0, 0)",
+                "activeBackground": "rgba(0, 0, 0, 0)",
+                "lineAnimateImages": [],
+                "calculative": {
+                  "canvas": "[Circular]",
+                  "x": 510.94494395449135,
+                  "y": 769.8825335045799,
+                  "ex": 523.5052505569895,
+                  "ey": 782.4428401070782,
+                  "id": "ed32c58",
+                  "name": "image",
+                  "text": "",
+                  "color": "#00000000",
+                  "image": "https://bohao.wang/minios/files/images/2025/6/6/png/01JX298H8EK410GKQKHBCDHFXG.png",
+                  "width": 12.560306602498096,
+                  "height": 12.560306602498096,
+                  "locked": 0,
+                  "rotate": 0,
+                  "visible": true,
+                  "fontSize": 2.8375,
+                  "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+                  "nickname": "image",
+                  "lineWidth": 0.23645833333333333,
+                  "background": "rgba(0, 0, 0, 0)",
+                  "defVisible": true,
+                  "imageRatio": true,
+                  "lineHeight": 1.5,
+                  "canvasLayer": 3,
+                  "globalAlpha": 1,
+                  "hoverBackground": "rgba(0, 0, 0, 0)",
+                  "activeBackground": "rgba(0, 0, 0, 0)",
+                  "worldRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "rotate": 0,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078,
+                    "center": {
+                      "x": 517.2250972557404,
+                      "y": 776.1626868058289
+                    }
+                  },
+                  "paddingTop": 0,
+                  "paddingBottom": 0,
+                  "paddingLeft": 0,
+                  "paddingRight": 0,
+                  "letterSpacing": 0,
+                  "worldAnchors": [
+                    {
+                      "x": 517.2250972557404,
+                      "y": 769.8825335045799,
+                      "id": "0",
+                      "penId": "ed32c58"
+                    },
+                    {
+                      "x": 523.5052505569895,
+                      "y": 776.1626868058289,
+                      "id": "1",
+                      "penId": "ed32c58"
+                    },
+                    {
+                      "x": 517.2250972557404,
+                      "y": 782.442840107078,
+                      "id": "2",
+                      "penId": "ed32c58"
+                    },
+                    {
+                      "x": 510.94494395449135,
+                      "y": 776.1626868058289,
+                      "id": "3",
+                      "penId": "ed32c58"
+                    }
+                  ],
+                  "worldIconRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "rotate": 0,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078,
+                    "center": {
+                      "x": 517.2250972557404,
+                      "y": 776.1626868058289
+                    }
+                  },
+                  "worldTextRect": {
+                    "x": 510.94494395449135,
+                    "y": 769.8825335045799,
+                    "width": 12.560306602498095,
+                    "height": 12.560306602498095,
+                    "ex": 523.5052505569895,
+                    "ey": 782.442840107078
+                  },
+                  "inView": true,
+                  "patchFlags": true,
+                  "img": {},
+                  "hasImage": false,
+                  "imgNaturalWidth": 400,
+                  "imgNaturalHeight": 400
+                }
+              },
+              "[Circular]"
+            ],
+            "origin": {
+              "x": 337.53654535456093,
+              "y": 512.4579920487433
+            },
+            "center": {
+              "x": 386,
+              "y": 347
+            },
+            "paths": {},
+            "template": "3554ce6",
+            "lineAnimateDraws": {},
+            "iot": {},
+            "locked": 0,
+            "version": "1.1.3",
+            "dataPoints": [],
+            "disableScale": false
+          },
+          "histories": [],
+          "pens": {
+            "33763639": "[Circular]",
+            "b4e430": "[Circular]",
+            "2eea3444": "[Circular]",
+            "94212d2": "[Circular]",
+            "f38de17": "[Circular]",
+            "50640fd": "[Circular]",
+            "2a795990": "[Circular]",
+            "1a2fc0a9": "[Circular]",
+            "66abb3bb": "[Circular]",
+            "fe14ae": "[Circular]",
+            "c718b23": "[Circular]",
+            "b9f19b6": "[Circular]",
+            "4ce10121": "[Circular]",
+            "e22eb6": "[Circular]",
+            "096a343": "[Circular]",
+            "5e1de": "[Circular]",
+            "59667c6c": "[Circular]",
+            "88ace2": "[Circular]",
+            "ed32c58": "[Circular]",
+            "a6a615f": "[Circular]"
+          },
+          "path2dMap": {},
+          "animateMap": {},
+          "active": [
+            "[Circular]"
+          ],
+          "animates": {},
+          "options": {
+            "fontFamily": "\"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Helvetica, Arial",
+            "fontSize": 12,
+            "lineHeight": 1.5,
+            "textAlign": "center",
+            "textBaseline": "middle",
+            "color": "#222222",
+            "activeColor": "#278df8",
+            "hoverColor": "rgba(39,141,248,0.50)",
+            "anchorColor": "#278DF8",
+            "hoverAnchorColor": "#FF4101",
+            "anchorRadius": 4,
+            "anchorBackground": "#fff",
+            "dockColor": "rgba(39,141,248,0.50)",
+            "dockPenColor": "#1890FF",
+            "dragColor": "#1890ff",
+            "rotateCursor": "rotate.cur",
+            "rightCursor": "right.cur",
+            "downCursor": "down.cur",
+            "hoverCursor": "pointer",
+            "minScale": 0.1,
+            "maxScale": 10,
+            "keydown": 0,
+            "gridSize": 20,
+            "gridColor": "#e2e2e2",
+            "ruleColor": "#888888",
+            "drawingLineName": "curve",
+            "interval": 50,
+            "animateInterval": 30,
+            "autoPolyline": true,
+            "autoAnchor": false,
+            "autoAlignGrid": false,
+            "animateColor": "#30EEDC",
+            "ruleLineColor": "#FF4101",
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 0,
+            "shadowBlur": 64,
+            "shadowColor": "#00000014",
+            "globalAlpha": 1,
+            "defaultAnchors": [
+              {
+                "x": 0.5,
+                "y": 0
+              },
+              {
+                "x": 1,
+                "y": 0.5
+              },
+              {
+                "x": 0.5,
+                "y": 1
+              },
+              {
+                "x": 0,
+                "y": 0.5
+              }
+            ],
+            "measureTextWidth": true,
+            "moveConnectedLine": true,
+            "mouseRightActive": true,
+            "disableClipboard": false,
+            "drawingLineLength": 0,
+            "disableTouchPadScale": false,
+            "cdn": "",
+            "polylineSpace": 10,
+            "domShapes": [],
+            "containerShapes": [
+              "tablePlus"
+            ],
+            "textFlip": true,
+            "textRotate": true,
+            "unavailableKeys": [],
+            "diagramOptions": {},
+            "svgPathStroke": true,
+            "reconnetTimes": 10,
+            "strictScope": true
+          },
+          "theme": {
+            "dark": {
+              "color": "#bdc7db",
+              "background": "#1e2430",
+              "parentBackground": "#080b0f",
+              "ruleColor": "#222E47",
+              "ruleOptions": {
+                "background": "#121924",
+                "textColor": "#6E7B91"
+              }
+            },
+            "light": {
+              "color": "#222222",
+              "background": "#FFFFFF",
+              "parentBackground": "#F0F1F2",
+              "ruleColor": "#C8D0E1",
+              "ruleOptions": {
+                "background": "#F7F8FA",
+                "textColor": "#C8D0E1"
+              }
+            }
+          },
+          "emitter": {
+            "all": {}
+          },
+          "bindDatas": {},
+          "bind": {},
+          "pensNetwork": {},
+          "cacheDatas": [],
+          "messageEvents": {},
+          "templatePens": {},
+          "globalTriggers": {},
+          "id": "2e7ce409",
+          "patchFlagsTop": false,
+          "dpiRatio": 2,
+          "styles": {
+            "color": "#222222",
+            "hoverColor": "rgba(39,141,248,0.50)",
+            "activeColor": "#278df8",
+            "anchorColor": "#278DF8",
+            "hoverAnchorColor": "#FF4101",
+            "anchorBackground": "#fff",
+            "animateColor": "#30EEDC",
+            "ruleColor": "#888888",
+            "ruleLineColor": "#FF4101",
+            "gridColor": "#e2e2e2",
+            "dockPenColor": "#1890FF",
+            "textColor-9": " rgba(255,255,255,0.90)",
+            "textColor-6": " rgba(255,255,255,0.60)",
+            "textColor-1": " rgba(255,255,255,1)",
+            "textColor-4": " rgba(255,255,255,0.40)",
+            "textPrimaryColor": " #7f838c",
+            "textSecondColor": " rgba(255,255,255,0.90)",
+            "textDisabledColor": " rgba(255,255,255,0.40)",
+            "textActiveColor": " #0052d9",
+            "buttonBg": " #4583ff",
+            "buttonDisabledBg": " #0057CC",
+            "buttonDisabledColor": " #FFFFFF26",
+            "buttonGradient": " linear-gradient(360deg,#4583ff, #33ccff)",
+            "containerBg": " rgba(21,24,28,0.95)",
+            "tabBg": " #303746",
+            "tabActiveBg": " #4583ff",
+            "tabDisabledBg": " #282e3b",
+            "tabDisabledColor": " rgba(255,255,255,0.26)",
+            "tabActiveColor": " rgba(255,255,255,0.90)",
+            "formBg": " #2a2f36",
+            "datePickerCellActiveRangeBg": " #2c4475",
+            "componentDisabledBg": " #282e3b",
+            "dataPickerCellActiveBg": " #001b52",
+            "activeBg": " #25375b",
+            "popContentBg": " #252b37",
+            "disabledBg": " #7f838c",
+            "disabledBg-2": " #282E3B",
+            "tableStripeColor": " rgba(150,192,255,0.10)",
+            "tableMenuBg": " #303746",
+            "tableMenuDividerBg": " rgb(76 81 94)",
+            "tableMenuHandleBg": " #454f64",
+            "tableMenuColor": " #bdc7db",
+            "tableMenuBorderColor": " transparent",
+            "tableColRowBg": " #303746",
+            "tableColRowActiveBg": " #4A5263",
+            "tableColRowColor": " rgba(255,255,255,0.6)",
+            "paginationColor": " rgba(255,255,255,0.6)",
+            "paginationActiveColor": " #4583ff",
+            "paginationActiveBg": " rgba(69,131,255,0.20)",
+            "sliderBg": " #303746",
+            "sliderBtnBg": " #000000",
+            "notificationBorderColor": " transparent",
+            "notificationBg": " #282e3b",
+            "borderColor": " #424b61",
+            "borderOutsideColor": " #4583ff",
+            "formBorderColor": " #424b61",
+            "borderInsideColor": " rgba(255,255,255,0.40)",
+            "shadow": " 0px 1px 10px 0px rgba(0,0,0,0.05), 0px 4px 5px 0px rgba(0,0,0,0.08), 0px 2px 4px -1px rgba(0,0,0,0.12)",
+            "radius": " 4px"
+          },
+          "patchFlagsBackground": false,
+          "lastScale": 1,
+          "sameTemplate": false,
+          "historyIndex": null,
+          "hover": "[Circular]",
+          "lastHover": "[Circular]",
+          "bkImg": null,
+          "pointAt": {
+            "x": 478,
+            "y": 527,
+            "clientX": 359,
+            "clientY": 307,
+            "pageX": 359,
+            "pageY": 307,
+            "ctrlKey": false,
+            "shiftKey": false,
+            "altKey": false,
+            "buttons": 0
+          }
+        },
+        "canvas": "[Circular]",
+        "penPluginMap": {},
+        "socketFn": null,
+        "events": {},
+        "jetLinksList": [],
+        "websocketTimes": 0,
+        "mqttTimes": 0,
+        "httpTimerList": [],
+        "updateTimerList": [],
+        "sqlTimerList": [],
+        "__bohaoMeta2dSafetyGuardInstalled": true,
+        "__layerGuardInstalled": true,
+        "__copyGuardInstalled": true
+      },
+      "parentElement": {},
+      "store": "[Circular]",
+      "canvas": {},
+      "offscreen": {},
+      "width": 464,
+      "height": 743,
+      "externalElements": {},
+      "clientRect": {
+        "x": 268,
+        "y": 56,
+        "width": 464,
+        "height": 743,
+        "top": 56,
+        "right": 732,
+        "bottom": 799,
+        "left": 268
+      },
+      "canvasRect": {
+        "x": 0,
+        "y": 0,
+        "width": 464,
+        "height": 743,
+        "ex": 464,
+        "ey": 743
+      },
+      "activeRect": {
+        "x": 405.53125,
+        "y": 469.3500000000001,
+        "width": 91.85112868789567,
+        "height": 91.85112868789567,
+        "rotate": 0,
+        "ex": 497.38237868789565,
+        "ey": 561.2011286878958,
+        "center": {
+          "x": 451.4568143439478,
+          "y": 515.275564343948
+        }
+      },
+      "lastRotate": 0,
+      "sizeCPs": [
+        {
+          "x": 405.53125,
+          "y": 469.3500000000001
+        },
+        {
+          "x": 497.38237868789565,
+          "y": 469.3500000000001
+        },
+        {
+          "x": 497.38237868789565,
+          "y": 561.2011286878958
+        },
+        {
+          "x": 405.53125,
+          "y": 561.2011286878958
+        },
+        {
+          "x": 451.4568143439478,
+          "y": 469.3500000000001
+        },
+        {
+          "x": 497.38237868789565,
+          "y": 515.275564343948
+        },
+        {
+          "x": 451.4568143439478,
+          "y": 561.2011286878958
+        },
+        {
+          "x": 405.53125,
+          "y": 515.275564343948
+        }
+      ],
+      "hoverType": 4,
+      "resizeIndex": 0,
+      "mouseDown": {
+        "x": 478,
+        "y": 526,
+        "clientX": 359,
+        "clientY": 307,
+        "pageX": 359,
+        "pageY": 307,
+        "ctrlKey": false,
+        "shiftKey": false,
+        "altKey": false,
+        "buttons": 1
+      },
+      "lastOffsetX": 0,
+      "lastOffsetY": 0,
+      "drawLineFns": [
+        "curve",
+        "polyline",
+        "line",
+        "newLineName"
+      ],
+      "patchFlagsLines": {},
+      "lastMouseTime": 2661.7999999970198,
+      "hoverTimer": 2384.5,
+      "fitTimer": 0,
+      "patchFlags": true,
+      "lastRender": 2661.5999999940395,
+      "touchStart": 0,
+      "lastTapTime": 0,
+      "lastAnimateRender": 0,
+      "animateRendering": false,
+      "renderTimer": 18,
+      "pointSize": 8,
+      "pasteOffset": true,
+      "opening": false,
+      "maxZindex": 5,
+      "canMoveLine": false,
+      "isMobile": false,
+      "inputParent": {},
+      "inputDiv": {},
+      "dropdown": {},
+      "tooltip": {
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "box": {},
+        "text": {},
+        "arrowUp": {},
+        "arrowDown": {},
+        "x": -9999,
+        "currentPen": "[Circular]"
+      },
+      "popconfirm": {
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "box": {},
+        "text": {},
+        "arrowUp": {},
+        "arrowDown": {},
+        "icon": {},
+        "confirm": {},
+        "cancel": {},
+        "x": -9999
+      },
+      "title": {
+        "parentElement": "[Circular]",
+        "box": {},
+        "currentAnchor": null
+      },
+      "mousePos": {
+        "x": 478,
+        "y": 526
+      },
+      "canvasTemplate": {
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "canvas": {},
+        "offscreen": {},
+        "bgOffscreen": {},
+        "patchFlags": false,
+        "bgPatchFlags": false
+      },
+      "canvasImage": {
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "canvas": {},
+        "otherOffsreen": {},
+        "offscreen": {},
+        "animateOffsScreen": {},
+        "fitOffscreen": {},
+        "fitFlag": false
+      },
+      "canvasImageBottom": {
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "isBottom": true,
+        "canvas": {},
+        "otherOffsreen": {},
+        "offscreen": {},
+        "animateOffsScreen": {},
+        "fitOffscreen": {},
+        "fitFlag": false
+      },
+      "magnifierCanvas": {
+        "parentCanvas": "[Circular]",
+        "parentElement": "[Circular]",
+        "store": "[Circular]",
+        "canvas": {},
+        "magnifierScreen": {},
+        "offscreen": {},
+        "domOffscreen": {},
+        "magnifierSize": 300
+      },
+      "dialog": {
+        "parentElement": "[Circular]",
+        "box": {},
+        "iframe": {
+          "__vdevtools__injected": true
+        },
+        "dialog": {},
+        "close": {},
+        "title": {},
+        "body": {},
+        "meta2dDiv": {},
+        "store": "[Circular]"
+      },
+      "autoPolylineFlag": false,
+      "lastHoverType": 4,
+      "__loadMap": {},
+      "imageTimer": 48
+    },
+    "x": 405.53125,
+    "y": 469.3500000000001,
+    "ex": 587.028212021229,
+    "ey": 632.028212021229,
+    "id": "a6a615f",
+    "key": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+    "name": "square",
+    "flipX": false,
+    "flipY": false,
+    "input": false,
+    "width": 91.85112868789568,
+    "height": 91.85112868789568,
+    "locked": 0,
+    "visible": true,
+    "fontSize": 2.8375,
+    "layerUid": "01KRZEW7H2A8AQAJHQQ4ADSC5A",
+    "nickname": "000",
+    "progress": 0,
+    "lineWidth": 0.23645833333333333,
+    "defVisible": true,
+    "imageRatio": false,
+    "lineHeight": 1.5,
+    "paddingTop": 0,
+    "globalAlpha": 1,
+    "paddingLeft": 0,
+    "paddingRight": 0,
+    "disableAnchor": true,
+    "paddingBottom": 0,
+    "progressColor": "#000000",
+    "preferredVarKey": "01KRZCZFWMPFP2N84HRKQRY6GQ",
+    "reverseProgress": false,
+    "verticalProgress": false,
+    "worldRect": {
+      "x": 405.53125,
+      "y": 469.3500000000001,
+      "width": 91.85112868789567,
+      "height": 91.85112868789567,
+      "ex": 497.38237868789565,
+      "ey": 561.2011286878958,
+      "center": {
+        "x": 451.4568143439478,
+        "y": 515.275564343948
+      }
+    },
+    "letterSpacing": 0,
+    "worldAnchors": [
+      {
+        "x": 451.4568143439478,
+        "y": 469.3500000000001,
+        "id": "0",
+        "penId": "a6a615f"
+      },
+      {
+        "x": 497.38237868789565,
+        "y": 515.275564343948,
+        "id": "1",
+        "penId": "a6a615f"
+      },
+      {
+        "x": 451.4568143439478,
+        "y": 561.2011286878958,
+        "id": "2",
+        "penId": "a6a615f"
+      },
+      {
+        "x": 405.53125,
+        "y": 515.275564343948,
+        "id": "3",
+        "penId": "a6a615f"
+      }
+    ],
+    "worldTextRect": {
+      "x": 405.53125,
+      "y": 469.3500000000001,
+      "width": 91.85112868789567,
+      "height": 91.85112868789567,
+      "ex": 497.38237868789565,
+      "ey": 561.2011286878958
+    },
+    "inView": true,
+    "patchFlags": true,
+    "hasImage": false,
+    "hover": true,
+    "active": true,
+    "mouseDown": true
+  }
+}

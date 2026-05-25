@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "build:prod": "vite build",
+    "deploy": "bash ./scripts/deploy.sh",
+    "deploy:skip": "bash ./scripts/deploy.sh --skip-build",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",

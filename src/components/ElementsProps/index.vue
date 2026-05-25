@@ -26,6 +26,23 @@ onMounted(() => {
   // debugger
   pen.value = selections.pen
   console.log(pen.value)
+  const seen = new WeakSet()
+
+  const str = JSON.stringify(
+    pen.value,
+    (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]'
+        }
+        seen.add(value)
+      }
+      return value
+    },
+    2,
+  )
+
+  console.log(str)
   emitter.on('draw', resetToFileProps)
   emitter.on('reloadDraw', resetToFileProps)
 })
@@ -34,6 +51,7 @@ watch(
   () => selections.pen,
   (newPen) => {
     pen.value = newPen // ✅ 更新 pen 的值
+    console.log('ElementsProps selections.pen =>', pen.value)
   },
   { deep: true },
 )

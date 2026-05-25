@@ -81,6 +81,10 @@ function getCurrentPenId() {
   return selections.pen?.id || ''
 }
 
+function shouldResetTargetToCurrent() {
+  return !eventFormData.value?.id
+}
+
 function shouldUsePenOptions(action?: number) {
   return (
     action === EventActionEnums.SetProps ||
@@ -109,14 +113,14 @@ function loadValue() {
         key,
         value,
       }))
-      if (!eventFormData.value.params) {
+      if (!eventFormData.value.params || shouldResetTargetToCurrent()) {
         eventFormData.value.params = getCurrentPenId()
       }
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
     case EventActionEnums.StopAnimate:
-      if (!eventFormData.value.value) {
+      if (!eventFormData.value.value || shouldResetTargetToCurrent()) {
         eventFormData.value.value = getCurrentPenId()
       }
       setPropsArray.value = []
@@ -139,14 +143,14 @@ function setValue() {
         },
         {} as Record<string, any>,
       )
-      if (!eventFormData.value.params) {
+      if (!eventFormData.value.params || shouldResetTargetToCurrent()) {
         eventFormData.value.params = getCurrentPenId()
       }
       break
     case EventActionEnums.StartAnimate:
     case EventActionEnums.PauseAnimate:
     case EventActionEnums.StopAnimate:
-      if (!eventFormData.value.value) {
+      if (!eventFormData.value.value || shouldResetTargetToCurrent()) {
         eventFormData.value.value = getCurrentPenId()
       }
       break

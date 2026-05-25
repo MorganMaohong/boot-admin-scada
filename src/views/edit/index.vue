@@ -71,7 +71,8 @@ import {
   reorderMeta2dPens,
 } from '@/utils/meta2dPens.ts'
 import { ensureChildStateValues } from '@/utils/statefulChildren.ts'
-import { normalizePenLayerUid } from '@/utils/layer.ts'
+import { normalizePenLayerUid, syncPenStateWithLayer } from '@/utils/layer.ts'
+import { syncEventsWithPenBinding } from '@/components/ElementsProps/penBindingSync.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -85,6 +86,8 @@ const menuPosition = ref({
 const resizeTimer = ref(0)
 const cachedLocked = ref<LockState | null | undefined>(null)
 const pendingPasteSourcePens = ref<any[]>([])
+const COPY_SOURCE_ID_KEY = '__copySourcePenId'
+let pasteSyncTimer = 0
 
 function resize() {
   if (resizeTimer.value) clearTimeout(resizeTimer.value)
@@ -155,6 +158,7 @@ function init() {
   meta2d.open(data)
   cleanupMeta2dPens({ render: false })
   installMeta2dAddPenLayerGuard()
+  installMeta2dCopyGuard()
 
   // 参数设置
   meta2d.store.data.disableScale = false
@@ -187,16 +191,43 @@ function installMeta2dAddPenLayerGuard() {
   const originalAddPen = meta2d.addPen.bind(meta2d)
   ;(meta2d as any).addPen = (...args: any[]) => {
     normalizePenLayerUid(args[0], layerStore.layer?.uid)
+    syncPenStateWithLayer(args[0], layerStore.layer)
     return originalAddPen(...args)
   }
   ;(meta2d as any).__layerGuardInstalled = true
 }
 
+function installMeta2dCopyGuard() {
+  if (!meta2d?.copy || (meta2d as any).__copyGuardInstalled) return
+
+  const originalCopy = meta2d.copy.bind(meta2d)
+  ;(meta2d as any).copy = (...args: any[]) => {
+    const result = originalCopy(...args)
+    annotateClipboardPens()
+    return result
+  }
+  ;(meta2d as any).__copyGuardInstalled = true
+}
+
 function processPaste(pens: Pen[]) {
-  normalizePenLayerUid(pens as any[], layerStore.layer?.uid)
-  remapPastedPenRefs(pens as any[])
-  meta2d.setValue(pens as any, { render: true })
-  emitter.emit('pensSorted')
+  if (pasteSyncTimer) window.clearTimeout(pasteSyncTimer)
+  pasteSyncTimer = window.setTimeout(() => {
+    const pastedPens = getPastedPensForSync(pens)
+    normalizePenLayerUid(pastedPens as any[], layerStore.layer?.uid)
+    syncPenStateWithLayer(pastedPens as any[], layerStore.layer)
+    remapPastedPenRefs(pastedPens as any[])
+    meta2d.setValue(pastedPens as any, { render: true })
+    emitter.emit('pensSorted')
+    pasteSyncTimer = 0
+  }, 0)
+}
+
+function getPastedPensForSync(pens?: Pen[]) {
+  const activePens = Array.isArray(meta2d?.store?.active) ? meta2d.store.active : []
+  if (activePens.length > 0) {
+    return activePens as Pen[]
+  }
+  return (pens || []) as Pen[]
 }
 
 function remapPastedPenRefs(pastedPens: any[]) {
@@ -215,30 +246,53 @@ function remapPastedPenRefs(pastedPens: any[]) {
   if (idMap.size === 0) return
 
   pastedPens.forEach((pen: any) => {
+    const sourcePenId = getCopySourcePenId(pen) || getPenId(sourcePens[pastedPens.indexOf(pen)])
     if (!Array.isArray(pen?.events)) return
-    pen.events = pen.events.map((event: any) => remapPastedEvent(event, idMap))
+    pen.events = pen.events.map((event: any) =>
+      remapPastedEvent(event, idMap, {
+        sourcePenId,
+        pastedPenId: pen.id,
+      }),
+    )
+    syncEventsWithPenBinding(pen.events, {
+      penId: pen.id,
+      varKey: pen.preferredVarKey || pen.key || '',
+      forceVarKey: false,
+    })
   })
 }
 
-function remapPastedEvent(event: any, idMap: Map<string, string>) {
+function remapPastedEvent(
+  event: any,
+  idMap: Map<string, string>,
+  options: { sourcePenId?: string; pastedPenId?: string } = {},
+) {
   if (!event || typeof event !== 'object') return event
 
   const nextEvent = { ...event }
+  const { sourcePenId = '', pastedPenId = '' } = options
+
   if (nextEvent.action === EventActionEnums.SetProps) {
-    nextEvent.params = remapMaybePenId(nextEvent.params, idMap)
+    nextEvent.params = remapMaybePenId(nextEvent.params, idMap, sourcePenId, pastedPenId)
   }
   if (
     nextEvent.action === EventActionEnums.StartAnimate ||
     nextEvent.action === EventActionEnums.PauseAnimate ||
     nextEvent.action === EventActionEnums.StopAnimate
   ) {
-    nextEvent.value = remapMaybePenId(nextEvent.value, idMap)
+    nextEvent.value = remapMaybePenId(nextEvent.value, idMap, sourcePenId, pastedPenId)
   }
   return nextEvent
 }
 
-function remapMaybePenId(value: any, idMap: Map<string, string>) {
+function remapMaybePenId(
+  value: any,
+  idMap: Map<string, string>,
+  sourcePenId?: string,
+  pastedPenId?: string,
+) {
   if (typeof value !== 'string') return value
+  if (sourcePenId && pastedPenId && value === sourcePenId) return pastedPenId
   return idMap.get(value) || value
 }
 
@@ -299,6 +353,20 @@ function getPenLayerUid(pen?: Pen) {
 
 function getPenId(pen: any) {
   return pen?.id ? String(pen.id) : ''
+}
+
+function annotateClipboardPens() {
+  const clipboardPens = meta2d?.store?.clipboard?.pens
+  if (!Array.isArray(clipboardPens)) return
+  clipboardPens.forEach((pen: any) => {
+    if (!pen || typeof pen !== 'object' || !pen.id) return
+    pen[COPY_SOURCE_ID_KEY] = String(pen.id)
+  })
+}
+
+function getCopySourcePenId(pen: any) {
+  if (!pen || typeof pen !== 'object') return ''
+  return pen[COPY_SOURCE_ID_KEY] ? String(pen[COPY_SOURCE_ID_KEY]) : ''
 }
 
 function buildLayerGroups(pens: any[]) {
@@ -381,6 +449,11 @@ function syncPensAfterChange() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+    window.setTimeout(() => {
+      annotateClipboardPens()
+    }, 0)
+  }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
     pendingPasteSourcePens.value = deepClone(meta2d.store.clipboard?.pens || [])
   }
@@ -432,6 +505,7 @@ function cut() {
 function copy() {
   if (!selections.pens) return
   meta2d.copy(selections.pens as any)
+  annotateClipboardPens()
   meta2d.render()
   showMenu.value = false
 }

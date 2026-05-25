@@ -14,7 +14,11 @@
       <div class="control-var-form">
         <label class="control-var-field">
           <span class="control-var-label">变量</span>
-          <input :value="controlVarFormData.key" class="control-var-input control-var-input--readonly" readonly />
+          <input
+            :value="controlVarDisplayName"
+            class="control-var-input control-var-input--readonly"
+            readonly
+          />
         </label>
         <label class="control-var-field">
           <span class="control-var-label">变量值</span>
@@ -74,12 +78,14 @@ import emitter from '@/utils/eventBus.ts'
 import { VarService } from '@/services/VarService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
 import { useDrawPopupStore } from '@/stores/module/drawPopup.ts'
+import { useDisplayLabels } from '@/components/ElementsProps/useDisplayLabels.ts'
 import Svg404 from '@/assets/error-page/404.svg?component'
 import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
 import DisplayModal from '@/components/DisplayModal.vue'
 
 const drawStore = useDrawStore()
 const drawPopupStore = useDrawPopupStore()
+const { variableLabels } = useDisplayLabels()
 const VanNumberKeyboard = defineAsyncComponent(async () => {
   await import('vant/lib/index.css')
   const mod = await import('vant')
@@ -105,6 +111,11 @@ let controlVarHandler: ((payload: { pen?: { value?: string | number | null }; pa
 const canSubmitControlVar = computed(() => {
   const value = controlVarFormData.value.value
   return value !== undefined && value !== null && String(value).trim() !== ''
+})
+const controlVarDisplayName = computed(() => {
+  const key = controlVarFormData.value.key
+  if (!key) return ''
+  return variableLabels.value[String(key)] || key
 })
 let metaRegistered = false
 

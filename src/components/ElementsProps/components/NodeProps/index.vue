@@ -40,6 +40,10 @@ import {
   getShowChildStateValue,
   resolveShowChildIndex,
 } from '@/utils/statefulChildren.ts'
+import {
+  syncDatasWithPenBinding,
+  syncEventsWithPenBinding,
+} from '@/components/ElementsProps/penBindingSync.ts'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
@@ -68,6 +72,7 @@ const pens = ref<any[]>([])
 const AUTO_SYNC_DATA_NAME = '默认值同步'
 const showChildStateValue = ref<string | number | undefined>('')
 const structureTreeScrollVersion = ref(0)
+const COPY_SOURCE_ID_KEY = '__copySourcePenId'
 
 onMounted(() => {
   pens.value = meta2d.data().pens || []
@@ -157,7 +162,17 @@ function getPen() {
 
   events.value = pen.value.events || []
   datas.value = pen.value.datas || []
+  const sourcePenId = pen.value?.[COPY_SOURCE_ID_KEY] ? String(pen.value[COPY_SOURCE_ID_KEY]) : ''
+  const eventsChanged = syncEventsWithPenBinding(events.value, {
+    penId: pen.value.id,
+    varKey: pen.value.preferredVarKey || pen.value.key || '',
+    forceVarKey: false,
+    sourcePenId,
+  })
   normalizeDatas()
+  if (eventsChanged) {
+    meta2d.setValue({ id: pen.value.id, events: events.value }, { render: true })
+  }
   syncStatefulChildrenConfig(false)
 
   for (const key in pen.value) {
@@ -266,26 +281,13 @@ function syncDatasToPen() {
 function normalizeDatas() {
   if (!pen.value?.id || !Array.isArray(datas.value) || datas.value.length === 0) return
 
-  let changed = false
   const fallbackKey = pen.value.key || ''
   const fallbackName = pen.value.nickname || pen.value.name || fallbackKey
-
-  datas.value.forEach((item: any) => {
-    if (!item || typeof item !== 'object') return
-
-    if (!item.key && fallbackKey) {
-      item.key = fallbackKey
-      changed = true
-    }
-
-    if (!item.name) {
-      if (item.autoSync === true) {
-        item.name = AUTO_SYNC_DATA_NAME
-      } else if (fallbackName) {
-        item.name = fallbackName
-      }
-      changed = true
-    }
+  const changed = syncDatasWithPenBinding(datas.value as any, {
+    varKey: fallbackKey,
+    autoSyncName: AUTO_SYNC_DATA_NAME,
+    fallbackName,
+    forceVarKey: false,
   })
 
   if (changed) {
@@ -343,7 +345,33 @@ function renamePenByVariableName(variableName?: string) {
 function handleBindVariable(value: string) {
   pen.value.key = value
   changePen(value, 'key')
+  pen.value.preferredVarKey = value || ''
+  changePen(pen.value.preferredVarKey, 'preferredVarKey')
   ensureAutoSyncData(value)
+  const nextName = pen.value.nickname || pen.value.name || value
+  const eventsChanged = syncEventsWithPenBinding(events.value, {
+    penId: pen.value.id,
+    varKey: value,
+    forceVarKey: true,
+  })
+  const datasChanged = syncDatasWithPenBinding(datas.value as any, {
+    varKey: value,
+    autoSyncName: AUTO_SYNC_DATA_NAME,
+    fallbackName: nextName,
+    forceVarKey: true,
+  })
+
+  if (eventsChanged || datasChanged) {
+    meta2d.setValue(
+      {
+        id: pen.value.id,
+        events: events.value,
+        datas: datas.value,
+        preferredVarKey: pen.value.preferredVarKey,
+      },
+      { render: true },
+    )
+  }
 }
 
 function showUpdateEventModal(data: EventForm) {
