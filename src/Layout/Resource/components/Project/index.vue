@@ -13,6 +13,14 @@ import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
 import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { useSelection } from '@/services/selections.ts'
+import type { OptionVo } from '@/model'
+import { openDrawOnCanvas } from '@/utils/switchDraw.ts'
+import {
+  normalizeDrawPayload,
+  scheduleCaptureDrawEditSnapshot,
+  serializeCanvasToStableString,
+  syncDrawStoreDataFromCanvas,
+} from '@/utils/drawEditState.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -26,7 +34,10 @@ const currentDrawHoverIndex = ref()
 const projectQueryData = ref<ProjectQuery>({ keyword: '' })
 const copyingDrawUid = ref('')
 const showCopyConfirm = ref(false)
+const showCopyTargetModal = ref(false)
 const pendingSourceDraw = ref<ProjectMonitorDraw | null>(null)
+const copyTargetDrawUid = ref('')
+const currentProjectDrawOptions = ref<OptionVo[]>([])
 const drawListRequestId = ref(0)
 onMounted(() => {
   selectProjectAll()
@@ -36,20 +47,18 @@ watch(
   () => drawStore.draw?.uid,
   (nextUid, prevUid) => {
     if (!nextUid) {
-      targetDrawContext.value = null
-      previewDrawUid.value = ''
+      clearReferencePreviewState()
       return
     }
     if (previewDrawUid.value && prevUid && nextUid !== prevUid) {
-      previewDrawUid.value = ''
-      targetDrawContext.value = null
+      clearReferencePreviewState()
       return
     }
     if (targetDrawContext.value?.uid && targetDrawContext.value.uid !== nextUid) {
-      targetDrawContext.value = null
+      clearReferencePreviewState()
       return
     }
-    targetDrawContext.value = null
+    clearReferencePreviewState()
   },
 )
 
@@ -81,14 +90,22 @@ function changeProject(projectUid: string) {
   selectDrawByProjectUid()
 }
 
+function clearReferencePreviewState() {
+  targetDrawContext.value = null
+  previewDrawUid.value = ''
+  drawStore.referencePreviewUid = ''
+  drawStore.editContextDrawData = ''
+}
+
 function captureTargetDrawContext() {
   if (targetDrawContext.value?.uid) return
   if (!drawStore.draw?.uid) return
-  cleanupMeta2dPens({ render: false })
+  const canvasData = syncDrawStoreDataFromCanvas()
   targetDrawContext.value = {
     ...drawStore.draw,
-    data: JSON.stringify(meta2d.data()),
+    data: canvasData,
   }
+  drawStore.editContextDrawData = serializeCanvasToStableString()
 }
 
 function getTargetDraw() {
@@ -118,7 +135,8 @@ function changeDraw(v: string) {
   MonitorDrawService.selectByUid(v)
     .then((res) => {
       previewDrawUid.value = res.uid
-      meta2d.open(JSON.parse(res.data))
+      drawStore.referencePreviewUid = res.uid
+      meta2d.open(normalizeDrawPayload(JSON.parse(res.data)))
       meta2d.fitView(true, 5)
       meta2d.render()
       syncTargetCanvasState()
@@ -132,11 +150,12 @@ function restoreTargetDraw() {
   const targetDraw = getTargetDraw()
   if (!targetDraw?.uid) return false
   drawStore.draw = { ...targetDraw }
-  meta2d.open(JSON.parse(drawStore.draw.data))
+  meta2d.open(normalizeDrawPayload(JSON.parse(drawStore.draw.data)))
   meta2d.fitView(true, 5)
   meta2d.render()
-  previewDrawUid.value = ''
+  clearReferencePreviewState()
   syncTargetCanvasState()
+  scheduleCaptureDrawEditSnapshot(drawStore.draw.uid)
   return true
 }
 
@@ -246,33 +265,50 @@ function buildReplacedDrawData(sourceDrawData: any, copyPens: any[]) {
   return nextDrawData
 }
 
-function openMergedDrawData(drawData: any) {
-  meta2d.open(deepClone(drawData))
-  meta2d.render()
+function flattenCurrentProjectDrawOptions(vo: { categoryVoList?: Array<{ name?: string; drawList?: ProjectMonitorDraw[] }> }) {
+  const options: OptionVo[] = []
+  vo.categoryVoList?.forEach((category) => {
+    category.drawList?.forEach((draw) => {
+      if (!draw?.uid) return
+      const categoryName = category.name ? `${category.name} / ` : ''
+      options.push({
+        label: `${categoryName}${draw.name || draw.uid}`,
+        value: draw.uid,
+      })
+    })
+  })
+  return options
 }
 
-function getPenId(pen: any) {
-  return pen?.id ? String(pen.id) : ''
+async function loadCurrentProjectDrawOptions() {
+  const res = await MonitorDrawService.select(getUrlParams().projectUid)
+  const options = flattenCurrentProjectDrawOptions(res)
+  currentProjectDrawOptions.value = options
+  const preferredUid = getTargetDraw()?.uid || drawStore.draw?.uid || ''
+  copyTargetDrawUid.value =
+    options.find((item) => item.value === preferredUid)?.value || options[0]?.value || ''
 }
 
-async function copyDrawToCurrentDraw(sourceDraw: ProjectMonitorDraw) {
-  const targetDraw = getTargetDraw()
-  if (!targetDraw?.uid) {
-    window.$message.error('请先打开要导入的目标图纸')
+async function copyDrawToTarget(sourceDraw: ProjectMonitorDraw, targetDrawUid: string) {
+  if (!targetDrawUid) {
+    window.$message.error('请选择要导入的目标图纸')
     return
   }
   if (!sourceDraw?.uid) {
     window.$message.error('来源图纸无效，无法复制')
     return
   }
-  if (sourceDraw.uid === targetDraw.uid) {
+  if (sourceDraw.uid === targetDrawUid) {
     window.$message.warning('来源图纸和目标图纸相同，不能复制')
     return
   }
 
   copyingDrawUid.value = sourceDraw.uid
   try {
-    if (!restoreTargetDraw()) return
+    if (previewDrawUid.value) {
+      restoreTargetDraw()
+    }
+    const targetDraw = await MonitorDrawService.selectByUid(targetDrawUid)
     const sourceDrawDetail = await MonitorDrawService.selectByUid(sourceDraw.uid)
     const sourceData = parseDrawData(sourceDrawDetail)
     const sourcePens = (sourceData.pens || []).filter(Boolean)
@@ -286,15 +322,16 @@ async function copyDrawToCurrentDraw(sourceDraw: ProjectMonitorDraw) {
     const copyPens = createCopyPens(sourcePens, layerUidMap, fallbackLayerUid)
     const nextDrawData = buildReplacedDrawData(sourceData, copyPens)
 
-    openMergedDrawData(nextDrawData)
-    cleanupMeta2dPens({ render: false })
-    drawStore.draw.data = JSON.stringify(nextDrawData)
-    await MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid)
-    targetDrawContext.value = { ...drawStore.draw }
-    previewDrawUid.value = ''
+    const savedDraw: ProjectMonitorDraw = {
+      ...targetDraw,
+      data: JSON.stringify(nextDrawData),
+    }
+    await MonitorDrawService.save(savedDraw.data, savedDraw.uid)
+    clearReferencePreviewState()
+    await openDrawOnCanvas(savedDraw, drawStore, layerStore)
     syncTargetCanvasState()
-    meta2d.fitView(true, 5)
-    window.$message.success(`已复制 ${sourcePens.length} 个图元，并同步图层`)
+    emitter.emit('updateDraw')
+    window.$message.success(`已复制 ${sourcePens.length} 个图元到「${targetDraw.name || targetDraw.uid}」`)
   } catch (error) {
     console.error(error)
     window.$message.error('复制失败，请查看控制台或接口返回')
@@ -303,19 +340,47 @@ async function copyDrawToCurrentDraw(sourceDraw: ProjectMonitorDraw) {
   }
 }
 
-function handleCopyClick(event: MouseEvent, item: ProjectMonitorDraw) {
+async function handleCopyClick(event: MouseEvent, item: ProjectMonitorDraw) {
   event.preventDefault()
   event.stopPropagation()
   pendingSourceDraw.value = item
+  try {
+    await loadCurrentProjectDrawOptions()
+    if (!currentProjectDrawOptions.value.length) {
+      window.$message.error('当前项目没有可导入的图纸')
+      pendingSourceDraw.value = null
+      return
+    }
+    showCopyTargetModal.value = true
+  } catch (error) {
+    console.error(error)
+    window.$message.error('加载当前项目图纸失败')
+    pendingSourceDraw.value = null
+  }
+}
+
+function cancelCopyFlow() {
+  showCopyTargetModal.value = false
+  showCopyConfirm.value = false
+  pendingSourceDraw.value = null
+}
+
+function confirmCopyTarget() {
+  if (!copyTargetDrawUid.value) {
+    window.$message.warning('请选择目标图纸')
+    return
+  }
+  showCopyTargetModal.value = false
   showCopyConfirm.value = true
 }
 
 function confirmCopyDraw() {
   const sourceDraw = pendingSourceDraw.value
+  const targetUid = copyTargetDrawUid.value
   showCopyConfirm.value = false
   pendingSourceDraw.value = null
-  if (!sourceDraw) return
-  copyDrawToCurrentDraw(sourceDraw)
+  if (!sourceDraw || !targetUid) return
+  void copyDrawToTarget(sourceDraw, targetUid)
 }
 </script>
 
@@ -352,7 +417,7 @@ function confirmCopyDraw() {
                   type="primary"
                   ghost
                   :loading="copyingDrawUid === item.uid"
-                  :disabled="getTargetDraw()?.uid === item.uid"
+                  :disabled="drawStore.draw?.uid === item.uid"
                   @click="handleCopyClick($event, item)"
                 >
                   复制
@@ -366,18 +431,54 @@ function confirmCopyDraw() {
     </n-collapse>
   </div>
   <n-modal
+    v-model:show="showCopyTargetModal"
+    preset="card"
+    title="选择目标图纸"
+    style="width: 480px"
+    :mask-closable="false"
+  >
+    <p class="copy-target-tip">将参考图纸内容复制到当前项目的指定图纸（会覆盖目标图纸图层与图元）。</p>
+    <n-form-item label="目标图纸">
+      <n-select
+        v-model:value="copyTargetDrawUid"
+        :options="currentProjectDrawOptions"
+        placeholder="请选择当前项目图纸"
+      />
+    </n-form-item>
+    <template #footer>
+      <div class="copy-target-actions">
+        <n-button @click="cancelCopyFlow">取消</n-button>
+        <n-button type="primary" @click="confirmCopyTarget">下一步</n-button>
+      </div>
+    </template>
+  </n-modal>
+  <n-modal
     v-model:show="showCopyConfirm"
     preset="dialog"
     type="warning"
     title="警告"
-    content="复制将清空当前目标图纸的旧图层和全部图元，再导入参考图纸内容，是否继续？"
+    content="复制将清空目标图纸的旧图层和全部图元，再导入参考图纸内容，是否继续？"
     positive-text="确定复制"
     negative-text="取消"
     @positive-click="confirmCopyDraw"
+    @negative-click="cancelCopyFlow"
   />
 </template>
 
 <style lang="scss" scoped>
+.copy-target-tip {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.copy-target-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .reference-project {
   --reference-project-align-left: 44px;
   padding: 4px 0 2px;

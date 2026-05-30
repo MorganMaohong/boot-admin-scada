@@ -23,6 +23,10 @@ export const useDrawStore = defineStore('draw', () => {
     show: false,
     draw: {},
   })
+  /** 参考项目预览中的图纸 uid（画布此时展示的是参考图，不是 draw.uid 对应内容） */
+  const referencePreviewUid = ref('')
+  /** 进入参考预览前，当前工作图纸的稳定画布数据 */
+  const editContextDrawData = ref('')
   const setTitle = () => {
     ProjectService.getProjectName(getUrlParams().projectUid).then((res) => {
       document.title = res
@@ -116,6 +120,8 @@ export const useDrawStore = defineStore('draw', () => {
     snList,
     process,
     globalModal,
+    referencePreviewUid,
+    editContextDrawData,
   }
 })
 

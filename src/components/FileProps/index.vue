@@ -10,6 +10,7 @@ import {
   cleanupMeta2dPens,
   collectValidMeta2dPens,
   getRuntimeMeta2dPen,
+  isPlainCombineMemberPen,
   removeMeta2dPens,
 } from '@/utils/meta2dPens.ts'
 
@@ -117,7 +118,11 @@ function removePen(pen) {
     return
   }
   const index = findPenIndex(currentPen)
-  removeMeta2dPens([currentPen], { render: true })
+  if (isPlainCombineMemberPen(currentPen)) {
+    meta2d.delete([currentPen])
+  } else {
+    removeMeta2dPens([currentPen], { render: true })
+  }
   if (index >= 0) {
     pens.value.splice(index, 1)
   }

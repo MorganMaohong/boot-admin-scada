@@ -65,6 +65,9 @@ import { useLayerStore } from '@/stores/module/layer.ts'
 import { useAppStore } from '@/stores/app'
 import {
   cleanupMeta2dPens,
+  getSharedCombineParent,
+  getCombineChildPensInRenderOrder,
+  reorderCombineChildPens,
   collectValidMeta2dPens,
   installMeta2dSafetyGuards,
   removeMeta2dPens,
@@ -73,6 +76,10 @@ import {
 import { ensureChildStateValues } from '@/utils/statefulChildren.ts'
 import { normalizePenLayerUid, syncPenStateWithLayer } from '@/utils/layer.ts'
 import { syncEventsWithPenBinding } from '@/components/ElementsProps/penBindingSync.ts'
+import {
+  normalizeDrawPayload,
+  scheduleCaptureDrawEditSnapshot,
+} from '@/utils/drawEditState.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -153,7 +160,7 @@ function init() {
     window.$message.error('图纸异常')
     return
   }
-  let data = JSON.parse(draw.data)
+  let data = normalizeDrawPayload(JSON.parse(draw.data))
   // data.bkImage = ''
   meta2d.open(data)
   cleanupMeta2dPens({ render: false })
@@ -166,6 +173,8 @@ function init() {
   meta2d.store.options.strictScope = true
 
   meta2d.fitView(true, 5)
+  emitter.emit('reloadDraw')
+  scheduleCaptureDrawEditSnapshot(draw.uid)
 
   document.addEventListener('fullscreenchange', () => {
     setTimeout(() => {
@@ -421,12 +430,34 @@ function moveSelectedOneStepDown(layerPens: Pen[], selectedIds: Set<string>) {
   return nextPens
 }
 
+function reorderCombineMemberPens(
+  parent: any,
+  reorderChildPens: (childPens: Pen[], selectedIds: Set<string>) => Pen[],
+) {
+  const selectedPens = (selections.pens || []) as any[]
+  const selectedIds = new Set(selectedPens.map(getPenId).filter(Boolean))
+  if (selectedIds.size === 0) return
+
+  const orderedChildren = getCombineChildPensInRenderOrder(parent) as Pen[]
+  const nextChildren = reorderChildPens(orderedChildren, selectedIds)
+  reorderCombineChildPens(parent, nextChildren, { render: true })
+  emitter.emit('pensSorted')
+  selects(selectedPens)
+  select(selectedPens)
+}
+
 function reorderSelectedInOwnLayers(
   reorderLayerPens: (layerPens: Pen[], selectedIds: Set<string>) => Pen[],
 ) {
   const selectedPens = (selections.pens || []) as any[]
   const selectedIds = new Set(selectedPens.map(getPenId).filter(Boolean))
   if (selectedIds.size === 0) return
+
+  const sharedCombineParent = getSharedCombineParent(selectedPens)
+  if (sharedCombineParent) {
+    reorderCombineMemberPens(sharedCombineParent, reorderLayerPens)
+    return
+  }
 
   const allPens = collectValidMeta2dPens(meta2d.data().pens || []).pens as any[]
   const { layerOrder, layerMap } = buildLayerGroups(allPens)
@@ -519,7 +550,11 @@ function paste() {
 }
 
 function undo() {
+  if (Array.isArray(meta2d.store?.active)) {
+    meta2d.store.active = meta2d.store.active.filter((pen: any) => pen?.calculative)
+  }
   meta2d.undo()
+  cleanupMeta2dPens({ render: false })
   meta2d.render()
   syncPensAfterChange()
   showMenu.value = false

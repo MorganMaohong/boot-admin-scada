@@ -22,8 +22,9 @@ const show = computed({
     :title="drawPopupStore.draw.title"
     :width="drawPopupStore.style.width"
     :height="drawPopupStore.style.height"
+    closable
+    content-fill
     :mask-closable="false"
-    :show-mask="false"
   >
     <DrawPopupCanvas :draw="drawPopupStore.draw" />
   </DisplayModal>

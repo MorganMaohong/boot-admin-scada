@@ -17,9 +17,15 @@ import {
   collectValidMeta2dPens,
   countInvalidMeta2dPens,
   getRuntimeMeta2dPen,
+  getCombineChildPensForLayerTree,
+  getCombineParentPen,
+  isCombineMemberPen,
+  combineTreeOrderToRenderOrder,
   removeMeta2dPens,
   reorderMeta2dPens,
+  reorderCombineChildPens,
 } from '@/utils/meta2dPens.ts'
+import { markDrawEditSaved } from '@/utils/drawEditState.ts'
 
 interface StructureTreeNode {
   key: string
@@ -127,6 +133,12 @@ function setCurrentLayer(layer?: ProjectMonitorLayer) {
 }
 
 function getPenLabel(pen: any) {
+  if (pen?.name === 'combine') {
+    if (pen.showChild !== undefined) {
+      return pen?.nickname || '状态组合'
+    }
+    return pen?.nickname || '组合'
+  }
   return pen?.nickname || pen?.name || pen?.id || '未命名图元'
 }
 
@@ -142,18 +154,29 @@ function getPenLayerUid(pen: any) {
 }
 
 function buildPenNode(pen: any): StructureTreeNode {
+  const runtimePen = getRuntimeMeta2dPen(pen) || pen
+  const childNodes =
+    runtimePen?.name === 'combine' &&
+    Array.isArray(runtimePen.children) &&
+    runtimePen.children.length > 0
+      ? getCombineChildPensForLayerTree(runtimePen)
+          .map(buildPenNode)
+      : undefined
+
   return {
-    key: `pen-${pen.id}`,
-    label: getPenLabel(pen),
+    key: `pen-${runtimePen.id}`,
+    label: getPenLabel(runtimePen),
     type: 'pen',
-    isLeaf: true,
-    pen,
+    isLeaf: !childNodes?.length,
+    pen: runtimePen,
+    children: childNodes,
   }
 }
 
 function buildLayerPensMap(pens: any[], frontFirst = true) {
   const map = new Map<string, any[]>()
   pens.forEach((pen) => {
+    if (isCombineMemberPen(pen)) return
     const layerUid = getPenLayerUid(pen)
     if (!map.has(layerUid)) {
       map.set(layerUid, [])
@@ -204,13 +227,23 @@ const treeData = computed<StructureTreeNode[]>(() => {
   return nodes
 })
 
+function collectTreePenIds(nodes: StructureTreeNode[]) {
+  const ids: string[] = []
+  const walk = (node?: StructureTreeNode) => {
+    if (!node) return
+    const penId = getPenId(node.pen)
+    if (penId) ids.push(penId)
+    node.children?.forEach(walk)
+  }
+  nodes.forEach((layerNode) => layerNode.children?.forEach(walk))
+  return ids
+}
+
 watch(
   treeData,
   (nodes) => {
     expandedKeys.value = nodes.map((item) => item.key)
-    const validPenIds = new Set(
-      nodes.flatMap((item) => item.children || []).map((item) => getPenId(item.pen)),
-    )
+    const validPenIds = new Set(collectTreePenIds(nodes))
     checkedPenIds.value = checkedPenIds.value.filter((id) => validPenIds.has(id))
     if (pendingScrollToSelected.value) {
       nextTick(() => {
@@ -493,6 +526,7 @@ function renderLayerSuffix(option: StructureTreeNode) {
 function renderPenSuffix(option: StructureTreeNode) {
   if (option.type !== 'pen' || !option.pen) return null
   const pen = option.pen
+  if (isCombineMemberPen(pen)) return null
 
   const lockIcon =
     pen.locked === LockState.None ? LockOpen : pen.locked === LockState.DisableEdit ? Lock : LockOff
@@ -576,7 +610,13 @@ function moveItem<T>(list: T[], fromIndex: number, toIndex: number) {
 function saveDraw() {
   if (!props.drawUid) return Promise.resolve()
   cleanupMeta2dPens({ render: false })
-  return MonitorDrawService.save(JSON.stringify(meta2d.data()), props.drawUid)
+  const data = JSON.stringify(meta2d.data())
+  if (drawStore.draw?.uid === props.drawUid) {
+    drawStore.draw.data = data
+  }
+  return MonitorDrawService.save(data, props.drawUid).then(() => {
+    markDrawEditSaved(props.drawUid)
+  })
 }
 
 function replacePens(nextPens: any[]) {
@@ -627,6 +667,42 @@ function getPenId(pen: any) {
 
 function getRuntimePen(pen: any) {
   return getRuntimeMeta2dPen(pen)
+}
+
+function isSameCombineGroup(penA: any, penB: any) {
+  const parentA = getCombineParentPen(penA)
+  const parentB = getCombineParentPen(penB)
+  if (!parentA || !parentB) return false
+  return getPenId(parentA) === getPenId(parentB)
+}
+
+async function reorderCombineChildren(
+  parent: any,
+  dragPens: any[],
+  targetPen: any,
+  dropPosition: 'before' | 'after',
+) {
+  const orderedChildren = getCombineChildPensForLayerTree(parent)
+  const dragPenIds = new Set(dragPens.map(getPenId).filter(Boolean))
+  const movingPens = orderedChildren.filter((pen) => dragPenIds.has(getPenId(pen)))
+  const remainChildren = orderedChildren.filter((pen) => !dragPenIds.has(getPenId(pen)))
+
+  const targetIndex = remainChildren.findIndex((pen) => getPenId(pen) === getPenId(targetPen))
+  if (targetIndex < 0) {
+    remainChildren.push(...movingPens)
+  } else {
+    const insertIndex = dropPosition === 'before' ? targetIndex : targetIndex + 1
+    remainChildren.splice(insertIndex, 0, ...movingPens)
+  }
+
+  reorderCombineChildPens(
+    parent,
+    combineTreeOrderToRenderOrder(remainChildren),
+    { render: false },
+  )
+  meta2d.render()
+  syncMovedSelection(movingPens)
+  await saveDraw()
 }
 
 function getUniqueRuntimePens(pens: any[]) {
@@ -824,13 +900,13 @@ function allowDrop({
     const dragPens = getDragPens(dragNode.pen)
     const dragPenIds = new Set(dragPens.map(getPenId).filter(Boolean))
     if (targetNode.type === 'layer') {
-      return true
+      return !dragPens.some((pen) => isCombineMemberPen(pen))
     }
-    return (
-      targetNode.type === 'pen' &&
-      dropPosition !== 'inside' &&
-      !dragPenIds.has(getPenId(targetNode.pen))
-    )
+    if (targetNode.type === 'pen' && dropPosition !== 'inside') {
+      if (dragPenIds.has(getPenId(targetNode.pen))) return false
+      if (isSameCombineGroup(dragNode.pen, targetNode.pen)) return true
+      return !isCombineMemberPen(dragNode.pen)
+    }
   }
 
   return false
@@ -850,6 +926,18 @@ async function handleDrop(info: TreeDropInfo) {
 
     if (dragNode.type === 'pen' && dragNode.pen) {
       const dragPens = getDragPens(dragNode.pen)
+      if (
+        targetNode.type === 'pen' &&
+        targetNode.pen &&
+        isSameCombineGroup(dragNode.pen, targetNode.pen)
+      ) {
+        const parent = getCombineParentPen(dragNode.pen)
+        const dropPosition = info.dropPosition === 'before' ? 'before' : 'after'
+        await reorderCombineChildren(parent, dragPens, targetNode.pen, dropPosition)
+        emit('sorted')
+        window.$message.success('组合内图元顺序已更新')
+        return
+      }
       await reorderPens(dragPens, targetNode, info.dropPosition)
       if (targetNode.type === 'layer') {
         window.$message.success(`已迁移 ${dragPens.length} 个图元`)

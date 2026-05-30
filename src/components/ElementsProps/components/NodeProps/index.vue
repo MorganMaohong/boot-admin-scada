@@ -33,7 +33,11 @@ import {
   resetElementsPropsActiveTab,
 } from '@/components/ElementsProps/state.ts'
 import emitter from '@/utils/eventBus.ts'
-import { removeMeta2dPens } from '@/utils/meta2dPens.ts'
+import {
+  getRuntimeMeta2dPen,
+  isPlainCombineMemberPen,
+  removeMeta2dPens,
+} from '@/utils/meta2dPens.ts'
 import {
   ensureChildStateValues,
   getChildStateValues,
@@ -572,7 +576,12 @@ function changeVisible(targetPen) {
 
 function removePen(targetPen) {
   const index = findPenIndex(targetPen)
-  removeMeta2dPens([targetPen], { render: true })
+  const runtimePen = getRuntimeMeta2dPen(targetPen) || targetPen
+  if (isPlainCombineMemberPen(runtimePen)) {
+    meta2d.delete([runtimePen])
+  } else {
+    removeMeta2dPens([targetPen], { render: true })
+  }
   if (index >= 0) {
     pens.value.splice(index, 1)
   }

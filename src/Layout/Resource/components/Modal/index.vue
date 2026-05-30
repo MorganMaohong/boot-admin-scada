@@ -8,6 +8,7 @@ import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
+import { normalizeDrawPayload } from '@/utils/drawEditState.ts'
 const layerStore = useLayerStore()
 const drawStore = useDrawStore()
 const data = ref<ProjectMonitorVo>({
@@ -52,7 +53,7 @@ function changeDraw(v: string) {
       .then(async (res) => {
         drawStore.draw = res
         await layerStore.ensureDefaultLayer(drawStore.draw.uid, drawStore.draw.projectUid)
-        meta2d.open(JSON.parse(drawStore.draw.data))
+        meta2d.open(normalizeDrawPayload(JSON.parse(drawStore.draw.data)))
         meta2d.fitView(true, 0)
         meta2d.render()
         emitter.emit('reloadDraw')

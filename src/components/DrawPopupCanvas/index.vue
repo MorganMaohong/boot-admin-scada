@@ -16,27 +16,79 @@ const props = defineProps<{
 }>()
 
 const containerId = `draw-popup-${s16()}`
+const canvasRef = ref<HTMLElement | null>(null)
 let popupMeta2d: Meta2d | null = null
 let removeFullscreenListener: (() => void) | null = null
+let resizeObserver: ResizeObserver | null = null
+let initScheduled = false
 
 onMounted(() => {
-  init()
+  void nextTick().then(() => {
+    setupResizeObserver()
+    return scheduleInit()
+  })
 })
 
 watch(
   () => props.draw?.uid,
   async () => {
     await nextTick()
-    init()
+    void scheduleInit()
   },
 )
 
 onUnmounted(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   destroy()
 })
 
+function getContainer() {
+  return canvasRef.value ?? document.getElementById(containerId)
+}
+
+function hasContainerSize(el: HTMLElement) {
+  return el.clientWidth > 0 && el.clientHeight > 0
+}
+
+async function scheduleInit() {
+  if (!props.draw?.data || initScheduled) return
+  initScheduled = true
+  await nextTick()
+  requestAnimationFrame(() => {
+    initScheduled = false
+    const el = getContainer()
+    if (!el || !props.draw?.data) return
+    if (!hasContainerSize(el)) return
+    init()
+  })
+}
+
+function setupResizeObserver() {
+  const el = getContainer()
+  if (!el || typeof ResizeObserver === 'undefined') return
+  resizeObserver?.disconnect()
+  resizeObserver = new ResizeObserver(() => {
+    const target = getContainer()
+    if (!target || !props.draw?.data) return
+    if (!hasContainerSize(target)) return
+    if (!popupMeta2d) {
+      init()
+      return
+    }
+    popupMeta2d.resize()
+    popupMeta2d.fitView(true, 5)
+  })
+  resizeObserver.observe(el)
+}
+
 function init() {
   if (!props.draw?.data) return
+  const el = getContainer()
+  if (!el || !hasContainerSize(el)) {
+    void scheduleInit()
+    return
+  }
   destroy()
   popupMeta2d = new Meta2d(containerId, { rule: false })
   registerLibraries()
@@ -94,12 +146,13 @@ function registerLibraries() {
 </script>
 
 <template>
-  <div :id="containerId" class="draw-popup-canvas"></div>
+  <div :id="containerId" ref="canvasRef" class="draw-popup-canvas"></div>
 </template>
 
 <style lang="scss" scoped>
 .draw-popup-canvas {
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 </style>

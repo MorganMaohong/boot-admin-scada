@@ -20,6 +20,7 @@ import SvgIcon from '@/components/SvgIcon/index.vue'
 import SystemImageCallery from '@/components/SystemImageCallery/index.vue'
 import { getAuthToken } from '@/utils/auth'
 import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
+import { markDrawEditSaved, syncDrawStoreDataFromCanvas } from '@/utils/drawEditState.ts'
 
 const isMagnifier = ref<boolean>(false)
 const currentLineType = ref<string>('curve')
@@ -162,11 +163,12 @@ function onView() {
   meta2d.stopAnimate()
 
   setTimeout(() => {
-    cleanupMeta2dPens({ render: false })
-    const data: any = meta2d.data()
-    drawStore.draw.data = JSON.stringify(data)
+    const data = syncDrawStoreDataFromCanvas()
+    if (!data) return
+    drawStore.draw.data = data
 
-    MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid).then(() => {
+    MonitorDrawService.save(data, drawStore.draw.uid).then(() => {
+      markDrawEditSaved(drawStore.draw.uid)
       // 构建预览 URL
       const queryParams = new URLSearchParams({
         projectUid: getUrlParams().projectUid,
@@ -201,9 +203,12 @@ function showMagnifier() {
 }
 
 function save() {
-  cleanupMeta2dPens({ render: false })
-  drawStore.draw.data = JSON.stringify(meta2d.data())
-  MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid)
+  const data = syncDrawStoreDataFromCanvas()
+  if (!data || !drawStore.draw?.uid) return
+  drawStore.draw.data = data
+  MonitorDrawService.save(data, drawStore.draw.uid).then(() => {
+    markDrawEditSaved(drawStore.draw.uid)
+  })
 }
 
 function showUpdateCategoryModal(uid: string) {

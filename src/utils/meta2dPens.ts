@@ -29,12 +29,130 @@ function cleanIdList(list: any, validIds: Set<string>) {
   }
 }
 
-function sanitizePenRefs(pen: any, validIds: Set<string>) {
+export function getCombineParentPen(pen: any) {
+  if (!pen?.parentId) return null
+  const parent = getRuntimePenMap()[String(pen.parentId)]
+  if (parent?.name === 'combine' && Array.isArray(parent.children) && parent.children.length) {
+    return parent
+  }
+  return null
+}
+
+/** @deprecated 使用 getCombineParentPen */
+export const getPlainCombineParentPen = getCombineParentPen
+
+export function isCombineMemberPen(pen: any) {
+  return !!getCombineParentPen(pen)
+}
+
+/** @deprecated 使用 isCombineMemberPen */
+export const isPlainCombineMemberPen = isCombineMemberPen
+
+/** 组合子图元按画布绘制顺序排列（index 小 = 底层） */
+export function getCombineChildPensInRenderOrder(parent: any) {
+  if (!parent?.children?.length) return []
+  const childIdSet = new Set(parent.children.map((id: string) => String(id)))
+  return (meta2d?.data?.()?.pens || []).filter((pen: any) =>
+    childIdSet.has(getPenId(pen)),
+  )
+}
+
+/** @deprecated 使用 getCombineChildPensInRenderOrder */
+export const getPlainCombineChildPensInRenderOrder = getCombineChildPensInRenderOrder
+
+/** 图层树展示顺序：上面的层级更高（与外层图元 frontFirst 一致） */
+export function getCombineChildPensForLayerTree(parent: any) {
+  return [...getCombineChildPensInRenderOrder(parent)].reverse()
+}
+
+/** @deprecated 使用 getCombineChildPensForLayerTree */
+export const getPlainCombineChildPensForLayerTree = getCombineChildPensForLayerTree
+
+/** 图层树顺序 → 画布绘制顺序 */
+export function combineTreeOrderToRenderOrder(treeOrderedPens: any[]) {
+  return [...treeOrderedPens].reverse()
+}
+
+/** @deprecated 使用 combineTreeOrderToRenderOrder */
+export const plainCombineTreeOrderToRenderOrder = combineTreeOrderToRenderOrder
+
+export function getSharedCombineParent(pens: any[]) {
+  if (!pens?.length) return null
+  const parents = pens.map(getCombineParentPen).filter(Boolean)
+  if (parents.length !== pens.length) return null
+  const parentId = getPenId(parents[0])
+  if (!parentId || !parents.every((parent) => getPenId(parent) === parentId)) return null
+  return parents[0]
+}
+
+/** @deprecated 使用 getSharedCombineParent */
+export const getSharedPlainCombineParent = getSharedCombineParent
+
+/** 在组合内部重排子图元（同步 data.pens 与 parent.children） */
+export function reorderCombineChildPens(
+  parent: any,
+  orderedChildPens: any[],
+  options: { render?: boolean } = {},
+) {
+  if (!parent?.children?.length || !orderedChildPens.length) {
+    return { changed: false }
+  }
+
+  const childIdSet = new Set(parent.children.map((id: string) => String(id)))
+  const nextIds: string[] = []
+  orderedChildPens.forEach((pen) => {
+    const penId = getPenId(pen)
+    if (penId && childIdSet.has(penId) && !nextIds.includes(penId)) {
+      nextIds.push(penId)
+    }
+  })
+  parent.children.forEach((id: string) => {
+    const penId = String(id)
+    if (!nextIds.includes(penId)) nextIds.push(penId)
+  })
+
+  const store = meta2d?.store
+  const pens = store?.data?.pens
+  if (!Array.isArray(pens)) return { changed: false }
+
+  const movedPens = nextIds
+    .map((id) => getRuntimePenMap()[id])
+    .filter((pen) => isRenderablePen(pen))
+  const indices = movedPens
+    .map((pen) => pens.findIndex((item: any) => getPenId(item) === getPenId(pen)))
+    .filter((index) => index > -1)
+  if (indices.length === 0) return { changed: false }
+
+  const blockStart = Math.min(...indices)
+  indices
+    .sort((a, b) => b - a)
+    .forEach((index) => {
+      pens.splice(index, 1)
+    })
+  pens.splice(blockStart, 0, ...movedPens)
+  parent.children = nextIds
+
+  if (options.render !== false) meta2d.render()
+  return { changed: true }
+}
+
+/** @deprecated 使用 reorderCombineChildPens */
+export const reorderPlainCombineChildPens = reorderCombineChildPens
+
+function sanitizePenRefs(
+  pen: any,
+  validIds: Set<string>,
+  runtimePenMap: Record<string, any> = getRuntimePenMap(),
+) {
   let changed = false
 
-  if (pen.parentId && !validIds.has(String(pen.parentId))) {
-    delete pen.parentId
-    changed = true
+  if (pen.parentId) {
+    const parentId = String(pen.parentId)
+    const parentExists = validIds.has(parentId) || !!runtimePenMap[parentId]
+    if (!parentExists) {
+      delete pen.parentId
+      changed = true
+    }
   }
 
   const children = cleanIdList(pen.children, validIds)
@@ -110,7 +228,7 @@ export function collectValidMeta2dPens(
   if (options.sanitizeRefs) {
     const validIds = new Set(pens.map(getPenId).filter(Boolean))
     pens.forEach((pen) => {
-      refsChanged = sanitizePenRefs(pen, validIds) || refsChanged
+      refsChanged = sanitizePenRefs(pen, validIds, runtimePenMap) || refsChanged
     })
   }
 
@@ -192,7 +310,7 @@ function normalizeRuntimePens(meta2dInstance = meta2d, options: { normalizeImage
 
   const validIds = new Set(normalizedPens.map(getPenId).filter(Boolean))
   normalizedPens.forEach((pen) => {
-    changed = sanitizePenRefs(pen, validIds) || changed
+    changed = sanitizePenRefs(pen, validIds, runtimePenMap) || changed
   })
 
   if (!changed) return false
@@ -277,6 +395,14 @@ export function removeMeta2dPens(targetPens: any[], options: { render?: boolean 
   if (removedIdSet.size === 0) {
     return { removedIds: [], changed: false }
   }
+
+  rootIds.forEach((penId) => {
+    const pen = penMap.get(penId)
+    const parent = getCombineParentPen(pen)
+    if (!parent?.children || !penId) return
+    const index = parent.children.indexOf(penId)
+    if (index !== -1) parent.children.splice(index, 1)
+  })
 
   const nextPens = currentPens.filter((pen: any) => !removedIdSet.has(getPenId(pen)))
   const changed = nextPens.length !== currentPens.length

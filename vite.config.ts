@@ -126,6 +126,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src'),
+        '@meta2d/core': path.resolve(__dirname, '../meta2d.js/packages/core'),
       },
     },
     server: {

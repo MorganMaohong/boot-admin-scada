@@ -106,9 +106,10 @@ export function openFullScreen(pen: any, params: any) {
   // window.parent.postMessage({ type: 'REQUEST_FULLSCREEN' }, '*')
 }
 
-export function openModal(pen: any, params: any) {
-  console.log('openModal', pen, params)
-  drawPopupStore.open(params)
+export function openModal(_pen: any, params: any) {
+  const uid = typeof params === 'string' ? params : params?.uid ?? params?.value
+  if (!uid) return
+  drawPopupStore.open(uid)
 }
 
 // 注册到 globalThis

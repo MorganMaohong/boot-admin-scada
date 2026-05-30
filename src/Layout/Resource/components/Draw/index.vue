@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { getUrlParams } from '@/utils'
 import { useDrawStore } from '@/stores/module/draw.ts'
@@ -7,7 +7,8 @@ import emitter from '@/utils/eventBus.ts'
 import type { ProjectMonitorDraw, ProjectMonitorVo } from '@/model/draw'
 import { s16 } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
-import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
+import { isDrawEditDirty } from '@/utils/drawEditState.ts'
+import { saveCurrentDraw, switchDrawByUid } from '@/utils/switchDraw.ts'
 
 const layerStore = useLayerStore()
 const drawStore = useDrawStore()
@@ -18,6 +19,19 @@ const data = ref<ProjectMonitorVo>({
 })
 const currentDrawValue = ref('')
 const key = ref(s16())
+const menuDrawUid = ref('')
+const showSwitchConfirm = ref(false)
+const pendingSwitchUid = ref('')
+const switchSaving = ref(false)
+
+watch(
+  () => drawStore.draw?.uid,
+  (uid) => {
+    menuDrawUid.value = uid || ''
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   select()
   emitter.on('updateDraw', () => {
@@ -36,32 +50,55 @@ function select() {
         currentDrawValue.value = data.value.defDraw.uid
         drawStore.draw = data.value.defDraw
         await layerStore.ensureDefaultLayer(drawStore.draw.uid, drawStore.draw.projectUid)
+        await nextTick()
         emitter.emit('draw')
         key.value = s16()
       }
     })
 }
 
-function changeDraw(v: string) {
-  // 如果传入的 UID 与当前的不同，才更新并通知
-  if (drawStore.draw.uid !== v) {
-    showRequestOverlay('正在切换图纸，请稍候...')
-    // 切换时更新保存上一个数据
-    // drawStore.draw.data = JSON.stringify(meta2d.data())
-    // MonitorDrawService.save(drawStore.draw.data, drawStore.draw.uid).then(() => {
-    MonitorDrawService.selectByUid(v)
-      .then(async (res) => {
-        drawStore.draw = res
-        await layerStore.ensureDefaultLayer(drawStore.draw.uid, drawStore.draw.projectUid)
-        meta2d.open(JSON.parse(drawStore.draw.data))
-        meta2d.fitView(true, 5)
-        meta2d.render()
-        emitter.emit('reloadDraw')
-        // })
-      })
-      .finally(() => {
-        hideRequestOverlay()
-      })
+function onMenuUpdate(nextUid: string) {
+  const currentUid = drawStore.draw?.uid
+  if (!nextUid || nextUid === currentUid) return
+  pendingSwitchUid.value = nextUid
+  if (
+    isDrawEditDirty(drawStore.draw?.data, drawStore.draw?.uid, {
+      referencePreviewUid: drawStore.referencePreviewUid,
+      editContextDrawData: drawStore.editContextDrawData,
+    })
+  ) {
+    showSwitchConfirm.value = true
+    menuDrawUid.value = currentUid || ''
+    return
+  }
+  void switchDrawByUid(nextUid, drawStore, layerStore)
+}
+
+function cancelSwitch() {
+  showSwitchConfirm.value = false
+  pendingSwitchUid.value = ''
+  menuDrawUid.value = drawStore.draw?.uid || ''
+}
+
+async function switchWithoutSave() {
+  const nextUid = pendingSwitchUid.value
+  showSwitchConfirm.value = false
+  pendingSwitchUid.value = ''
+  if (!nextUid) return
+  await switchDrawByUid(nextUid, drawStore, layerStore)
+}
+
+async function switchWithSave() {
+  const nextUid = pendingSwitchUid.value
+  if (!nextUid || !drawStore.draw?.uid) return
+  switchSaving.value = true
+  try {
+    await saveCurrentDraw(drawStore)
+    showSwitchConfirm.value = false
+    pendingSwitchUid.value = ''
+    await switchDrawByUid(nextUid, drawStore, layerStore)
+  } finally {
+    switchSaving.value = false
   }
 }
 </script>
@@ -74,10 +111,26 @@ function changeDraw(v: string) {
     label-field="name"
     key-field="uid"
     children-field="drawList"
-    @update:value="changeDraw"
+    :value="menuDrawUid"
+    @update:value="onMenuUpdate"
     default-expand-all
-    v-model:value="drawStore.draw.uid"
-  ></n-menu>
+  />
+  <n-modal
+    v-model:show="showSwitchConfirm"
+    preset="card"
+    title="切换图纸"
+    style="width: 420px"
+    :mask-closable="false"
+  >
+    <p class="switch-draw-tip">当前图纸有未保存的修改，切换前是否保存？</p>
+    <template #footer>
+      <div class="switch-draw-actions">
+        <n-button @click="cancelSwitch">取消</n-button>
+        <n-button @click="switchWithoutSave">不保存</n-button>
+        <n-button type="primary" :loading="switchSaving" @click="switchWithSave">保存</n-button>
+      </div>
+    </template>
+  </n-modal>
 </template>
 
 <style lang="scss" scoped>
@@ -87,5 +140,18 @@ function changeDraw(v: string) {
   --n-item-text-color-active: #0f172a;
   --n-item-icon-color-active: #0f172a;
   --n-arrow-color: #64748b;
+}
+
+.switch-draw-tip {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.switch-draw-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>
