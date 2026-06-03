@@ -50,8 +50,7 @@ onMounted(() => {
 watch(
   () => selections.pen,
   (newPen) => {
-    pen.value = newPen // ✅ 更新 pen 的值
-    console.log('ElementsProps selections.pen =>', pen.value)
+    pen.value = newPen ?? {}
   },
   { deep: true },
 )
@@ -80,8 +79,8 @@ onUnmounted(() => {
     <MoreNodeProps />
   </template>
   <template v-else>
-    <LineProps v-if="pen.name === 'line'" :key="k1" />
-    <NodeProps v-else :key="k2" />
+    <LineProps v-if="selections.pen?.name === 'line'" :key="k1" />
+    <NodeProps v-else-if="selections.pen?.id" :key="k2" />
   </template>
 </template>
 

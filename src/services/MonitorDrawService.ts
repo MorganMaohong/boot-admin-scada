@@ -1,4 +1,5 @@
 import request from '@/utils/request.ts'
+import { useScreenApiClient } from '@/utils/displayAccess.ts'
 import { monitorDrawApi } from '@/services/api/index.ts'
 import type {
   ProjectMonitorDraw,
@@ -125,9 +126,13 @@ export const MonitorDrawService = {
   },
   async display(projectUid: string, drawUid?: string): Promise<ProjectMonitorDrawDisplay> {
     try {
-      const url = drawUid
-        ? monitorDrawApi.display.url + `/${projectUid}/${drawUid}`
-        : monitorDrawApi.display.url + `/${projectUid}`
+      const url = useScreenApiClient()
+        ? drawUid
+          ? `/projectScreen/scadaPreview/${projectUid}/${drawUid}`
+          : `/projectScreen/scadaPreview/${projectUid}`
+        : drawUid
+          ? monitorDrawApi.display.url + `/${projectUid}/${drawUid}`
+          : monitorDrawApi.display.url + `/${projectUid}`
       let res = await request({
         url,
         method: 'POST',

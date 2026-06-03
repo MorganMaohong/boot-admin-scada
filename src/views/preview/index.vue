@@ -80,6 +80,7 @@ import { useDrawStore } from '@/stores/module/draw.ts'
 import { useDrawPopupStore } from '@/stores/module/drawPopup.ts'
 import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
 import DisplayModal from '@/components/DisplayModal.vue'
+import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
 
 const drawStore = useDrawStore()
 const drawPopupStore = useDrawPopupStore()
@@ -156,6 +157,7 @@ function closeControlVar() {
 
 function init() {
   new Meta2d('meta2d', meta2dOptions)
+  installMeta2dSafetyGuards()
 
   register(flowPens())
   registerAnchors(flowAnchors())

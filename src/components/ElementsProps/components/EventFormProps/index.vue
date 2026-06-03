@@ -303,13 +303,16 @@ function changeTrigger(v: string) {
             item.key === PropEnums.text ||
             item.key === PropEnums.x ||
             item.key === PropEnums.y ||
-            item.key === PropEnums.width ||
-            item.key === PropEnums.height ||
             item.key === PropEnums.showChild
           "
         >
           <n-form-item class="w-full">
             <n-input class="w-full" v-model:value="item.value" />
+          </n-form-item>
+        </template>
+        <template v-if="item.key === PropEnums.width || item.key === PropEnums.height">
+          <n-form-item class="w-full">
+            <n-input-number class="w-full" v-model:value="item.value" :min="0" />
           </n-form-item>
         </template>
         <template v-if="item.key === PropEnums.visible || item.key === PropEnums.checked">

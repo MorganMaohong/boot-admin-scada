@@ -1,0 +1,64 @@
+// 图纸/弹窗管理弹窗：toolbar 固定，表格区 flex 撑满并内部滚动
+.FormModal__body:has(.manage-panel) {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.FormModal__body:has(.manage-panel) > .n-config-provider {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.manage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.manage-panel__toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manage-table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.manage-table__row-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.manage-table .vxe-table--header-wrapper {
+  background: #f8fafc;
+}
+
+.manage-table .vxe-header--column {
+  font-weight: 600;
+  color: #334155;
+}
+
+.manage-table .vxe-body--row:hover {
+  background: #f8fbff;
+}
+
+.manage-table .vxe-body--column {
+  height: 46px;
+  color: #1f2937;
+}

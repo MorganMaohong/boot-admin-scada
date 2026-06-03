@@ -9,6 +9,7 @@ import { s16 } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { isDrawEditDirty } from '@/utils/drawEditState.ts'
 import { saveCurrentDraw, switchDrawByUid } from '@/utils/switchDraw.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 const layerStore = useLayerStore()
 const drawStore = useDrawStore()
@@ -115,22 +116,20 @@ async function switchWithSave() {
     @update:value="onMenuUpdate"
     default-expand-all
   />
-  <n-modal
+  <FormModal
     v-model:show="showSwitchConfirm"
-    preset="card"
     title="切换图纸"
-    style="width: 420px"
+    size="sm"
+    height-mode="auto"
     :mask-closable="false"
   >
     <p class="switch-draw-tip">当前图纸有未保存的修改，切换前是否保存？</p>
     <template #footer>
-      <div class="switch-draw-actions">
-        <n-button @click="cancelSwitch">取消</n-button>
-        <n-button @click="switchWithoutSave">不保存</n-button>
-        <n-button type="primary" :loading="switchSaving" @click="switchWithSave">保存</n-button>
-      </div>
+      <n-button @click="cancelSwitch">取消</n-button>
+      <n-button @click="switchWithoutSave">不保存</n-button>
+      <n-button type="primary" :loading="switchSaving" @click="switchWithSave">保存</n-button>
     </template>
-  </n-modal>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

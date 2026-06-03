@@ -10,6 +10,7 @@ import { formPens } from '@meta2d/form-diagram'
 import { chartsPens } from '@meta2d/le5le-charts'
 import { ftaAnchors, ftaPens, ftaPensbyCtx } from '@meta2d/fta-diagram'
 import type { ProjectMonitorDraw } from '@/model/draw'
+import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
 
 const props = defineProps<{
   draw: ProjectMonitorDraw
@@ -91,6 +92,7 @@ function init() {
   }
   destroy()
   popupMeta2d = new Meta2d(containerId, { rule: false })
+  installMeta2dSafetyGuards(popupMeta2d)
   registerLibraries()
 
   const data = JSON.parse(props.draw.data)

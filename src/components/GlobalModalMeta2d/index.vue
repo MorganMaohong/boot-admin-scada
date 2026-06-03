@@ -12,6 +12,7 @@ import { ftaAnchors, ftaPens, ftaPensbyCtx } from '@meta2d/fta-diagram'
 import { getUrlParams } from '@/utils'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
+import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
 
 let meta2ds = null
 const monitorDraw = ref()
@@ -49,6 +50,7 @@ function init() {
   meta2ds?.destroy()
   // 创建实例
   meta2ds = new Meta2d('meta3d', meta2dOptions)
+  installMeta2dSafetyGuards(meta2ds)
 
   // 按需注册图形库
   // 以下为自带基础图形库

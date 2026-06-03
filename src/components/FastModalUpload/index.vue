@@ -4,6 +4,7 @@ import type { UploadFileInfo } from 'naive-ui'
 import { FileService } from '@/services/FileService'
 import { ArchiveOutline as ArchiveIcon } from '@vicons/ionicons5'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 // 定义上传类型
 type UploadType = 'image' | 'document'
@@ -78,7 +79,7 @@ function validateFile(
 </script>
 
 <template>
-  <n-modal v-model:show="model" preset="card" style="width: 600px" title="图片上传">
+  <FormModal v-model:show="model" title="图片上传" size="md" height-mode="auto">
     <n-upload directory-dnd @before-upload="handleBeforeUpload">
       <n-upload-dragger>
         <div style="margin-bottom: 12px">
@@ -92,7 +93,7 @@ function validateFile(
         </n-p>
       </n-upload-dragger>
     </n-upload>
-  </n-modal>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

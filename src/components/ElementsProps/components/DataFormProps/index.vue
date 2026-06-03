@@ -159,8 +159,6 @@ function updateProp(item: CondItem, idx: number) {
             item.prop === PropEnums.text ||
             item.prop === PropEnums.x ||
             item.prop === PropEnums.y ||
-            item.prop === PropEnums.width ||
-            item.prop === PropEnums.height ||
             item.prop === PropEnums.showChild
           "
         >
@@ -170,6 +168,17 @@ function updateProp(item: CondItem, idx: number) {
             v-if="item.valueType === ValueTypeEnum.customValue"
           >
             <n-input class="w-full" v-model:value="item.propValue" />
+          </n-form-item>
+        </template>
+        <template
+          v-if="item.prop === PropEnums.width || item.prop === PropEnums.height"
+        >
+          <n-form-item
+            label="值"
+            class="w-full"
+            v-if="item.valueType === ValueTypeEnum.customValue"
+          >
+            <n-input-number class="w-full" v-model:value="item.propValue" :min="0" />
           </n-form-item>
         </template>
         <template v-if="item.prop === PropEnums.visible || item.prop === PropEnums.checked">

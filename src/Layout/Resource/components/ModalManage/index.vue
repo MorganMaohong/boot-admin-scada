@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { NButton } from 'naive-ui'
 import type { ProjectMonitorDraw, ProjectMonitorDrawForm, ProjectMonitorVo } from '@/model/draw'
 import { getUrlParams } from '@/utils'
@@ -10,6 +10,7 @@ import type { ProjectMonitorCategoryForm } from '@/model/category'
 import { BASE_DRAW } from '@/model'
 import emitter from '@/utils/eventBus.ts'
 import type { FormInstance } from 'vant'
+import { useManageTableHeight } from '@/composables/useManageTableHeight'
 
 const drawData = ref<ProjectMonitorVo>({})
 const drawFormData = ref<ProjectMonitorDrawForm>({})
@@ -21,6 +22,8 @@ const showDeleteDraw = ref<boolean>(false)
 const showDeleteDrawCategory = ref<boolean>(false)
 const tableKey = ref()
 const formRef = ref<FormInst>({})
+const tableShellRef = ref<HTMLElement | null>(null)
+const tableHeight = useManageTableHeight(tableShellRef)
 const formRule = {
   categoryUid: {
     required: true,
@@ -84,7 +87,19 @@ function showUpdateCategoryModal(uid: string) {
 
 function showUpdateDrawModal(uid: string) {
   const params = getUrlParams()
-  drawFormData.value = createDrawForm(uid)
+  if (uid) {
+    MonitorDrawService.formModal(params.projectUid, uid).then((res: ProjectMonitorDrawForm) => {
+      drawFormData.value = {
+        ...createDrawForm(uid),
+        ...res,
+        jsonData: res.data || res.jsonData || JSON.stringify(BASE_DRAW),
+        categoryOptions: getCategoryOptions(),
+      }
+      showUpdateDraw.value = true
+    })
+    return
+  }
+  drawFormData.value = createDrawForm('')
   showUpdateDraw.value = true
 }
 
@@ -196,14 +211,14 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="manage-table-shell">
+    <div ref="tableShellRef" class="manage-table-shell">
       <vxe-table
         class="manage-table"
         :loading="loading"
         :key="tableKey"
         :data="drawData.categoryVoList"
         :tree-config="{ childrenField: 'drawList', expandAll: true }"
-        max-height="500"
+        :height="tableHeight"
       >
         <vxe-column
           field="name"
@@ -320,19 +335,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.manage-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.manage-panel__toolbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .manage-panel__headline {
   font-size: 16px;
   font-weight: 600;
@@ -350,19 +352,6 @@ onMounted(() => {
   gap: 8px;
 }
 
-.manage-table-shell {
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.manage-table__row-actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
 .manage-modal {
   padding-top: 4px;
 }
@@ -370,23 +359,5 @@ onMounted(() => {
 .manage-modal__footer {
   display: flex;
   justify-content: flex-end;
-}
-
-::v-deep(.manage-table .vxe-table--header-wrapper) {
-  background: #f8fafc;
-}
-
-::v-deep(.manage-table .vxe-header--column) {
-  font-weight: 600;
-  color: #334155;
-}
-
-::v-deep(.manage-table .vxe-body--row:hover) {
-  background: #f8fbff;
-}
-
-::v-deep(.manage-table .vxe-body--column) {
-  height: 46px;
-  color: #1f2937;
 }
 </style>

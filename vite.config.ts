@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath, URL } from 'node:url'
 
 import { type ConfigEnv, type UserConfigExport, loadEnv } from 'vite'
@@ -9,6 +10,18 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import svgLoader from 'vite-svg-loader'
+
+const require = createRequire(import.meta.url)
+
+/** pnpm 下 vdirs 仅为 naive-ui 传递依赖，需显式 alias 才能被 Rollup 解析 */
+function resolveVdirsRoot(): string {
+  try {
+    return path.dirname(require.resolve('vdirs/package.json'))
+  } catch {
+    const naiveUiRoot = path.dirname(require.resolve('naive-ui/package.json'))
+    return path.dirname(require.resolve('vdirs/package.json', { paths: [naiveUiRoot] }))
+  }
+}
 
 function getPackageName(id: string) {
   const normalizedId = id.replace(/\\/g, '/')
@@ -127,6 +140,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       alias: {
         '@': path.resolve(__dirname, 'src'),
         '@meta2d/core': path.resolve(__dirname, '../meta2d.js/packages/core'),
+        vdirs: resolveVdirsRoot(),
       },
     },
     server: {

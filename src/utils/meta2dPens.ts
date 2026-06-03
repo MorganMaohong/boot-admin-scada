@@ -7,6 +7,55 @@ export interface Meta2dPensCleanupResult {
 }
 
 const SAFETY_GUARD_FLAG = '__bohaoMeta2dSafetyGuardInstalled'
+const PEN_SIZE_PROPS = ['width', 'height'] as const
+
+/** 图元宽高不能小于 0，否则 meta2d 渲染/缩放会出现异常 */
+export function clampPenSizeValue(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === '') return undefined
+  const num = Number(value)
+  if (!Number.isFinite(num)) return undefined
+  return Math.max(0, num)
+}
+
+export function sanitizePenSizePatch<T extends Record<string, any>>(patch: T): T {
+  if (!patch || typeof patch !== 'object') return patch
+  const next = { ...patch }
+  for (const prop of PEN_SIZE_PROPS) {
+    if (!(prop in next)) continue
+    const clamped = clampPenSizeValue(next[prop])
+    if (clamped !== undefined) next[prop] = clamped
+  }
+  return next
+}
+
+function sanitizePenRuntimeDimensions(pen: any): boolean {
+  if (!pen || typeof pen !== 'object') return false
+  let changed = false
+
+  for (const prop of PEN_SIZE_PROPS) {
+    if (!(prop in pen)) continue
+    const clamped = clampPenSizeValue(pen[prop])
+    if (clamped !== undefined && pen[prop] !== clamped) {
+      pen[prop] = clamped
+      changed = true
+    }
+  }
+
+  const rects = [pen.calculative?.worldRect, pen.calculative?.initRect, pen.calculative?.rect]
+  rects.forEach((rect) => {
+    if (!rect || typeof rect !== 'object') return
+    for (const prop of PEN_SIZE_PROPS) {
+      if (!(prop in rect)) continue
+      const clamped = clampPenSizeValue(rect[prop])
+      if (clamped !== undefined && rect[prop] !== clamped) {
+        rect[prop] = clamped
+        changed = true
+      }
+    }
+  })
+
+  return changed
+}
 
 function getPenId(pen: any) {
   return pen?.id ? String(pen.id) : ''
@@ -304,6 +353,7 @@ function normalizeRuntimePens(meta2dInstance = meta2d, options: { normalizeImage
     if (options.normalizeImageLayer) {
       changed = normalizeImagePenLayer(safePen) || changed
     }
+    changed = sanitizePenRuntimeDimensions(safePen) || changed
     seenIds.add(penId)
     normalizedPens.push(safePen)
   })
@@ -437,6 +487,29 @@ export function installMeta2dSafetyGuards(meta2dInstance = meta2d) {
   const target = meta2dInstance as any
   if (!target?.canvas || target[SAFETY_GUARD_FLAG]) return
   target[SAFETY_GUARD_FLAG] = true
+
+  const originalSetValue = target.setValue?.bind(target)
+  if (originalSetValue) {
+    target.setValue = (value: any, ...args: any[]) => {
+      if (Array.isArray(value)) {
+        return originalSetValue(value.map((item) => sanitizePenSizePatch(item)), ...args)
+      }
+      return originalSetValue(sanitizePenSizePatch(value), ...args)
+    }
+  }
+
+  const originalOpen = target.open?.bind(target)
+  if (originalOpen) {
+    target.open = (data: any, ...args: any[]) => {
+      if (data?.pens && Array.isArray(data.pens)) {
+        data = {
+          ...data,
+          pens: data.pens.map((pen: any) => sanitizePenSizePatch(pen)),
+        }
+      }
+      return originalOpen(data, ...args)
+    }
+  }
 
   const canvas = target.canvas
   const originalRender = canvas.render?.bind(canvas)

@@ -26,6 +26,7 @@ import {
   reorderCombineChildPens,
 } from '@/utils/meta2dPens.ts'
 import { markDrawEditSaved } from '@/utils/drawEditState.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 interface StructureTreeNode {
   key: string
@@ -1147,31 +1148,27 @@ async function deleteLayer(layer: ProjectMonitorLayer) {
     />
   </div>
 
-  <n-modal v-model:show="showLayerModal" preset="card" title="图层信息" style="width: 360px">
+  <FormModal v-model:show="showLayerModal" title="图层信息" size="sm" height-mode="auto">
     <n-form label-placement="top">
       <n-form-item label="图层名称">
         <n-input v-model:value="layerForm.name" placeholder="请输入图层名称" />
       </n-form-item>
     </n-form>
     <template #footer>
-      <div class="flex justify-end">
-        <n-button type="primary" @click="submitLayerForm">确定</n-button>
-      </div>
+      <n-button type="primary" @click="submitLayerForm">确定</n-button>
     </template>
-  </n-modal>
+  </FormModal>
 
-  <n-modal v-model:show="showCopyModal" preset="card" title="复制图层" style="width: 360px">
+  <FormModal v-model:show="showCopyModal" title="复制图层" size="sm" height-mode="auto">
     <n-form label-placement="top">
       <n-form-item label="新图层名称">
         <n-input v-model:value="layerForm.name" placeholder="请输入新图层名称" />
       </n-form-item>
     </n-form>
     <template #footer>
-      <div class="flex justify-end">
-        <n-button type="primary" @click="onCopyLayer">确定</n-button>
-      </div>
+      <n-button type="primary" @click="onCopyLayer">确定</n-button>
     </template>
-  </n-modal>
+  </FormModal>
 </template>
 
 <style scoped lang="scss">

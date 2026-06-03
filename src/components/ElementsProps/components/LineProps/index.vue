@@ -42,6 +42,7 @@ import {
   syncDatasWithPenBinding,
   syncEventsWithPenBinding,
 } from '@/components/ElementsProps/penBindingSync.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
@@ -695,7 +696,13 @@ onUnmounted(() => {
       </n-tab-pane>
       <n-tab-pane name="effect" tab="动画" class="w-full h-full" ref="tabPaneRef">
         <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
-          <n-form class="element-props__form" label-align="left" label-width="100px" label-placement="left">
+          <n-form
+            v-if="pen?.id"
+            class="element-props__form"
+            label-align="left"
+            label-width="100px"
+            label-placement="left"
+          >
             <n-form-item label="动画效果">
               <n-select
                 v-model:value="pen.lineAnimateType"
@@ -841,20 +848,18 @@ onUnmounted(() => {
       </n-tab-pane>
     </n-tabs>
   </div>
-  <n-modal
+  <FormModal
     v-model:show="showUpdateData"
-    preset="card"
     :title="dataFormData.id ? '编辑动作' : '新增动作'"
-    style="width: 1000px"
+    size="xl"
     :mask-closable="false"
   >
     <DataFormProps :value="dataFormData" @update:value="addOrUpdateData" />
-  </n-modal>
-  <n-modal
+  </FormModal>
+  <FormModal
     v-model:show="showUpdateEvent"
-    preset="card"
     :title="eventFormData.id ? '编辑事件' : '新增事件'"
-    style="width: 800px"
+    size="lg"
     :mask-closable="false"
   >
     <EventFormProps
@@ -862,7 +867,7 @@ onUnmounted(() => {
       @update:value="addOrUpdateEvent"
       @pick-target="startPickEventTarget"
     />
-  </n-modal>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

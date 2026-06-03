@@ -73,6 +73,7 @@ import { ftaAnchors, ftaPens, ftaPensbyCtx } from '@meta2d/fta-diagram'
 import type { Payload } from '@/model'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { getUrlParams } from '@/utils'
+import { isScreenPreviewMode } from '@/utils/displayAccess'
 import { mqttUtil } from '@/utils/mqttUtil.ts'
 import emitter from '@/utils/eventBus.ts'
 import { VarService } from '@/services/VarService.ts'
@@ -82,6 +83,7 @@ import { useDisplayLabels } from '@/components/ElementsProps/useDisplayLabels.ts
 import Svg404 from '@/assets/error-page/404.svg?component'
 import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
 import DisplayModal from '@/components/DisplayModal.vue'
+import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
 
 const drawStore = useDrawStore()
 const drawPopupStore = useDrawPopupStore()
@@ -135,28 +137,40 @@ function resize() {
 
 onMounted(() => {
   detectWeChatMiniProgram()
-  drawStore.setTitle()
   const params = getUrlParams()
+  const screenPreview = isScreenPreviewMode()
+  if (!screenPreview) {
+    drawStore.setTitle()
+  }
   MonitorDrawService.display(params.projectUid)
     .then((data) => {
       monitorDraw.value = data
       drawStore.topics = monitorDraw.value.topics
       drawStore.snList = monitorDraw.value.snList
+      if (screenPreview && data.projectName) {
+        document.title = data.projectName
+      }
       init()
+      if (screenPreview && data.varCacheData) {
+        drawStore.cacheData = { data: data.varCacheData }
+        drawStore.process(drawStore.cacheData)
+      }
     })
     .catch(() => {
       showMeta2d.value = false
     })
   window.addEventListener('resize', resize)
-  controlVarHandler = ({ pen, params }) => {
-    showControlVar.value = true
-    controlVarFormData.value = {
-      key: params.key,
-      value: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
-      currentValue: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
+  if (!screenPreview) {
+    controlVarHandler = ({ pen, params }) => {
+      showControlVar.value = true
+      controlVarFormData.value = {
+        key: params.key,
+        value: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
+        currentValue: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
+      }
     }
+    emitter.on('showControlVar', controlVarHandler)
   }
-  emitter.on('showControlVar', controlVarHandler)
 })
 
 function detectWeChatMiniProgram() {
@@ -184,6 +198,7 @@ function closeControlVar() {
 
 function init() {
   new Meta2d('meta2d', meta2dOptions)
+  installMeta2dSafetyGuards()
 
   if (!metaRegistered) {
     register(flowPens())
@@ -216,7 +231,9 @@ function init() {
     runFitView(200)
   }
   document.addEventListener('fullscreenchange', fullscreenChangeHandler)
-  drawStore.selectVarCacheData()
+  if (!isScreenPreviewMode()) {
+    drawStore.selectVarCacheData()
+  }
   window.setTimeout(() => {
     listenerMqtt()
   }, 250)

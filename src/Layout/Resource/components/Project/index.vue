@@ -13,6 +13,7 @@ import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
 import { hideRequestOverlay, showRequestOverlay } from '@/stores/requestOverlay'
 import { useLayerStore } from '@/stores/module/layer.ts'
 import { useSelection } from '@/services/selections.ts'
+import FormModal from '@/components/FormModal/index.vue'
 import type { OptionVo } from '@/model'
 import { openDrawOnCanvas } from '@/utils/switchDraw.ts'
 import {
@@ -430,11 +431,11 @@ function confirmCopyDraw() {
       </n-collapse-item>
     </n-collapse>
   </div>
-  <n-modal
+  <FormModal
     v-model:show="showCopyTargetModal"
-    preset="card"
     title="选择目标图纸"
-    style="width: 480px"
+    size="sm"
+    height-mode="auto"
     :mask-closable="false"
   >
     <p class="copy-target-tip">将参考图纸内容复制到当前项目的指定图纸（会覆盖目标图纸图层与图元）。</p>
@@ -446,23 +447,23 @@ function confirmCopyDraw() {
       />
     </n-form-item>
     <template #footer>
-      <div class="copy-target-actions">
-        <n-button @click="cancelCopyFlow">取消</n-button>
-        <n-button type="primary" @click="confirmCopyTarget">下一步</n-button>
-      </div>
+      <n-button @click="cancelCopyFlow">取消</n-button>
+      <n-button type="primary" @click="confirmCopyTarget">下一步</n-button>
     </template>
-  </n-modal>
-  <n-modal
+  </FormModal>
+  <FormModal
     v-model:show="showCopyConfirm"
-    preset="dialog"
-    type="warning"
     title="警告"
-    content="复制将清空目标图纸的旧图层和全部图元，再导入参考图纸内容，是否继续？"
-    positive-text="确定复制"
-    negative-text="取消"
-    @positive-click="confirmCopyDraw"
-    @negative-click="cancelCopyFlow"
-  />
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>复制将清空目标图纸的旧图层和全部图元，再导入参考图纸内容，是否继续？</p>
+    <template #footer>
+      <n-button @click="cancelCopyFlow">取消</n-button>
+      <n-button type="warning" @click="confirmCopyDraw">确定复制</n-button>
+    </template>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

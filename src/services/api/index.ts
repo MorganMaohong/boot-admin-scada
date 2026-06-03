@@ -28,7 +28,7 @@ export const monitorDrawApi = {
 
   addModal: { url: `${apiPrefix.monitorDraw}/addModal`, permission: '' },
   updateModal: { url: `${apiPrefix.monitorDraw}/updateModal`, permission: '' },
-  formModal: { url: `${apiPrefix.monitorDraw}/formModal`, permission: '' },
+  formModal: { url: `${apiPrefix.monitorDraw}/modalForm`, permission: '' },
   selectModal: { url: `${apiPrefix.monitorDraw}/selectModal`, permission: '' },
   modalOptions: { url: `${apiPrefix.monitorDraw}/modalOptions`, permission: '' },
 }

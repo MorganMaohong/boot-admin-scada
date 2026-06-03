@@ -21,6 +21,14 @@ import SystemImageCallery from '@/components/SystemImageCallery/index.vue'
 import { getAuthToken } from '@/utils/auth'
 import { cleanupMeta2dPens } from '@/utils/meta2dPens.ts'
 import { markDrawEditSaved, syncDrawStoreDataFromCanvas } from '@/utils/drawEditState.ts'
+import FormModal from '@/components/FormModal/index.vue'
+import DrawManage from '@/Layout/Resource/components/DrawManage/index.vue'
+import {
+  PEN_LINE_TOOL_HELP,
+  PENCIL_LINE_TOOL_HELP,
+  togglePenLineTool,
+  togglePencilLineTool,
+} from '@/utils/drawLineTool.ts'
 
 const isMagnifier = ref<boolean>(false)
 const currentLineType = ref<string>('curve')
@@ -40,6 +48,7 @@ const fileOptions = ref<OptionVo[]>([
 const showUpdateCategory = ref<boolean>(false)
 const showUpdateDraw = ref<boolean>(false)
 const showDrawManager = ref<boolean>(false)
+const drawManagerKey = ref(s16())
 const showDeleteDraw = ref<boolean>(false)
 const showDeleteDrawCategory = ref<boolean>(false)
 const drawFormData = ref<ProjectMonitorDrawForm>({})
@@ -77,64 +86,15 @@ function myLineFn(store: Meta2dStore, pen: Pen, mousedwon?: Point) {
 }
 
 function drawPenLine() {
-  if (drawStore.isPenDrawLine) {
-    drawStore.isPenDrawLine = false
-    meta2d.finishDrawLine()
-    meta2d.store.options.disableAnchor = false
-    window.removeEventListener('keydown', handlePenKeyDown)
-  } else {
-    drawStore.isPencilDrawLine = false
-    drawStore.isPenDrawLine = true
-    meta2d.drawLine(meta2d.store.options.drawingLineName)
-    window.addEventListener('keydown', handlePenKeyDown)
-  }
-}
-
-function handlePenKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    console.log('按下 ESC，取消绘画')
-    drawStore.isPenDrawLine = false
-    meta2d.finishDrawLine()
-    meta2d.store.options.disableAnchor = false
-    window.removeEventListener('keydown', handlePenKeyDown)
-  }
-  if (e.key === 'Alt') {
-    console.log(meta2d.store.options.drawingLineName)
-    let name = ''
-    if (meta2d.store.options.drawingLineName === LineNameEnums.curve) {
-      name = LineNameEnums.polyline
-    } else if (meta2d.store.options.drawingLineName === LineNameEnums.line) {
-      name = LineNameEnums.curve
-    } else if (meta2d.store.options.drawingLineName === LineNameEnums.polyline) {
-      name = LineNameEnums.line
-    }
-    meta2d.store.options.drawingLineName = name
-    currentLineType.value = name
-  }
+  togglePenLineTool({
+    onLineTypeChange: (name) => {
+      currentLineType.value = name
+    },
+  })
 }
 
 function drawPencilLine() {
-  if (drawStore.isPencilDrawLine) {
-    drawStore.isPencilDrawLine = false
-    meta2d.store.options.disableAnchor = false
-    meta2d.stopPencil()
-    window.removeEventListener('keydown', handlePencilKeyDown)
-  } else {
-    drawStore.isPencilDrawLine = true
-    meta2d.drawingPencil()
-    meta2d.store.options.disableAnchor = true
-    window.addEventListener('keydown', handlePencilKeyDown)
-  }
-}
-
-function handlePencilKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    console.log('按下 ESC，取消绘画')
-    drawStore.isPencilDrawLine = false
-    meta2d.stopPencil()
-    meta2d.store.options.disableAnchor = false
-    window.removeEventListener('keydown', handlePencilKeyDown)
-  }
+  togglePencilLineTool()
 }
 
 function handleSelectLine(v: string) {
@@ -228,7 +188,7 @@ function showUpdateDrawModal(uid: string) {
 }
 
 function showDrawManagerModal() {
-  selectDraw()
+  drawManagerKey.value = s16()
   showDrawManager.value = true
 }
 
@@ -386,27 +346,47 @@ function getLockLabel() {
     </div>
 
     <div class="toolbar-group toolbar-group--center">
-      <button
-        type="button"
-        :class="getToolActionClass(drawStore.isPenDrawLine)"
-        @click="drawPenLine"
-      >
-        <n-icon size="18">
-          <PenFancy />
-        </n-icon>
-        <span>钢笔</span>
-      </button>
+      <n-tooltip trigger="hover" placement="bottom">
+        <template #trigger>
+          <button
+            type="button"
+            :class="getToolActionClass(drawStore.isPenDrawLine)"
+            @click="drawPenLine"
+          >
+            <n-icon size="18">
+              <PenFancy />
+            </n-icon>
+            <span>钢笔</span>
+          </button>
+        </template>
+        <div class="toolbar-draw-tool-help">
+          <div class="toolbar-draw-tool-help__title">{{ PEN_LINE_TOOL_HELP.title }}</div>
+          <ul class="toolbar-draw-tool-help__list">
+            <li v-for="(line, index) in PEN_LINE_TOOL_HELP.lines" :key="index">{{ line }}</li>
+          </ul>
+        </div>
+      </n-tooltip>
 
-      <button
-        type="button"
-        :class="getToolActionClass(drawStore.isPencilDrawLine)"
-        @click="drawPencilLine"
-      >
-        <n-icon size="18">
-          <PencilAlt />
-        </n-icon>
-        <span>铅笔</span>
-      </button>
+      <n-tooltip trigger="hover" placement="bottom">
+        <template #trigger>
+          <button
+            type="button"
+            :class="getToolActionClass(drawStore.isPencilDrawLine)"
+            @click="drawPencilLine"
+          >
+            <n-icon size="18">
+              <PencilAlt />
+            </n-icon>
+            <span>铅笔</span>
+          </button>
+        </template>
+        <div class="toolbar-draw-tool-help">
+          <div class="toolbar-draw-tool-help__title">{{ PENCIL_LINE_TOOL_HELP.title }}</div>
+          <ul class="toolbar-draw-tool-help__list">
+            <li v-for="(line, index) in PENCIL_LINE_TOOL_HELP.lines" :key="index">{{ line }}</li>
+          </ul>
+        </div>
+      </n-tooltip>
 
       <button
         type="button"
@@ -487,19 +467,17 @@ function getLockLabel() {
       </button>
     </div>
   </div>
-  <n-modal v-model:show="showUpdateCategory" title="分组信息" preset="card" style="width: 600px">
+  <FormModal v-model:show="showUpdateCategory" title="分组信息" size="md" height-mode="auto">
     <n-form>
       <n-form-item label="分组名称">
         <n-input v-model:value="drawCategoryFormData.name" />
       </n-form-item>
     </n-form>
     <template #footer>
-      <div class="flex justify-end">
-        <n-button type="primary" @click="confirmUpdateDrawCategory">确定</n-button>
-      </div>
+      <n-button type="primary" @click="confirmUpdateDrawCategory">确定</n-button>
     </template>
-  </n-modal>
-  <n-modal v-model:show="showUpdateDraw" title="图纸信息" preset="card" style="width: 600px">
+  </FormModal>
+  <FormModal v-model:show="showUpdateDraw" title="图纸信息" size="md" height-mode="auto">
     <n-form>
       <n-form-item label="分组">
         <n-select
@@ -530,77 +508,41 @@ function getLockLabel() {
       </n-form-item>
     </n-form>
     <template #footer>
-      <div class="flex justify-end">
-        <n-button type="primary" @click="confirmUpdateDraw">确定</n-button>
-      </div>
+      <n-button type="primary" @click="confirmUpdateDraw">确定</n-button>
     </template>
-  </n-modal>
-  <n-modal v-model:show="showImageGallery" title="图库管理" preset="card" style="width: 800px">
+  </FormModal>
+  <FormModal v-model:show="showImageGallery" title="图库管理" size="lg">
     <SystemImageCallery />
-  </n-modal>
-  <n-modal v-model:show="showDrawManager" title="图纸管理" preset="card" style="width: 1000px">
-    <div class="flex gap-2 mb-2">
-      <n-button @click="showUpdateCategoryModal('')" type="primary">新增分组</n-button>
-      <n-button @click="showUpdateDrawModal('')" type="primary">新增图纸</n-button>
-    </div>
-    <vxe-table
-      :key="tableKey"
-      :data="drawData.categoryVoList"
-      :tree-config="{ childrenField: 'drawList', expandAll: true }"
-      max-height="600"
-    >
-      <vxe-column
-        field="name"
-        title="名称"
-        show-overflow="tooltip"
-        tree-node
-        width="90%"
-      ></vxe-column>
-      <vxe-column fixed="right" title="操作" align="center">
-        <template #default="{ row }">
-          <div class="flex gap-2">
-            <n-button
-              type="info"
-              text
-              @click="
-                row.drawList ? showUpdateCategoryModal(row.uid) : showUpdateDrawModal(row.uid)
-              "
-              >编辑
-            </n-button>
-            <n-button
-              type="error"
-              text
-              v-if="!row.def"
-              @click="
-                row.drawList ? showDeleteCategoryModal(row.uid) : showDeleteDrawModal(row.uid)
-              "
-              >删除
-            </n-button>
-          </div>
-        </template>
-      </vxe-column>
-    </vxe-table>
-  </n-modal>
-  <n-modal
-    :mask-closable="false"
-    type="error"
-    title="警告"
-    content="确定删除该图纸吗!"
-    positive-text="确定"
-    @positive-click="confirmDeleteDraw"
+  </FormModal>
+  <FormModal v-model:show="showDrawManager" title="图纸管理" size="xl">
+    <DrawManage v-if="showDrawManager" :key="drawManagerKey" />
+  </FormModal>
+  <FormModal
     v-model:show="showDeleteDraw"
-    preset="dialog"
-  />
-  <n-modal
-    :mask-closable="false"
-    type="error"
     title="警告"
-    content="确定删除该分组吗，将会清除所有图纸!"
-    positive-text="确定"
-    @positive-click="confirmDeleteDrawCategory"
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>确定删除该图纸吗!</p>
+    <template #footer>
+      <n-button @click="showDeleteDraw = false">取消</n-button>
+      <n-button type="error" @click="confirmDeleteDraw">确定</n-button>
+    </template>
+  </FormModal>
+  <FormModal
     v-model:show="showDeleteDrawCategory"
-    preset="dialog"
-  />
+    title="警告"
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>确定删除该分组吗，将会清除所有图纸!</p>
+    <template #footer>
+      <n-button @click="showDeleteDrawCategory = false">取消</n-button>
+      <n-button type="error" @click="confirmDeleteDrawCategory">确定</n-button>
+    </template>
+  </FormModal>
 
   <!--  <FastModalUpload v-model:show="showUploadImage" />-->
 </template>
@@ -684,6 +626,28 @@ function getLockLabel() {
 
 .toolbar-scale-panel {
   min-width: 320px;
+}
+
+:global(.toolbar-draw-tool-help) {
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+:global(.toolbar-draw-tool-help__title) {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+:global(.toolbar-draw-tool-help__list) {
+  margin: 0;
+  padding-left: 16px;
+}
+
+:global(.toolbar-draw-tool-help__list li + li) {
+  margin-top: 4px;
 }
 
 @media (max-width: 1400px) {

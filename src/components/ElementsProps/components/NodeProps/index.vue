@@ -34,6 +34,7 @@ import {
 } from '@/components/ElementsProps/state.ts'
 import emitter from '@/utils/eventBus.ts'
 import {
+  clampPenSizeValue,
   getRuntimeMeta2dPen,
   isPlainCombineMemberPen,
   removeMeta2dPens,
@@ -48,13 +49,14 @@ import {
   syncDatasWithPenBinding,
   syncEventsWithPenBinding,
 } from '@/components/ElementsProps/penBindingSync.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
 const drawStore = useDrawStore()
 const activeTab = elementsPropsActiveTab
 const KEY = ref('')
-const pen = ref<any>(null)
+const pen = ref<any>({})
 // 位置数据。当前版本位置需要动态计算获取
 const rect = ref<any>(null)
 const tabPaneRef = ref()
@@ -190,6 +192,17 @@ function getPen() {
 function changePen(value: any, prop: string) {
   // debugger
   const v: any = { id: pen.value.id }
+  if (prop === 'width' || prop === 'height') {
+    const clamped = clampPenSizeValue(value)
+    if (clamped === undefined) return
+    value = clamped
+    if (prop === 'width') {
+      if (rect.value) rect.value.width = clamped
+    }
+    if (prop === 'height') {
+      if (rect.value) rect.value.height = clamped
+    }
+  }
   if (prop === 'dash') {
     v.lineDash = lineDashs[value]
   } else if (prop === 'showChild') {
@@ -530,7 +543,7 @@ function stopAnimate() {
 }
 
 function changePenAnimation(v: string) {
-  console.log(v)
+  if (!pen.value?.id) return
   const frames = AnimationFramesOptions.find((item) => item.key === v)
   const p: any = { id: pen.value.id }
   if (frames) {
@@ -541,7 +554,7 @@ function changePenAnimation(v: string) {
 }
 
 const penChildrenOptions = computed(() => {
-  if (pen.value.children && pen.value.children.length > 0) {
+  if (pen.value?.children && pen.value.children.length > 0) {
     let options = []
     getChildStateValues(pen.value).forEach((item, index) => {
       const p = meta2d.findOne(item.childId)
@@ -805,12 +818,14 @@ onUnmounted(() => {
                 <n-form-item label="宽">
                   <n-input-number
                     v-model:value="rect.width"
+                    :min="0"
                     @update:value="changePen($event, 'width')"
                   />
                 </n-form-item>
                 <n-form-item label="高">
                   <n-input-number
                     v-model:value="rect.height"
+                    :min="0"
                     @update:value="changePen($event, 'height')"
                   />
                 </n-form-item>
@@ -1008,7 +1023,12 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="effect" tab="动画">
-        <n-form class="element-props__form" label-placement="left" label-width="auto">
+        <n-form
+          v-if="pen?.id"
+          class="element-props__form"
+          label-placement="left"
+          label-width="auto"
+        >
           <n-form-item label="动画效果">
             <n-select
               :options="AnimationFramesOptions"
@@ -1125,21 +1145,19 @@ onUnmounted(() => {
       </n-tab-pane>
     </n-tabs>
   </div>
-  <n-modal
+  <FormModal
     v-model:show="showUpdateData"
-    preset="card"
     :title="dataFormData.id ? '编辑动作' : '新增动作'"
-    style="width: 1000px"
+    size="xl"
     :mask-closable="false"
   >
     <DataFormProps :value="dataFormData" @update:value="addOrUpdateData" />
-  </n-modal>
+  </FormModal>
 
-  <n-modal
+  <FormModal
     v-model:show="showUpdateEvent"
-    preset="card"
     :title="eventFormData.id ? '编辑事件' : '新增事件'"
-    style="width: 800px"
+    size="lg"
     :mask-closable="false"
   >
     <EventFormProps
@@ -1147,7 +1165,7 @@ onUnmounted(() => {
       @update:value="addOrUpdateEvent"
       @pick-target="startPickEventTarget"
     />
-  </n-modal>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

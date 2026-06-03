@@ -3,8 +3,10 @@
     <div class="access-page__panel">
       <div class="access-page__badge">SCADA</div>
       <h1 class="access-page__title">请从主系统进入</h1>
-      <p class="access-page__desc">当前系统仅接受主系统链接携带的 accessToken，不提供独立登录入口。</p>
-      <p class="access-page__hint">请先登录 iotweb，再从主系统菜单打开当前页面。</p>
+      <p class="access-page__desc">
+        编辑端需从 iotweb 携带 accessToken 进入；大屏嵌入请使用 embedMode=screen。
+      </p>
+      <p class="access-page__hint">示例：/monitor/#/display?projectUid=xxx&amp;embedMode=screen</p>
       <button class="access-page__button" type="button" @click="goBack">返回上一页</button>
     </div>
   </div>

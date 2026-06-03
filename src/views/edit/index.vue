@@ -80,6 +80,7 @@ import {
   normalizeDrawPayload,
   scheduleCaptureDrawEditSnapshot,
 } from '@/utils/drawEditState.ts'
+import { exitLineDrawTools } from '@/utils/drawLineTool.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -169,7 +170,8 @@ function init() {
 
   // 参数设置
   meta2d.store.data.disableScale = false
-  meta2d.store.options.autoAnchor = false
+  // 默认开启自动锚点识别，提升连线命中率与可用性
+  meta2d.store.options.autoAnchor = true
   meta2d.store.options.strictScope = true
 
   meta2d.fitView(true, 5)
@@ -489,6 +491,10 @@ function handleKeydown(e: KeyboardEvent) {
     pendingPasteSourcePens.value = deepClone(meta2d.store.clipboard?.pens || [])
   }
   if (e.key !== 'Escape') return
+  if (drawStore.isPenDrawLine || drawStore.isPencilDrawLine) {
+    exitLineDrawTools()
+    return
+  }
   if (!appStore.targetPicker.active) return
   appStore.cancelTargetPick()
   window.$message.info('已退出目标图元选择')
@@ -611,6 +617,7 @@ const hideContextMenu = () => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  exitLineDrawTools()
   meta2d.destroy()
 })
 </script>

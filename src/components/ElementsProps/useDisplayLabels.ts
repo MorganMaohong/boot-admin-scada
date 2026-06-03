@@ -1,6 +1,7 @@
 import { onMounted, ref } from 'vue'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { getUrlParams } from '@/utils'
+import { isScreenPreviewMode } from '@/utils/displayAccess'
 
 type LabelMap = Record<string, string>
 const MISSING_VARIABLE_LABEL = '变量未匹配，请重新选择'
@@ -43,7 +44,7 @@ export function useDisplayLabels() {
   const modalLabels = ref<LabelMap>(modalLabelCache.get(projectUid) || {})
 
   async function loadLabels() {
-    if (!projectUid) return
+    if (!projectUid || isScreenPreviewMode()) return
 
     if (!loadPromiseCache.has(projectUid)) {
       loadPromiseCache.set(

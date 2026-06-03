@@ -1,35 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { bootstrapAuthFromUrl } from '@/utils/auth'
-import { getAuthToken } from '@/utils/auth'
 import RequestLoadingBridge from '@/components/RequestLoadingBridge.vue'
 import DisplayToastHost from '@/components/DisplayToastHost.vue'
 import DisplayView from '@/views/display/index.vue'
 import { requestOverlayMessage, requestOverlayVisible } from '@/stores/requestOverlay'
 import { displayMessage } from '@/stores/displayMessage'
-import AccessRequired from '@/views/access-required/index.vue'
 
 bootstrapAuthFromUrl()
 window.$message = displayMessage
-const hasToken = computed(() => Boolean(getAuthToken()))
 </script>
 
 <template>
   <div class="w-full h-full">
-    <template v-if="hasToken">
-      <request-loading-bridge />
-      <display-toast-host />
-      <DisplayView />
-      <transition name="request-loading-fade">
-        <div v-if="requestOverlayVisible" class="request-loading-mask">
-          <div class="request-loading-panel">
-            <div class="request-loading-spinner" />
-            <div class="request-loading-text">{{ requestOverlayMessage }}</div>
-          </div>
+    <request-loading-bridge />
+    <display-toast-host />
+    <DisplayView />
+    <transition name="request-loading-fade">
+      <div v-if="requestOverlayVisible" class="request-loading-mask">
+        <div class="request-loading-panel">
+          <div class="request-loading-spinner" />
+          <div class="request-loading-text">{{ requestOverlayMessage }}</div>
         </div>
-      </transition>
-    </template>
-    <access-required v-else />
+      </div>
+    </transition>
   </div>
 </template>
 

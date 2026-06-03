@@ -31,6 +31,10 @@ export interface ProjectMonitorVo {
 export interface ProjectMonitorDrawDisplay {
   draw: ProjectMonitorDraw
   topics: string[]
+  snList?: string[]
+  /** 大屏 scadaPreview 聚合字段 */
+  projectName?: string
+  varCacheData?: Record<string, string>
 }
 
 export interface ProjectQuery {

@@ -1,4 +1,6 @@
 import '@/assets/main.css'
+import '@/styles/form-modal.scss'
+import '@/styles/manage-panel.scss'
 import 'vfonts/Lato.css'
 import { createApp } from 'vue'
 import naive from 'naive-ui'

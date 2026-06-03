@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch, onMounted, reactive } from 'vue'
+import { ref, onMounted } from 'vue'
 import { NButton } from 'naive-ui'
 import type { ProjectMonitorDrawForm, ProjectMonitorVo } from '@/model/draw'
 import { getUrlParams } from '@/utils'
@@ -9,6 +9,8 @@ import { MonitorCategoryService } from '@/services/MonitorCategoryService.ts'
 import type { ProjectMonitorCategoryForm } from '@/model/category'
 import { BASE_DRAW } from '@/model'
 import emitter from '@/utils/eventBus.ts'
+import FormModal from '@/components/FormModal/index.vue'
+import { useManageTableHeight } from '@/composables/useManageTableHeight'
 
 const drawData = ref<ProjectMonitorVo>({})
 const drawFormData = ref<ProjectMonitorDrawForm>({})
@@ -19,6 +21,8 @@ const showUpdateDraw = ref<boolean>(false)
 const showDeleteDraw = ref<boolean>(false)
 const showDeleteDrawCategory = ref<boolean>(false)
 const tableKey = ref()
+const tableShellRef = ref<HTMLElement | null>(null)
+const tableHeight = useManageTableHeight(tableShellRef)
 
 function selectDraw() {
   loading.value = true
@@ -115,14 +119,14 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="manage-table-shell">
+    <div ref="tableShellRef" class="manage-table-shell">
       <vxe-table
         class="manage-table"
         :loading="loading"
         :key="tableKey"
         :data="drawData.categoryVoList"
         :tree-config="{ childrenField: 'drawList', expandAll: true }"
-        max-height="500"
+        :height="tableHeight"
       >
         <vxe-column
           field="name"
@@ -153,27 +157,33 @@ onMounted(() => {
       </vxe-table>
     </div>
   </div>
-  <n-modal
-    :mask-closable="false"
-    type="error"
-    title="警告"
-    content="确定删除该图纸吗!"
-    positive-text="确定"
-    @positive-click="confirmDeleteDraw"
+  <FormModal
     v-model:show="showDeleteDraw"
-    preset="dialog"
-  />
-  <n-modal
-    :mask-closable="false"
-    type="error"
     title="警告"
-    content="确定删除该分组吗，将会清除所有图纸!"
-    positive-text="确定"
-    @positive-click="confirmDeleteDrawCategory"
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>确定删除该图纸吗!</p>
+    <template #footer>
+      <n-button @click="showDeleteDraw = false">取消</n-button>
+      <n-button type="error" @click="confirmDeleteDraw">确定</n-button>
+    </template>
+  </FormModal>
+  <FormModal
     v-model:show="showDeleteDrawCategory"
-    preset="dialog"
-  />
-  <n-modal v-model:show="showUpdateCategory" title="分组信息" preset="card" style="width: 600px">
+    title="警告"
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>确定删除该分组吗，将会清除所有图纸!</p>
+    <template #footer>
+      <n-button @click="showDeleteDrawCategory = false">取消</n-button>
+      <n-button type="error" @click="confirmDeleteDrawCategory">确定</n-button>
+    </template>
+  </FormModal>
+  <FormModal v-model:show="showUpdateCategory" title="分组信息" size="md" height-mode="auto">
     <div class="manage-modal">
       <n-form label-placement="top">
         <n-form-item label="分组名称">
@@ -182,12 +192,10 @@ onMounted(() => {
       </n-form>
     </div>
     <template #footer>
-      <div class="manage-modal__footer">
-        <n-button type="primary" @click="confirmUpdateDrawCategory">确定</n-button>
-      </div>
+      <n-button type="primary" @click="confirmUpdateDrawCategory">确定</n-button>
     </template>
-  </n-modal>
-  <n-modal v-model:show="showUpdateDraw" title="图纸信息" preset="card" style="width: 600px">
+  </FormModal>
+  <FormModal v-model:show="showUpdateDraw" title="图纸信息" size="md" height-mode="auto">
     <div class="manage-modal">
       <n-form label-placement="top">
         <n-form-item label="分组">
@@ -205,27 +213,12 @@ onMounted(() => {
       </n-form>
     </div>
     <template #footer>
-      <div class="manage-modal__footer">
-        <n-button type="primary" @click="confirmUpdateDraw">确定</n-button>
-      </div>
+      <n-button type="primary" @click="confirmUpdateDraw">确定</n-button>
     </template>
-  </n-modal>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>
-.manage-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.manage-panel__toolbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .manage-panel__headline {
   font-size: 16px;
   font-weight: 600;
@@ -243,43 +236,7 @@ onMounted(() => {
   gap: 8px;
 }
 
-.manage-table-shell {
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #fff;
-  overflow: hidden;
-}
-
-.manage-table__row-actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
 .manage-modal {
   padding-top: 4px;
-}
-
-.manage-modal__footer {
-  display: flex;
-  justify-content: flex-end;
-}
-
-::v-deep(.manage-table .vxe-table--header-wrapper) {
-  background: #f8fafc;
-}
-
-::v-deep(.manage-table .vxe-header--column) {
-  font-weight: 600;
-  color: #334155;
-}
-
-::v-deep(.manage-table .vxe-body--row:hover) {
-  background: #f8fbff;
-}
-
-::v-deep(.manage-table .vxe-body--column) {
-  height: 46px;
-  color: #1f2937;
 }
 </style>

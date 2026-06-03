@@ -12,10 +12,23 @@ import ModalManage from '@/Layout/Resource/components/ModalManage/index.vue'
 import Project from '@/Layout/Resource/components/Project/index.vue'
 import Test from '@/Layout/Resource/components/test/index.vue'
 import { OverflowMenuHorizontal } from '@vicons/carbon'
+import FormModal from '@/components/FormModal/index.vue'
 
 const showModalManage = ref(false)
 const showDrawManage = ref(false)
+const modalManageKey = ref(0)
+const drawManageKey = ref(0)
 const defExpandNames = ref(['1', '2', '3'])
+
+function openDrawManage() {
+  drawManageKey.value += 1
+  showDrawManage.value = true
+}
+
+function openModalManage() {
+  modalManageKey.value += 1
+  showModalManage.value = true
+}
 </script>
 
 <template>
@@ -23,27 +36,31 @@ const defExpandNames = ref(['1', '2', '3'])
     <n-collapse class="resource-panel__collapse" :default-expanded-names="defExpandNames">
       <n-collapse-item title="图纸" name="1">
         <template #header-extra>
-          <button type="button" class="resource-panel__more" @click.stop="showDrawManage = true">
+          <button type="button" class="resource-panel__more" @click.stop="openDrawManage">
             <n-icon size="18">
               <OverflowMenuHorizontal />
             </n-icon>
           </button>
         </template>
-        <Draw />
+        <div class="resource-menu-scroll">
+          <Draw />
+        </div>
       </n-collapse-item>
       <n-collapse-item title="弹窗" name="2">
         <template #header-extra>
           <button
             type="button"
             class="resource-panel__more"
-            @click.stop="showModalManage = true"
+            @click.stop="openModalManage"
           >
             <n-icon size="18">
               <OverflowMenuHorizontal />
             </n-icon>
           </button>
         </template>
-        <Modal />
+        <div class="resource-menu-scroll">
+          <Modal />
+        </div>
       </n-collapse-item>
       <n-collapse-item title="基础图形" name="3">
         <BasicGraph />
@@ -56,25 +73,22 @@ const defExpandNames = ref(['1', '2', '3'])
       </n-collapse-item>
     </n-collapse>
   </n-scrollbar>
-  <n-modal
-    v-model:show="showDrawManage"
-    style="width: 800px; height: 500px"
-    preset="card"
-    title="图纸管理"
-  >
-    <DrawManage />
-  </n-modal>
-  <n-modal
-    v-model:show="showModalManage"
-    style="width: 800px; height: 500px"
-    preset="card"
-    title="弹窗管理"
-  >
-    <ModalManage />
-  </n-modal>
+  <FormModal v-model:show="showDrawManage" title="图纸管理" size="xl">
+    <DrawManage v-if="showDrawManage" :key="drawManageKey" />
+  </FormModal>
+  <FormModal v-model:show="showModalManage" title="弹窗管理" size="xl">
+    <ModalManage v-if="showModalManage" :key="modalManageKey" />
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>
+.resource-menu-scroll {
+  max-height: min(360px, 42vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .resource-panel__scroll {
   height: 100%;
 }

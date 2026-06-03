@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
 import { clearAuthToken, getAuthToken } from '@/utils/auth'
+import { useScreenApiClient } from '@/utils/displayAccess'
 import {
   beginRequestLoading,
   endRequestLoading,
@@ -17,7 +18,7 @@ service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     beginRequestLoading()
     const headers = config.headers as any
-    headers['x-client-system'] = 'scada'
+    headers['x-client-system'] = useScreenApiClient() ? 'screen' : 'scada'
     const token = getAuthToken()
     if (token) {
       headers['x-token'] = token

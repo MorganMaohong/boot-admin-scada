@@ -14,6 +14,7 @@ import type {
 import FastUpload from '@/components/FastUpload/index.vue'
 import { CanvasLayer, deepClone, LockState } from '@meta2d/core'
 import { useLayerStore } from '@/stores/module/layer.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 const layerStore = useLayerStore()
 const currentTabValue = ref<string>('system')
@@ -150,6 +151,7 @@ function updateTabValue(v: string) {
 }
 
 function confirmDelete() {
+  showDelete.value = false
   if (currentTabValue.value === 'system') {
     MonitorImageService.deleteSystemMonitorImageCategory(
       monitorImageCategoryFormData.value.uid,
@@ -164,8 +166,6 @@ function confirmDelete() {
       if (monitorImageCategoryFormData.value.uid === currentValue.value) currentValue.value = ''
       selectProjectMonitorImageCategory()
     })
-  } else {
-    return
   }
 }
 
@@ -478,31 +478,27 @@ function removeImage() {
     </n-tabs>
   </div>
 
-  <n-modal
-    v-model:show="showAddOrUpdateOptions"
-    preset="card"
-    style="width: 600px"
-    title="新增选项"
-  >
+  <FormModal v-model:show="showAddOrUpdateOptions" title="新增选项" size="md" height-mode="auto">
     <n-form-item label="名称">
       <n-input v-model:value="monitorImageCategoryFormData.name" />
     </n-form-item>
     <template #footer>
-      <div class="flex w-full justify-end">
-        <n-button type="primary" @click="confirmAddOrUpdateOptions">确定</n-button>
-      </div>
+      <n-button type="primary" @click="confirmAddOrUpdateOptions">确定</n-button>
     </template>
-  </n-modal>
-  <n-modal
-    :mask-closable="false"
+  </FormModal>
+  <FormModal
     v-model:show="showDelete"
-    preset="dialog"
-    type="error"
     title="提示信息"
-    content="确定删除吗?"
-    positive-text="确定"
-    @positive-click="confirmDelete"
-  ></n-modal>
+    size="sm"
+    height-mode="auto"
+    :mask-closable="false"
+  >
+    <p>确定删除吗?</p>
+    <template #footer>
+      <n-button @click="showDelete = false">取消</n-button>
+      <n-button type="error" @click="confirmDelete">确定</n-button>
+    </template>
+  </FormModal>
 </template>
 
 <style lang="scss" scoped>

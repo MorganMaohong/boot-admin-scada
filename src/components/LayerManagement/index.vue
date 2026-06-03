@@ -9,6 +9,7 @@ import { useLayerStore } from '@/stores/module/layer.ts'
 import { LockState, deepClone } from '@meta2d/core'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { cleanupMeta2dPens, collectValidMeta2dPens, removeMeta2dPens } from '@/utils/meta2dPens.ts'
+import FormModal from '@/components/FormModal/index.vue'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -244,18 +245,18 @@ function onCopyClick() {
               <LayersFilled />
             </n-icon>-->
     </div>
-    <n-modal v-model:show="showAddOrUpdate" preset="card" style="width: 300px">
-      <n-input v-model:value="layerForm.name" />
-      <div class="flex justify-end mt-2">
-        <n-button size="small" @click="addOrUpdate">确定</n-button>
-      </div>
-    </n-modal>
-    <n-modal v-model:show="showCopy" preset="card" style="width: 300px">
-      <n-input v-model:value="layerForm.name" />
-      <div class="flex justify-end mt-2">
-        <n-button size="small" @click="onCopyClick">确定</n-button>
-      </div>
-    </n-modal>
+    <FormModal v-model:show="showAddOrUpdate" title="图层信息" size="sm" height-mode="auto">
+      <n-input v-model:value="layerForm.name" placeholder="请输入图层名称" />
+      <template #footer>
+        <n-button type="primary" @click="addOrUpdate">确定</n-button>
+      </template>
+    </FormModal>
+    <FormModal v-model:show="showCopy" title="复制图层" size="sm" height-mode="auto">
+      <n-input v-model:value="layerForm.name" placeholder="请输入新图层名称" />
+      <template #footer>
+        <n-button type="primary" @click="onCopyClick">确定</n-button>
+      </template>
+    </FormModal>
   </div>
 </template>
 
