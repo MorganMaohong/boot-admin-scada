@@ -1,4 +1,7 @@
-// FormModal：fixed = 固定高度 + body 滚动 + footer 贴底；auto = 小表单随内容增高
+// FormModal：按 size 高度上限（非全屏）；auto 随内容增高；fixed 内容区滚动 + footer 贴底
+$form-modal-header-height: 57px;
+$form-modal-footer-height: 53px;
+
 .FormModal.n-modal.n-card {
   max-width: 96vw !important;
   display: flex !important;
@@ -45,16 +48,13 @@
   }
 
   .FormModal__shell {
-    flex: 1 1 auto;
-    min-height: 0;
     width: 100%;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
     overflow: hidden;
+    display: grid;
   }
 
   .FormModal__body {
-    flex: 1 1 auto;
     min-height: 0;
     width: 100%;
     overflow-x: hidden;
@@ -85,21 +85,28 @@
     }
   }
 
-  // fixed：占满视口，body 滚动，footer 始终在底部
-  &.FormModal--height-fixed {
-    height: calc(100vh - 48px) !important;
-    max-height: calc(100vh - 48px) !important;
+  // 共用：随内容增高，不超过 --form-modal-max-height（由 size / height prop 注入）
+  &.FormModal--height-fixed,
+  &.FormModal--height-auto {
+    height: auto !important;
+    max-height: var(--form-modal-max-height, calc(100vh - 48px)) !important;
   }
 
+  &.FormModal--height-fixed > .n-card__content,
+  &.FormModal--height-auto > .n-card__content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: calc(var(--form-modal-max-height, calc(100vh - 48px)) - #{$form-modal-header-height});
+  }
+
+  // fixed：内容多时 body 占满剩余空间并滚动，footer 贴底
   &.FormModal--height-fixed .FormModal__shell {
-    display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
     height: 100%;
-    min-height: 0;
+    max-height: calc(var(--form-modal-max-height, calc(100vh - 48px)) - #{$form-modal-header-height});
   }
 
   &.FormModal--height-fixed .FormModal__body {
-    min-height: 0;
     overflow-y: auto;
   }
 
@@ -111,25 +118,30 @@
     align-items: stretch;
   }
 
-  // auto：随内容增高，过高时 body 滚动
-  &.FormModal--height-auto {
-    height: auto !important;
-    max-height: calc(100vh - 48px) !important;
-  }
-
-  &.FormModal--height-auto > .n-card__content {
-    flex: 0 1 auto !important;
-  }
-
+  // auto：字段少时弹窗紧凑；超出上限后 body 内滚动
   &.FormModal--height-auto .FormModal__shell {
-    flex: 0 1 auto;
-    height: auto;
+    grid-template-rows: auto auto;
+    max-height: calc(var(--form-modal-max-height, calc(100vh - 48px)) - #{$form-modal-header-height});
   }
 
   &.FormModal--height-auto .FormModal__body {
     flex: 0 1 auto;
-    max-height: calc(100vh - 48px - 52px - 56px);
+    max-height: calc(
+      var(--form-modal-max-height, calc(100vh - 48px)) - #{$form-modal-header-height} - #{$form-modal-footer-height}
+    );
     overflow-y: auto;
+  }
+
+  // height 覆盖：fixed / auto 均按指定高度展示
+  &.FormModal--height-custom.FormModal--height-fixed .FormModal__shell,
+  &.FormModal--height-custom.FormModal--height-auto .FormModal__shell {
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+  }
+
+  &.FormModal--height-custom.FormModal--height-auto .FormModal__body {
+    flex: 1 1 auto;
+    max-height: none;
   }
 
   .FormModal__body .TemplateModal__split-main {
@@ -153,16 +165,26 @@
   }
 }
 
-// 覆盖全局 naive 对 FormModal 的 content padding
 body .n-modal .n-card.FormModal.n-modal > .n-card__content,
 .n-modal .n-card.FormModal.n-modal > .n-card__content {
   padding: 0 !important;
 }
 
-// FormModal 打开时，提升挂载在 body 上的浮层（n-image 预览等）
 html.FormModal--overlay-active {
-  .n-image-preview-container,
-  .el-image-viewer__wrapper {
+  .n-image-preview-container {
     z-index: var(--form-modal-overlay-z-index) !important;
   }
+
+  // 弹窗内下拉挂 body 时限制菜单高度，避免底部字段展开占满屏
+  .n-tree-select-menu,
+  .n-base-select-menu,
+  .n-cascader-menu {
+    max-height: min(280px, 40vh) !important;
+  }
+}
+
+/* Select / TreeSelect 下拉菜单默认高度上限（与 menu-props 互补） */
+.n-tree-select-menu,
+.n-base-select-menu {
+  max-height: min(280px, 40vh);
 }
