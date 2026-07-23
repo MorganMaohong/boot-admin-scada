@@ -4,14 +4,18 @@
     <Svg404 class="max-w-[32rem] max-h-[32rem] w-full h-full" />
   </div>
   <DisplayModal
+    class="control-var-modal"
+    :class="{ 'control-var-modal--mobile': drawStore.isMobile }"
     :show="showControlVar"
     title="变量控制"
-    width="500px"
+    :width="drawStore.isMobile ? '84%' : '400px'"
+    :height="drawStore.isMobile ? 'calc(100vh - 8px)' : undefined"
     :mask-closable="false"
+    :closable="drawStore.isMobile"
     @update:show="showControlVar = $event"
   >
     <template v-if="showControlVar">
-      <div class="control-var-form">
+      <div class="control-var-form" :class="{ 'control-var-form--mobile': drawStore.isMobile }">
         <label class="control-var-field">
           <span class="control-var-label">变量</span>
           <input
@@ -27,23 +31,52 @@
             :readonly="drawStore.isMobile"
             class="control-var-input"
             placeholder="请输入要写入的值"
-            @click="drawStore.isMobile && (showKey = true)"
+            @click="drawStore.isMobile && openMobileKeypad()"
             @keydown.enter.prevent="writeVar"
           />
         </label>
       </div>
-      <VanNumberKeyboard
-        v-if="drawStore.isMobile && showKey"
-        :show="showKey"
-        @input="onInput"
-        @delete="onDelete"
-        extra-key="."
-        close-button-text="完成"
-        @close="showKey = false"
-      />
+      <div v-if="drawStore.isMobile && showKey" class="control-var-keypad" @dblclick.prevent>
+        <div class="control-var-keypad__keys">
+          <button type="button" class="control-var-keypad__key" @click="onInput('1')">1</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('2')">2</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('3')">3</button>
+          <button
+            type="button"
+            class="control-var-keypad__key control-var-keypad__key--delete"
+            aria-label="删除"
+            @click="onDelete"
+          >
+            ⌫
+          </button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('4')">4</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('5')">5</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('6')">6</button>
+          <button type="button" class="control-var-keypad__key" @click="toggleSign">+/-</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('7')">7</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('8')">8</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('9')">9</button>
+          <button type="button" class="control-var-keypad__key" @click="onInput('.')">.</button>
+          <button
+            type="button"
+            class="control-var-keypad__key control-var-keypad__key--zero"
+            @click="onInput('0')"
+          >
+            0
+          </button>
+          <button
+            type="button"
+            class="control-var-keypad__key control-var-keypad__key--confirm"
+            :disabled="controlVarSubmitting || !canSubmitControlVar"
+            @click="writeVar"
+          >
+            {{ controlVarSubmitting ? '处理中...' : '确定' }}
+          </button>
+        </div>
+      </div>
     </template>
-    <template #footer>
-      <div class="control-var-actions" :class="{ 'control-var-actions--mobile': drawStore.isMobile }">
+    <template v-if="!drawStore.isMobile" #footer>
+      <div class="control-var-actions">
         <button type="button" class="control-var-button" @click="closeControlVar">取消</button>
         <button
           type="button"
@@ -60,7 +93,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { LockState, Meta2d, register, registerAnchors, registerCanvasDraw } from '@meta2d/core'
 import { flowAnchors, flowPens } from '@meta2d/flow-diagram'
 import { activityDiagram, activityDiagramByCtx } from '@meta2d/activity-diagram'
@@ -84,15 +117,11 @@ import Svg404 from '@/assets/error-page/404.svg?component'
 import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
 import DisplayModal from '@/components/DisplayModal.vue'
 import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
+import { registerScadaPens } from '@/meta2d/scadaPens.ts'
 
 const drawStore = useDrawStore()
 const drawPopupStore = useDrawPopupStore()
 const { variableLabels } = useDisplayLabels()
-const VanNumberKeyboard = defineAsyncComponent(async () => {
-  await import('vant/lib/index.css')
-  const mod = await import('vant')
-  return mod.NumberKeyboard
-})
 const meta2dOptions: any = {
   rule: true,
 }
@@ -109,7 +138,9 @@ const showMeta2d = ref(true)
 const resizeTimer = ref(0)
 const fitViewTimer = ref(0)
 let fullscreenChangeHandler: (() => void) | null = null
-let controlVarHandler: ((payload: { pen?: { value?: string | number | null }; params: { key: string } }) => void) | null = null
+let controlVarHandler:
+  | ((payload: { pen?: { value?: string | number | null }; params: { key: string } }) => void)
+  | null = null
 const canSubmitControlVar = computed(() => {
   const value = controlVarFormData.value.value
   return value !== undefined && value !== null && String(value).trim() !== ''
@@ -119,6 +150,7 @@ const controlVarDisplayName = computed(() => {
   if (!key) return ''
   return variableLabels.value[String(key)] || key
 })
+const keypadFresh = ref(true)
 let metaRegistered = false
 
 function runFitView(delay = 0) {
@@ -150,13 +182,19 @@ onMounted(() => {
       if (screenPreview && data.projectName) {
         document.title = data.projectName
       }
-      init()
-      if (screenPreview && data.varCacheData) {
-        drawStore.cacheData = { data: data.varCacheData }
-        drawStore.process(drawStore.cacheData)
+      try {
+        init()
+        if (screenPreview && data.varCacheData) {
+          drawStore.cacheData = { data: data.varCacheData }
+          drawStore.process(drawStore.cacheData)
+        }
+      } catch (error) {
+        console.error('[scada-display] 初始化失败', error)
+        window.$message?.error('组态画面初始化失败，请检查控制台错误')
       }
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error('[scada-display] 加载画面失败', error)
       showMeta2d.value = false
     })
   window.addEventListener('resize', resize)
@@ -168,6 +206,8 @@ onMounted(() => {
         value: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
         currentValue: pen?.value !== undefined && pen?.value !== null ? String(pen.value) : '',
       }
+      keypadFresh.value = true
+      showKey.value = drawStore.isMobile
     }
     emitter.on('showControlVar', controlVarHandler)
   }
@@ -184,11 +224,27 @@ function detectWeChatMiniProgram() {
 }
 
 function onInput(val: string) {
-  controlVarFormData.value.value += String(val)
+  controlVarFormData.value.value = keypadFresh.value
+    ? String(val)
+    : `${controlVarFormData.value.value}${String(val)}`
+  keypadFresh.value = false
 }
 
 function onDelete() {
   controlVarFormData.value.value = controlVarFormData.value.value.slice(0, -1)
+  keypadFresh.value = false
+}
+
+function toggleSign() {
+  const value = controlVarFormData.value.value
+  if (!value) return
+  controlVarFormData.value.value = value.startsWith('-') ? value.slice(1) : `-${value}`
+  keypadFresh.value = false
+}
+
+function openMobileKeypad() {
+  keypadFresh.value = true
+  showKey.value = true
 }
 
 function closeControlVar() {
@@ -197,6 +253,11 @@ function closeControlVar() {
 }
 
 function init() {
+  if (!monitorDraw.value?.draw?.data) {
+    showMeta2d.value = false
+    return
+  }
+
   new Meta2d('meta2d', meta2dOptions)
   installMeta2dSafetyGuards()
 
@@ -216,6 +277,8 @@ function init() {
     registerAnchors(ftaAnchors())
     metaRegistered = true
   }
+  // Meta2d 每次新建实例都会重置内置 gif 路径，需要重新覆盖为 Canvas GIF。
+  registerScadaPens()
 
   const data = JSON.parse(monitorDraw.value.draw.data)
   data.locked = LockState.DisableEdit
@@ -314,7 +377,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 #meta2d {
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   z-index: 1;
   overflow: hidden;
 }
@@ -329,6 +392,38 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.control-var-form--mobile {
+  flex-direction: row;
+  gap: 16px;
+  margin: 0;
+  padding: 10px 12px 12px;
+  background: #fff;
+}
+
+.control-var-form--mobile .control-var-field {
+  width: 0;
+  flex: 1 1 0;
+}
+
+.control-var-form--mobile .control-var-label {
+  font-size: 14px;
+  color: #334155;
+}
+
+.control-var-form--mobile .control-var-input {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.control-var-form--mobile .control-var-field:last-child .control-var-input {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .control-var-label {
@@ -338,6 +433,7 @@ onUnmounted(() => {
 }
 
 .control-var-input {
+  box-sizing: border-box;
   width: 100%;
   min-height: 40px;
   padding: 9px 12px;
@@ -390,5 +486,125 @@ onUnmounted(() => {
   border-color: #2563eb;
   background: #2563eb;
   color: #fff;
+}
+
+.control-var-keypad {
+  margin-top: 6px;
+  padding: 8px 12px 10px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+:global(.display-modal.control-var-modal--mobile .display-modal__panel) {
+  width: 94vw !important;
+  height: calc(100vh - 8px) !important;
+  max-height: calc(100vh - 8px) !important;
+}
+
+:global(.display-modal.control-var-modal--mobile .display-modal__body) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  padding: 6px 8px 8px;
+  overflow: hidden;
+}
+
+:global(.display-modal.control-var-modal--mobile .display-modal__header) {
+  position: relative;
+  justify-content: center;
+  padding: 6px 12px;
+}
+
+:global(.display-modal.control-var-modal--mobile .display-modal__title) {
+  flex: none;
+  text-align: center;
+  font-size: 18px;
+}
+
+:global(.display-modal.control-var-modal--mobile .display-modal__close) {
+  position: absolute;
+  right: 14px;
+}
+
+.control-var-keypad__keys {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.control-var-keypad__key {
+  min-height: 0;
+  height: auto;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 21px;
+  line-height: 1;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-var-keypad__key:active {
+  background: #dbeafe;
+}
+
+.control-var-keypad__key--delete {
+  font-size: 24px;
+}
+
+.control-var-keypad__key--zero {
+  grid-column: span 3;
+}
+
+.control-var-keypad__key--confirm {
+  background: #2563eb;
+  color: #fff;
+  font-size: 16px;
+}
+
+.control-var-keypad__key--confirm:disabled {
+  opacity: 0.55;
+}
+
+.control-var-modal--mobile .control-var-keypad {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: auto;
+  margin: 6px 0 0;
+}
+
+@media (max-height: 480px) {
+  .control-var-form--mobile {
+    gap: 8px;
+    padding: 4px 8px 6px;
+  }
+
+  .control-var-form--mobile .control-var-label {
+    font-size: 12px;
+  }
+
+  .control-var-form--mobile .control-var-input {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 14px;
+  }
+
+  .control-var-keypad {
+    padding: 6px 8px 8px;
+  }
+
+  .control-var-keypad__keys {
+    gap: 6px;
+  }
 }
 </style>

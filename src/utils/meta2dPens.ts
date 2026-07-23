@@ -125,6 +125,36 @@ export function combineTreeOrderToRenderOrder(treeOrderedPens: any[]) {
 /** @deprecated 使用 combineTreeOrderToRenderOrder */
 export const plainCombineTreeOrderToRenderOrder = combineTreeOrderToRenderOrder
 
+function getExternalPenLayerTargets(pens: any[]) {
+  return pens.flatMap((pen: any, index: number) => {
+    if (!pen?.externElement || pen?.name === 'gif') return []
+    const hasCanvasPenAbove = pens.slice(index + 1).some((nextPen: any) => {
+      return !nextPen?.externElement || nextPen?.name === 'gif'
+    })
+
+    // Meta2d 普通图元位于 z-index: 3 的 Canvas，背景/模板位于 1。
+    // GIF 是 Canvas 外的 DOM，因此用 2 表示“普通图元下方、背景上方”，
+    // 用 6 表示“所有普通图元上方”。
+    return [{ pen, zIndex: hasCanvasPenAbove ? 2 : 6 }]
+  })
+}
+
+function applyExternalPenLayerTargets(
+  targets: Array<{ pen: any; zIndex: number }>,
+) {
+  const setValue = (meta2d as any).setValue?.bind(meta2d)
+  if (!setValue) return
+  const runtimePenMap = getRuntimePenMap()
+  targets.forEach(({ pen, zIndex }) => {
+    const runtimePen = runtimePenMap[getPenId(pen)]
+    if (!runtimePen?.calculative?.canvas) return
+    setValue(
+      { id: runtimePen.id, zIndex },
+      { render: false, doEvent: false, history: false },
+    )
+  })
+}
+
 export function getSharedCombineParent(pens: any[]) {
   if (!pens?.length) return null
   const parents = pens.map(getCombineParentPen).filter(Boolean)
@@ -180,6 +210,7 @@ export function reorderCombineChildPens(
     })
   pens.splice(blockStart, 0, ...movedPens)
   parent.children = nextIds
+  applyExternalPenLayerTargets(getExternalPenLayerTargets(pens))
 
   if (options.render !== false) meta2d.render()
   return { changed: true }
@@ -392,11 +423,14 @@ export function reorderMeta2dPens(nextPens: any[]) {
     orderedPens.push(pen)
   })
 
+  const externalLayerTargets = getExternalPenLayerTargets(orderedPens)
+
   orderedPens.forEach(normalizeImagePenLayer)
   currentPens.splice(0, currentPens.length, ...orderedPens)
   if (meta2d.store?.data?.pens && meta2d.store.data.pens !== currentPens) {
     meta2d.store.data.pens = currentPens
   }
+  applyExternalPenLayerTargets(externalLayerTargets)
   meta2d.render()
 
   return {
@@ -488,6 +522,23 @@ export function installMeta2dSafetyGuards(meta2dInstance = meta2d) {
   if (!target?.canvas || target[SAFETY_GUARD_FLAG]) return
   target[SAFETY_GUARD_FLAG] = true
 
+  const normalizeLegacyCanvasGifPen = (pen: any) => {
+    if (!pen || typeof pen !== 'object') return pen
+    if (pen.name === 'gif') {
+      delete pen.externElement
+      delete pen.zIndex
+      return pen
+    }
+    if (pen.name !== 'canvasGif' && !(pen.name === 'image' && pen.canvasGif)) return pen
+    pen.name = 'gif'
+    pen.image = pen.gifUrl || pen.image
+    delete pen.externElement
+    delete pen.zIndex
+    delete pen.gifUrl
+    delete pen.canvasGif
+    return pen
+  }
+
   const originalSetValue = target.setValue?.bind(target)
   if (originalSetValue) {
     target.setValue = (value: any, ...args: any[]) => {
@@ -502,9 +553,15 @@ export function installMeta2dSafetyGuards(meta2dInstance = meta2d) {
   if (originalOpen) {
     target.open = (data: any, ...args: any[]) => {
       if (data?.pens && Array.isArray(data.pens)) {
+        const pens = data.pens.map((pen: any) =>
+          normalizeLegacyCanvasGifPen(sanitizePenSizePatch(pen)),
+        )
+        getExternalPenLayerTargets(pens).forEach(({ pen, zIndex }) => {
+          pen.zIndex = zIndex
+        })
         data = {
           ...data,
-          pens: data.pens.map((pen: any) => sanitizePenSizePatch(pen)),
+          pens,
         }
       }
       return originalOpen(data, ...args)

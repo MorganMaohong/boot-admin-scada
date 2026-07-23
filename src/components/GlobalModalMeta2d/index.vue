@@ -13,6 +13,7 @@ import { getUrlParams } from '@/utils'
 import { MonitorDrawService } from '@/services/MonitorDrawService.ts'
 import { useDrawStore } from '@/stores/module/draw.ts'
 import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
+import { registerScadaPens } from '@/meta2d/scadaPens.ts'
 
 let meta2ds = null
 const monitorDraw = ref()
@@ -44,7 +45,6 @@ onUnmounted(() => {
   meta2ds = null
 })
 
-
 function init() {
   if (!monitorDraw.value?.data) return
   meta2ds?.destroy()
@@ -67,6 +67,7 @@ function init() {
   register(ftaPens())
   registerCanvasDraw(ftaPensbyCtx())
   registerAnchors(ftaAnchors())
+  registerScadaPens()
 
   // 注册其他自定义图形库
   // ...

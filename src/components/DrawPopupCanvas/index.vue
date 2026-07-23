@@ -11,6 +11,7 @@ import { chartsPens } from '@meta2d/le5le-charts'
 import { ftaAnchors, ftaPens, ftaPensbyCtx } from '@meta2d/fta-diagram'
 import type { ProjectMonitorDraw } from '@/model/draw'
 import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
+import { registerScadaPens } from '@/meta2d/scadaPens.ts'
 
 const props = defineProps<{
   draw: ProjectMonitorDraw
@@ -144,6 +145,7 @@ function registerLibraries() {
   register(ftaPens())
   registerCanvasDraw(ftaPensbyCtx())
   registerAnchors(ftaAnchors())
+  registerScadaPens()
 }
 </script>
 

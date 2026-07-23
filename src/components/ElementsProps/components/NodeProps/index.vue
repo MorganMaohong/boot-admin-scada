@@ -50,6 +50,7 @@ import {
   syncEventsWithPenBinding,
 } from '@/components/ElementsProps/penBindingSync.ts'
 import FormModal from '@/components/FormModal/index.vue'
+import { isScadaAtomPen, isScadaValuePen, normalizeScadaAtomPen } from '@/meta2d/scadaPens.ts'
 
 const { select, selections, selects } = useSelection()
 const appStore = useAppStore()
@@ -165,7 +166,11 @@ function getPen() {
     pen.value.defVisible = true
     changePen(true, 'defVisible')
   }
-
+  const scadaAtomPatch = normalizeScadaAtomPen(pen.value)
+  if (scadaAtomPatch) {
+    Object.assign(pen.value, scadaAtomPatch)
+    meta2d.setValue({ id: pen.value.id, ...scadaAtomPatch }, { render: true })
+  }
   events.value = pen.value.events || []
   datas.value = pen.value.datas || []
   const sourcePenId = pen.value?.[COPY_SOURCE_ID_KEY] ? String(pen.value[COPY_SOURCE_ID_KEY]) : ''
@@ -219,6 +224,46 @@ function changePen(value: any, prop: string) {
   meta2d.setValue(v, { render: true })
 }
 
+function changeTextContent(value: string) {
+  if (pen.value?.name === 'text' && Number(pen.value.letterSpacing || 0) !== 0) {
+    pen.value.scadaText = value
+    pen.value.text = ''
+    meta2d.setValue({ id: pen.value.id, scadaText: value, text: '' }, { render: true })
+    return
+  }
+  pen.value.scadaText = undefined
+  changePen(value, 'text')
+}
+
+function changeLetterSpacing(value: number | null) {
+  const nextValue = Number(value || 0)
+  pen.value.letterSpacing = nextValue
+
+  if (pen.value?.name !== 'text') {
+    changePen(nextValue, 'letterSpacing')
+    return
+  }
+
+  const patch: any = {
+    id: pen.value.id,
+    letterSpacing: nextValue,
+  }
+
+  if (nextValue !== 0) {
+    patch.scadaText = pen.value.scadaText ?? pen.value.text ?? ''
+    patch.text = ''
+    pen.value.scadaText = patch.scadaText
+    pen.value.text = ''
+  } else if (pen.value.scadaText !== undefined) {
+    patch.text = pen.value.scadaText
+    patch.scadaText = undefined
+    pen.value.text = patch.text
+    pen.value.scadaText = undefined
+  }
+
+  meta2d.setValue(patch, { render: true })
+}
+
 function syncStatefulChildrenConfig(render = true) {
   if (!pen.value?.id || pen.value.showChild === undefined) {
     showChildStateValue.value = ''
@@ -253,6 +298,15 @@ const penStateChildren = computed(() => {
       value: item.value,
     }
   })
+})
+
+const isSelectedScadaAtom = computed(() => isScadaAtomPen(pen.value))
+const isSelectedScadaValue = computed(() => isScadaValuePen(pen.value))
+const textEditorValue = computed(() => {
+  if (pen.value?.name === 'text' && pen.value.scadaText !== undefined) {
+    return pen.value.scadaText
+  }
+  return pen.value?.text || ''
 })
 
 function updateChildStateValue(childId: string, value: string) {
@@ -685,7 +739,10 @@ onUnmounted(() => {
   <div class="element-props w-full h-full" :key="KEY">
     <n-tabs class="element-props__tabs" v-model:value="activeTab" @update:value="updateTabs">
       <n-tab-pane name="appearance" tab="外观" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar class="element-props__scroll" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+        <n-scrollbar
+          class="element-props__scroll"
+          :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
+        >
           <n-form
             class="element-props__form"
             label-placement="left"
@@ -693,7 +750,53 @@ onUnmounted(() => {
             label-align="left"
             v-if="pen && rect"
           >
-            <n-collapse class="element-props__collapse" :default-expanded-names="['1', '2', '3']">
+            <n-collapse
+              class="element-props__collapse"
+              :default-expanded-names="['1', '2', '3', '4']"
+            >
+              <n-collapse-item v-if="isSelectedScadaAtom" title="组态组件" name="4">
+                <n-form-item v-if="pen.name === 'scadaBadge'" label="显示文字">
+                  <n-input
+                    v-model:value="pen.scadaText"
+                    placeholder="例如 1"
+                    @update:value="changePen($event, 'scadaText')"
+                  />
+                </n-form-item>
+                <template v-if="isSelectedScadaValue">
+                  <n-form-item label="空值显示">
+                    <n-input
+                      v-model:value="pen.scadaEmptyText"
+                      placeholder="例如 --"
+                      @update:value="changePen($event, 'scadaEmptyText')"
+                    />
+                  </n-form-item>
+                  <n-form-item label="小数位">
+                    <n-input-number
+                      v-model:value="pen.scadaPrecision"
+                      :min="0"
+                      :max="6"
+                      placeholder="不填则原样显示"
+                      @update:value="changePen($event, 'scadaPrecision')"
+                    />
+                  </n-form-item>
+                </template>
+                <n-form-item v-if="pen.name === 'scadaCard'" label="阴影">
+                  <n-switch
+                    v-model:value="pen.scadaShadow"
+                    @update:value="changePen($event, 'scadaShadow')"
+                  />
+                </n-form-item>
+                <n-form-item v-if="pen.name === 'scadaDivider'" label="方向">
+                  <n-select
+                    :options="[
+                      { label: '横向', value: 'horizontal' },
+                      { label: '纵向', value: 'vertical' },
+                    ]"
+                    v-model:value="pen.scadaDirection"
+                    @update:value="changePen($event, 'scadaDirection')"
+                  />
+                </n-form-item>
+              </n-collapse-item>
               <n-collapse-item title="样式" name="2">
                 <n-form-item label="背景颜色">
                   <color-picker
@@ -789,11 +892,15 @@ onUnmounted(() => {
               </n-collapse-item>
               <n-collapse-item title="文字" name="3">
                 <n-input
+                  v-if="!isSelectedScadaAtom"
                   type="textarea"
-                  v-model:value="pen.text"
-                  @update:value="changePen($event, 'text')"
+                  :value="textEditorValue"
+                  @update:value="changeTextContent"
                   class="mb-[12px]"
                 />
+                <n-text v-else depth="3" class="text-xs">
+                  组态组件不使用原生文字，请在“组态组件”配置里设置显示内容。
+                </n-text>
                 <n-form-item label="文字大小">
                   <n-input-number
                     v-model:value="pen.fontSize"
@@ -801,15 +908,25 @@ onUnmounted(() => {
                     min="0"
                   />
                 </n-form-item>
+                <n-form-item label="字间距">
+                  <n-input-number
+                    v-model:value="pen.letterSpacing"
+                    @update:value="changeLetterSpacing"
+                    :step="1"
+                    placeholder="默认 0"
+                  />
+                </n-form-item>
                 <n-form-item label="水平对齐">
                   <n-select
                     :options="TextAlignOptions"
+                    v-model:value="pen.textAlign"
                     @update:value="changePen($event, 'textAlign')"
                   />
                 </n-form-item>
                 <n-form-item label="垂直对齐">
                   <n-select
                     :options="TextBaselineEnumOptions"
+                    v-model:value="pen.textBaseline"
                     @update:value="changePen($event, 'textBaseline')"
                   />
                 </n-form-item>
@@ -960,7 +1077,10 @@ onUnmounted(() => {
         </n-scrollbar>
       </n-tab-pane>
       <n-tab-pane name="event" tab="事件" ref="tabPaneRef" class="w-full h-full">
-        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+        <n-scrollbar
+          class="element-props__scroll p-2 right-0"
+          :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
+        >
           <n-form
             class="element-props__form"
             v-if="pen?.id"
@@ -1064,7 +1184,10 @@ onUnmounted(() => {
         </n-form>
       </n-tab-pane>
       <n-tab-pane name="data" tab="数据" class="w-full h-full" ref="tabPaneRef">
-        <n-scrollbar class="element-props__scroll p-2 right-0" :style="{ maxHeight: `${maxTabPaneHeightRef}px` }">
+        <n-scrollbar
+          class="element-props__scroll p-2 right-0"
+          :style="{ maxHeight: `${maxTabPaneHeightRef}px` }"
+        >
           <n-form
             class="element-props__form"
             v-if="pen?.id"

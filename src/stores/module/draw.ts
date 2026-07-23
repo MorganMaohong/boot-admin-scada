@@ -78,7 +78,11 @@ export const useDrawStore = defineStore('draw', () => {
       if (cond.valueType === ValueTypeEnum.varValue) {
         if (cond.prop === 'showChild') {
           const resolved = resolveShowChildIndex(pen, value)
-          if (!resolved.matched || resolved.index === undefined || pen[cond.prop] === resolved.index) {
+          if (
+            !resolved.matched ||
+            resolved.index === undefined ||
+            pen[cond.prop] === resolved.index
+          ) {
             continue
           }
           meta2d.setValue({ id: pen.id, [cond.prop]: resolved.index }, { render: true })
@@ -93,7 +97,11 @@ export const useDrawStore = defineStore('draw', () => {
       if (cond.valueType === ValueTypeEnum.customValue) {
         if (cond.prop === 'showChild') {
           const resolved = resolveShowChildIndex(pen, cond.propValue)
-          if (!resolved.matched || resolved.index === undefined || pen[cond.prop] === resolved.index) {
+          if (
+            !resolved.matched ||
+            resolved.index === undefined ||
+            pen[cond.prop] === resolved.index
+          ) {
             continue
           }
           meta2d.setValue({ id: pen.id, [cond.prop]: resolved.index }, { render: true })

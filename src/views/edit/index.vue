@@ -46,7 +46,14 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Pen } from '@meta2d/core'
-import { deepClone, Meta2d, register, registerAnchors, registerCanvasDraw, LockState } from '@meta2d/core'
+import {
+  deepClone,
+  Meta2d,
+  register,
+  registerAnchors,
+  registerCanvasDraw,
+  LockState,
+} from '@meta2d/core'
 import { flowPens, flowAnchors } from '@meta2d/flow-diagram'
 import { activityDiagram, activityDiagramByCtx } from '@meta2d/activity-diagram'
 import { classPens } from '@meta2d/class-diagram'
@@ -76,11 +83,9 @@ import {
 import { ensureChildStateValues } from '@/utils/statefulChildren.ts'
 import { normalizePenLayerUid, syncPenStateWithLayer } from '@/utils/layer.ts'
 import { syncEventsWithPenBinding } from '@/components/ElementsProps/penBindingSync.ts'
-import {
-  normalizeDrawPayload,
-  scheduleCaptureDrawEditSnapshot,
-} from '@/utils/drawEditState.ts'
+import { normalizeDrawPayload, scheduleCaptureDrawEditSnapshot } from '@/utils/drawEditState.ts'
 import { exitLineDrawTools } from '@/utils/drawLineTool.ts'
+import { registerScadaPens } from '@/meta2d/scadaPens.ts'
 
 const drawStore = useDrawStore()
 const layerStore = useLayerStore()
@@ -154,7 +159,7 @@ function init() {
   registerCanvasDraw(ftaPensbyCtx())
   registerAnchors(ftaAnchors())
   // 注册其他自定义图形库
-  // ...
+  registerScadaPens()
 
   const draw = drawStore.draw
   if (!draw) {

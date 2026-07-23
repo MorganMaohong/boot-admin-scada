@@ -10,7 +10,11 @@
     <div class="control-var-form">
       <label class="control-var-field">
         <span class="control-var-label">变量</span>
-        <input :value="controlVarFormData.key" class="control-var-input control-var-input--readonly" readonly />
+        <input
+          :value="controlVarFormData.key"
+          class="control-var-input control-var-input--readonly"
+          readonly
+        />
       </label>
       <label class="control-var-field">
         <span class="control-var-label">变量值</span>
@@ -34,7 +38,10 @@
       @close="showKey = false"
     />
     <template #footer>
-      <div class="control-var-actions" :class="{ 'control-var-actions--mobile': drawStore.isMobile }">
+      <div
+        class="control-var-actions"
+        :class="{ 'control-var-actions--mobile': drawStore.isMobile }"
+      >
         <button type="button" class="control-var-button" @click="closeControlVar">取消</button>
         <button
           type="button"
@@ -81,6 +88,7 @@ import { useDrawPopupStore } from '@/stores/module/drawPopup.ts'
 import DrawPopupHost from '@/components/DrawPopupHost/index.vue'
 import DisplayModal from '@/components/DisplayModal.vue'
 import { installMeta2dSafetyGuards } from '@/utils/meta2dPens.ts'
+import { registerScadaPens } from '@/meta2d/scadaPens.ts'
 
 const drawStore = useDrawStore()
 const drawPopupStore = useDrawPopupStore()
@@ -172,6 +180,7 @@ function init() {
   register(ftaPens())
   registerCanvasDraw(ftaPensbyCtx())
   registerAnchors(ftaAnchors())
+  registerScadaPens()
 
   const data = JSON.parse(monitorDraw.value.draw.data)
   data.locked = 1

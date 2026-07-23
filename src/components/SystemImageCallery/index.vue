@@ -41,6 +41,7 @@ interface ImageSize {
 
 const defaultInsertSize: ImageSize = { width: 200, height: 200 }
 const maxInsertSize = 240
+const galleryColumnCount = 8
 
 onMounted(() => {
   selectSystemMonitorImageCategory()
@@ -56,6 +57,11 @@ function getDisplayUrl(image?: MonitorImageItem) {
 
 function getPreviewUrl(image?: MonitorImageItem) {
   return image?.displayUrl || image?.originUrl || image?.url || ''
+}
+
+function getPreviewPlacement(index: number): 'left-start' | 'right-start' {
+  const columnIndex = index % galleryColumnCount
+  return columnIndex >= galleryColumnCount - 2 ? 'left-start' : 'right-start'
 }
 
 function selectSystemMonitorImageCategory() {
@@ -338,15 +344,16 @@ function removeImage() {
                       @mouseleave="currentImageIndex = null"
                       @click="updateImageValue(item.uid)"
                     >
-                      <n-popover style="padding: 4px" trigger="hover" placement="right-start">
+                      <n-popover
+                        style="padding: 4px"
+                        trigger="hover"
+                        :placement="getPreviewPlacement(index)"
+                      >
                         <template #trigger>
                           <n-image :src="getThumbUrl(item)" preview-disabled />
                         </template>
                         <div>
-                          <img
-                            :src="getPreviewUrl(item)"
-                            style="max-width: 200px; max-height: 200px"
-                          />
+                          <img class="gallery-image-preview" :src="getPreviewUrl(item)" />
                         </div>
                       </n-popover>
                     </div>
@@ -435,15 +442,16 @@ function removeImage() {
                       @mouseleave="currentImageIndex = null"
                       @click="updateImageValue(item.uid)"
                     >
-                      <n-popover style="padding: 4px" trigger="hover" placement="right-start">
+                      <n-popover
+                        style="padding: 4px"
+                        trigger="hover"
+                        :placement="getPreviewPlacement(index)"
+                      >
                         <template #trigger>
                           <n-image :src="getThumbUrl(item)" preview-disabled />
                         </template>
                         <div>
-                          <img
-                            :src="getPreviewUrl(item)"
-                            style="max-width: 200px; max-height: 200px"
-                          />
+                          <img class="gallery-image-preview" :src="getPreviewUrl(item)" />
                         </div>
                       </n-popover>
                     </div>
@@ -590,6 +598,13 @@ function removeImage() {
 .gallery-image-item--active {
   border-color: #bfdbfe;
   background: #f8fbff;
+}
+
+.gallery-image-preview {
+  display: block;
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
 }
 
 .gallery-layout__footer {

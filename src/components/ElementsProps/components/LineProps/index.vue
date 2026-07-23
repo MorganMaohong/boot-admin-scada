@@ -19,7 +19,7 @@ import { ColorPicker } from 'vue3-colorpicker'
 import { Copy, Edit } from '@vicons/carbon'
 import DataProps from '@/components/ElementsProps/components/DataProps/index.vue'
 import { MdTrash } from '@vicons/ionicons4'
-import { LockState, s8 } from '@meta2d/core'
+import { LineAnimateType, LockState, s8 } from '@meta2d/core'
 import DataFormProps from '@/components/ElementsProps/components/DataFormProps/index.vue'
 import EventFormProps from '@/components/ElementsProps/components/EventFormProps/index.vue'
 import EventProps from '@/components/ElementsProps/components/EventProps/index.vue'
@@ -84,6 +84,15 @@ const eventNames = computed(() => {
 
 const dataNames = computed(() => {
   return displayDatas.value.map((item) => item.id)
+})
+
+const nextAnimateOptions = computed(() => {
+  return pens.value
+    .filter((item: any) => item?.id && item.id !== pen.value?.id)
+    .map((item: any) => ({
+      label: item.nickname || item.name || item.id,
+      value: item.id,
+    }))
 })
 
 const displayDatas = computed(() => {
@@ -712,8 +721,9 @@ onUnmounted(() => {
             </n-form-item>
             <n-form-item label="动画线宽">
               <n-input-number
-                v-model:value="pen.lineWidth"
-                @update:value="changePen($event, 'lineWidth')"
+                v-model:value="pen.animateLineWidth"
+                @update:value="changePen($event, 'animateLineWidth')"
+                :min="1"
               />
             </n-form-item>
             <n-form-item label="动画颜色">
@@ -723,7 +733,23 @@ onUnmounted(() => {
               />
             </n-form-item>
             <n-form-item label="动画发光">
-              <n-switch />
+              <n-switch
+                v-model:value="pen.animateShadow"
+                @update:value="changePen($event, 'animateShadow')"
+              />
+            </n-form-item>
+            <n-form-item v-if="pen.animateShadow" label="发光模糊">
+              <n-input-number
+                v-model:value="pen.animateShadowBlur"
+                @update:value="changePen($event, 'animateShadowBlur')"
+                :min="0"
+              />
+            </n-form-item>
+            <n-form-item v-if="pen.animateShadow" label="发光颜色">
+              <color-picker
+                v-model:pureColor="pen.animateShadowColor"
+                @update:pureColor="changePen($event, 'animateShadowColor')"
+              />
             </n-form-item>
             <n-form-item label="动画速度">
               <n-input-number
@@ -732,6 +758,21 @@ onUnmounted(() => {
                 :show-button="false"
                 min="0"
                 max="5"
+              />
+            </n-form-item>
+            <n-form-item label="动画间隔">
+              <n-input-number
+                v-model:value="pen.animateInterval"
+                @update:value="changePen($event, 'animateInterval')"
+                :min="0"
+              />
+            </n-form-item>
+            <n-form-item v-if="pen.lineAnimateType === LineAnimateType.Dot" label="圆点尺寸">
+              <n-input-number
+                v-model:value="pen.animateDotSize"
+                @update:value="changePen($event, 'animateDotSize')"
+                :min="1"
+                :max="40"
               />
             </n-form-item>
             <n-form-item label="反向流动">
@@ -747,7 +788,16 @@ onUnmounted(() => {
                 @update:value="changePen($event, 'animateCycle')"
               />
             </n-form-item>
-            <n-form-item label="下个动画"></n-form-item>
+            <n-form-item label="下个动画">
+              <n-select
+                v-model:value="pen.nextAnimate"
+                :options="nextAnimateOptions"
+                clearable
+                filterable
+                placeholder="当前动画结束后播放"
+                @update:value="changePen($event, 'nextAnimate')"
+              />
+            </n-form-item>
             <n-form-item label="自动播放">
               <n-switch
                 v-model:value="pen.autoPlay"

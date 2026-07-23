@@ -207,6 +207,70 @@ const data = ref<BasicGraph[]>([
       text: '文本',
     },
   },
+  {
+    name: '卡片',
+    icon: 'rectangle',
+    id: 20,
+    data: {
+      width: 280,
+      height: 180,
+      name: 'scadaCard',
+      text: '',
+      background: '#ffffff',
+      color: '#dbe4ef',
+      lineWidth: 1,
+      borderRadius: 8,
+      scadaShadow: true,
+    },
+  },
+  {
+    name: '序号圆点',
+    icon: 'circle',
+    id: 21,
+    data: {
+      width: 46,
+      height: 46,
+      name: 'scadaBadge',
+      text: '',
+      scadaText: '1',
+      background: '#0f9f8f',
+      color: '#0f9f8f',
+      textColor: '#ffffff',
+      fontSize: 22,
+      fontWeight: 700,
+    },
+  },
+  {
+    name: '数值',
+    icon: 'text',
+    id: 22,
+    data: {
+      width: 90,
+      height: 32,
+      name: 'scadaValue',
+      text: '',
+      textColor: '#0f172a',
+      fontSize: 22,
+      fontWeight: 700,
+      textAlign: 'right',
+      textBaseline: 'middle',
+      scadaEmptyText: '--',
+      scadaPrecision: 2,
+    },
+  },
+  {
+    name: '分割线',
+    icon: 'line',
+    id: 23,
+    data: {
+      width: 220,
+      height: 8,
+      name: 'scadaDivider',
+      color: '#e2e8f0',
+      lineWidth: 1,
+      scadaDirection: 'horizontal',
+    },
+  },
 ])
 onMounted(() => {
   // 合并 sss 到每个 data 中
@@ -241,11 +305,7 @@ const dragStart = (e: any, elem: any) => {
 <template>
   <n-grid :cols="3" x-gap="8" y-gap="8">
     <n-gi v-for="item in data">
-      <div
-        class="resource-graph-item"
-        :draggable="true"
-        @dragstart="dragStart($event, item)"
-      >
+      <div class="resource-graph-item" :draggable="true" @dragstart="dragStart($event, item)">
         <SvgIcon :name="item.icon" size="28" />
         <div class="resource-graph-item__label">
           {{ item.name }}

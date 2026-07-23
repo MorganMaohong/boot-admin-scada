@@ -1,7 +1,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 
 /** 管理弹窗内 vxe-table 高度：随容器 ResizeObserver 自适应，保证内部滚动 */
-export function useManageTableHeight(containerRef: Ref<HTMLElement | null>, min = 200) {
+export function useManageTableHeight(containerRef: Ref<HTMLElement | null>, min = 400) {
   const height = ref(min)
   let observer: ResizeObserver | null = null
 
